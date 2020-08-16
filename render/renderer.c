@@ -30,6 +30,7 @@ int drawRect(Vector2I off, Renderer *r, Frame * src) {
 int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     Frame des = rendererDrawBuffer(r);
 
+    Mat3 inv = mat3Inverse(&t);
     // Transform 4 points of frame to frame buffer space
     Vec2f a = (Vec2f){0,0};
     Vec2f b = (Vec2f){src->size.x,0};
@@ -52,7 +53,14 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
         for (int x = minX; x < maxX; x++) {
             //Transform the coordinate back to sprite space
             Vector2I desPos = {x,y};
-            frameDraw(&des, desPos, PIXELBLACK);
+            Vec2f desPosF = vecItoF(desPos);
+            Vec2f srcPosF = transformMultiply(&desPosF,&inv);
+            if (srcPosF.x < 0) continue;
+            if (srcPosF.y < 0) continue;
+            if (srcPosF.x >= src->size.x) continue;
+            if (srcPosF.y >= src->size.y) continue;
+            Pixel color = frameRead(src, vecFtoI(srcPosF));
+            frameDraw(&des, desPos, color);
         }
     }
 

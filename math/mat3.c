@@ -106,3 +106,44 @@ int transformIsOnlyTranslation(Mat3 *m )
     if (m->elements[8] != 1.0) return 0;
     return 1;
 }
+
+T mat3Determinant(Mat3 * mat)
+{
+    T * m = mat->elements;
+    return m[0] * (m[4] * m[8] - m[5] * m[7]) -
+           m[3] * (m[3] * m[8] - m[5] * m[6]) +
+           m[6] * (m[3] * m[7] - m[4] * m[6]);
+}
+
+Mat3 mat3Inverse(Mat3 *v)
+{
+    T * b = v->elements;
+    T s = 1.0 / mat3Determinant(v);
+
+    Mat3 out;
+    T * a = out.elements;
+
+    //calculate inverse
+    a[0] = (s) * (b[4] * b[8] - b[5] * b[7]);
+    a[1] = (s) * (b[2] * b[7] - b[1] * b[8]);
+    a[2] = (s) * (b[1] * b[5] - b[2] * b[4]);
+    a[3] = (s) * (b[5] * b[6] - b[3] * b[8]);
+    a[4] = (s) * (b[0] * b[8] - b[2] * b[6]);
+    a[5] = (s) * (b[2] * b[3] - b[0] * b[5]);
+    a[6] = (s) * (b[3] * b[7] - b[4] * b[6]);
+    a[7] = (s) * (b[1] * b[6] - b[0] * b[7]);
+    a[8] = (s) * (b[0] * b[4] - b[1] * b[3]);
+
+    //homongenize the matrix so that homo coord is 1.0
+    a[0] = a[0] / a[8];
+    a[1] = a[1] / a[8];
+    a[2] = a[2] / a[8];
+    a[3] = a[3] / a[8];
+    a[4] = a[4] / a[8];
+    a[5] = a[5] / a[8];
+    a[6] = a[6] / a[8];
+    a[7] = a[7] / a[8];
+    a[8] = a[8] / a[8];
+
+    return out;
+}

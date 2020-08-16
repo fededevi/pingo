@@ -19,6 +19,9 @@ extern Mat3 transformScale(Vec2f s);
 extern Vec2f transformMultiply(Vec2f * v, Mat3 * t);
 extern Mat3  transformMultiplyM( Mat3 *v, Mat3 *t);
 
+extern Mat3 mat3Inverse( Mat3 *v );
+
+extern T mat3Determinant(Mat3 * m);
 extern int transformIsOnlyTranslation(Mat3 *m);
 
 #ifdef __cplusplus
