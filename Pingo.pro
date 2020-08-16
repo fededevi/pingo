@@ -1,0 +1,32 @@
+CONFIG += c++11
+
+DEFINES += QT_DEPRECATED_WARNINGS
+
+LIBS += -lgdi32
+
+
+HEADERS += \
+    math/rectI.h \
+    math/vector2I.h \
+    render/frame.h \
+    render/pixel.h \
+    render/renderable.h \
+    render/renderer.h \
+    render/scene.h \
+    render/sprite.h
+
+SOURCES += \
+        main.cpp \
+        math/rectI.c \
+        math/vector2I.c \
+        render/frame.c \
+        render/pixel.c \
+        render/renderable.c \
+        render/renderer.c \
+        render/scene.c \
+        render/sprite.c
+
+
+# Default rules for deployment.
+qnx: target.path = /tmp/$${TARGET}/bin
+!isEmpty(target.path): INSTALLS += target
