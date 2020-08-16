@@ -163,7 +163,7 @@ int main()
         for (uint16_t y = 0; y < currentBuffer.size.y; y++ ) {
             for (uint16_t x = 0; x < currentBuffer.size.x; x++ ) {
                 Pixel p = frameRead(&currentBuffer,(Vector2I){x,y}); //Read data from draw buffer
-                SetPixel(bitmapHDC,x,y, RGB(p.r,p.b,p.g) );
+                SetPixel(bitmapHDC,x,y, RGB(p.r,p.g,p.b) );
             }
         }
 

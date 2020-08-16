@@ -1,5 +1,4 @@
 #include "sprite.h"
-#include <stdlib.h>
 
 int spriteInit(Sprite *s, Frame f, Vector2I position)
 {
@@ -21,7 +20,8 @@ int spriteRandomize(Sprite * s)
 
     for (int x = 0; x < s->frame.size.x; x++ ) {
         for (int y = 0; y < s->frame.size.y; y++ ) {
-            frameDraw(&s->frame,(Vector2I){x,y},(Pixel){rand(),rand(),rand()});
+
+            frameDraw(&s->frame,(Vector2I){x,y},pixelRandom());
         }
     }
 
