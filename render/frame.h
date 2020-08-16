@@ -13,13 +13,13 @@ typedef struct  {
    Pixel * frameBuffer;
 } Frame;
 
-extern int frameInit( Frame * f, Vector2I size, const Pixel *);
+extern int frameInit( Frame * f, Vector2I size, Pixel *);
 
 extern Renderable frameAsRenderable( Frame * s);
 
 
-extern inline void  frameDraw(Frame * f, Vector2I pos, Pixel color);
-extern inline Pixel frameRead(Frame * f, Vector2I pos);
+extern void  frameDraw(Frame * f, Vector2I pos, Pixel color);
+extern Pixel frameRead(Frame * f, Vector2I pos);
 
 #ifdef __cplusplus
     }

@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "sprite.h"
 
+#include <string.h>
 #include <stdio.h>
 
 
@@ -69,6 +70,7 @@ void rendererSwap(Renderer * r) {
 
 int rendererRender(Renderer * renderer)
 {
+    //Clear draw buffer before rendering
     Frame des = rendererDrawBuffer(renderer);
     memset(des.frameBuffer,0,des.size.x*des.size.y*sizeof (Pixel));
 
@@ -77,5 +79,14 @@ int rendererRender(Renderer * renderer)
         renderingFunctions[r.renderableType](renderer,r);
     }
 
+    return 0;
+}
+
+int rendererSetScene(Renderer *r, Scene *s)
+{
+    if (s == 0)
+        return 1; //nullptr scene
+
+    r->scene = s;
     return 0;
 }

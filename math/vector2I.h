@@ -12,7 +12,7 @@ typedef struct {
 } Vector2I;
 
 
-extern inline Vector2I vector2ISum(Vector2I l, Vector2I r);
+extern Vector2I vector2ISum(Vector2I l, Vector2I r);
 
 #ifdef __cplusplus
     }

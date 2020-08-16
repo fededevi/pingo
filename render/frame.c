@@ -1,6 +1,6 @@
 #include "frame.h"
 
-int frameInit( Frame * f, Vector2I size, const Pixel * buf ) {
+int frameInit( Frame * f, Vector2I size, Pixel * buf ) {
 
     if (size.x * size.y == 0)
         return 1; // 0 sized rect

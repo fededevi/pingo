@@ -23,6 +23,8 @@ extern Frame rendererCurrentBuffer(Renderer *r);
 
 extern Frame rendererDrawBuffer(Renderer *r);
 
+extern int rendererSetScene(Renderer *r, Scene *s);
+
 extern void rendererSwap(Renderer *);
 
 #ifdef __cplusplus
