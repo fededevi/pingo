@@ -1,7 +1,6 @@
 #include "sprite.h"
 #include <stdlib.h>
 
-
 int spriteInit(Sprite *s, Frame f, Vector2I position)
 {
     if (f.frameBuffer == 0)

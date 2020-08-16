@@ -1,5 +1,5 @@
 #include "renderer.h"
-#include "sprite.h"
+#include "renderable/sprite.h"
 
 #include <string.h>
 #include <stdio.h>

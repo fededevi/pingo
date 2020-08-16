@@ -11,10 +11,10 @@ HEADERS += \
     qrCodeGen/c/qrcodegen.h \
     render/frame.h \
     render/pixel.h \
-    render/renderable.h \
     render/renderer.h \
     render/scene.h \
-    render/sprite.h
+    renderable/renderable.h \
+    renderable/sprite.h
 
 SOURCES += \
         main.cpp \
@@ -23,10 +23,10 @@ SOURCES += \
         qrCodeGen/c/qrcodegen.c \
         render/frame.c \
         render/pixel.c \
-        render/renderable.c \
         render/renderer.c \
         render/scene.c \
-        render/sprite.c
+        renderable/renderable.c \
+        renderable/sprite.c
 
 
 # Default rules for deployment.

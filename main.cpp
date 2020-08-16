@@ -5,7 +5,7 @@
 #include <gdiplus.h>
 
 #include "render/renderer.h"
-#include "render/sprite.h"
+#include "renderable/sprite.h"
 
 #define HEIGHT 800
 #define WIDTH 600
@@ -30,7 +30,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-HWND WINAPI winMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+HWND WINAPI winMain(HINSTANCE hInstance, HINSTANCE, LPSTR , int nCmdShow)
 {
     WNDCLASSEX wc;
     HWND hwnd;
