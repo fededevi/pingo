@@ -69,8 +69,8 @@ Vec2f transformMultiply(Vec2f *v, Mat3 *t) {
 
 Mat3 transformMultiplyM( Mat3 * m1, Mat3 * m2) {
     Mat3 out;
-    T * a = m1->elements;
-    T * b = m2->elements;
+    T * a = m2->elements;
+    T * b = m1->elements;
     out.elements[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6];
     out.elements[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7];
     out.elements[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8];
