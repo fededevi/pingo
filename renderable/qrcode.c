@@ -7,7 +7,7 @@ Renderable qrCodeAsRenderable(QrCode * qrc) {
 }
 
 
-int qrCodeInit(QrCode *s, Transform t, Vector2I size, Pixel * buf, uint8_t * tempBuf, uint8_t qrCodeLevel, char * dataString)
+int qrCodeInit(QrCode *s, Mat3 t, Vector2I size, Pixel * buf, uint8_t * tempBuf, uint8_t qrCodeLevel, char * dataString)
 {
     int e;
     e = frameInit(&s->sprite.frame, size,buf);

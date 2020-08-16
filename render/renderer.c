@@ -26,7 +26,7 @@ int drawRect(Vector2I off, Renderer *r, Frame * src) {
     return 0;
 }
 
-int drawRectTransform(Transform t, Renderer *r, Frame * src) {
+int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     Frame des = rendererDrawBuffer(r);
 
     for (int y = 0; y < src->size.y; y++ ) {
@@ -38,10 +38,13 @@ int drawRectTransform(Transform t, Renderer *r, Frame * src) {
                 break; //Do not draw outside bounds
 
             //Vector2I off = transformMultiply(,&t);
-            Vector2I srcPos = {x,y};
-            Vector2I desPos = transformMultiply(&srcPos,&t);
-            Pixel color = frameRead(src, srcPos);
-            frameDraw(&des, desPos, color);
+            Vec2f srcPos = {x,y};
+            Vec2f desPos = transformMultiply(&srcPos,&t);
+
+            Pixel color = frameRead(src, (Vector2I){srcPos.x,srcPos.y});
+            if (desPos.x < 0) continue;
+            if (desPos.y < 0) continue;
+            frameDraw(&des, (Vector2I){desPos.x,desPos.y}, color);
         }
     }
     return 0;

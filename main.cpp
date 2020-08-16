@@ -124,7 +124,7 @@ int main()
     frameInit(&f, (Vector2I){100,100}, spriteFrameBuffer[0]); //Init Frame for Sprite
     //Create the sprite
     Sprite sprite;
-    spriteInit(&sprite,f, transformTranslate((Vector2I){50,50})); //Sprite position is 50 50
+    spriteInit(&sprite,f, transformTranslate((Vec2f){50,50})); //Sprite position is 50 50
     spriteRandomize(&sprite); //Draw random stuff on sprite
 
 
@@ -139,7 +139,8 @@ int main()
     uint8_t tempBufferSize = qrCodeSizeForLevel(qrCodeLevel);
     uint8_t qrCodeTempBuffer[tempBufferSize];
     char qrCodeDataString[] = "Pingo!";
-    qrCodeInit(&qr,transformTranslate((Vector2I){200,10}),(Vector2I){41,41}, qrCodeFrameBuffer[0], qrCodeTempBuffer, qrCodeLevel, qrCodeDataString );
+    //transformRotate(0.25)
+    qrCodeInit(&qr,transformTranslate((Vec2f){220,220}),(Vector2I){41,41}, qrCodeFrameBuffer[0], qrCodeTempBuffer, qrCodeLevel, qrCodeDataString );
 
 
 

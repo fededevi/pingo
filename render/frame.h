@@ -2,7 +2,7 @@
 
 #include "pixel.h"
 #include "renderable/renderable.h"
-#include "math/rectI.h"
+#include "math/vec2.h"
 
 #ifdef __cplusplus
     extern "C" {

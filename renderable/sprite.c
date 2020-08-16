@@ -1,7 +1,7 @@
 #include "sprite.h"
-#include "math/transform.h"
+#include "math/mat3.h"
 
-int spriteInit(Sprite *s, Frame f, Transform t)
+int spriteInit(Sprite *s, Frame f, Mat3 t)
 {
     if (f.frameBuffer == 0)
         return 1;
