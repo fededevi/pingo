@@ -1,6 +1,8 @@
 #include "mat3.h"
 #include "vec2.h"
+
 #include <math.h>
+#include <stdint.h>
 
 const Mat3 transformIdentity = {  1,  0,  0,
                                   0,  1,  0,
@@ -60,6 +62,9 @@ extern Mat3 transformScale(Vec2f s) {
     };
 }
 
+/*
+Multiplies vector by matrix
+*/
 Vec2f transformMultiply(Vec2f *v, Mat3 *t) {
     T a = v->x * t->elements[0] + v->y * t->elements[1] + 1.0 * t->elements[2];
     T b = v->x * t->elements[3] + v->y * t->elements[4] + 1.0 * t->elements[5];
@@ -67,6 +72,10 @@ Vec2f transformMultiply(Vec2f *v, Mat3 *t) {
     return (Vec2f){a,b};
 }
 
+/*
+Multiplies m1 and m2 -> Appliers m2 to m1
+so m1 is your starting transform, m2 is the added transform
+*/
 Mat3 transformMultiplyM( Mat3 * m1, Mat3 * m2) {
     Mat3 out;
     T * a = m2->elements;
@@ -81,4 +90,19 @@ Mat3 transformMultiplyM( Mat3 * m1, Mat3 * m2) {
     out.elements[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7];
     out.elements[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8];
     return out;
+}
+
+//Tells if a matrix is only made of a translation
+int transformIsOnlyTranslation(Mat3 *m )
+{
+    if (m->elements[0] != 1.0) return 0;
+    if (m->elements[1] != 0.0) return 0;
+    //if (m->elements[2] != 0.0) return 0; This is a translation component
+    if (m->elements[3] != 0.0) return 0;
+    if (m->elements[4] != 1.0) return 0;
+    //if (m->elements[5] != 1.0) return 0; This is a translation component
+    if (m->elements[6] != 0.0) return 0;
+    if (m->elements[7] != 0.0) return 0;
+    if (m->elements[8] != 1.0) return 0;
+    return 1;
 }

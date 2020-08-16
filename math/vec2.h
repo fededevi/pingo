@@ -20,6 +20,10 @@ typedef struct {
 
 extern Vector2I vector2ISum(Vector2I l, Vector2I r);
 
+extern Vec2f vecItoF(Vector2I v);
+
+extern Vector2I vecFtoI(Vec2f v);
+
 #ifdef __cplusplus
 }
 #endif
