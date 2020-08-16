@@ -8,8 +8,8 @@
 #include "renderable/sprite.h"
 #include "renderable/qrcode.h"
 
-#define HEIGHT 800
-#define WIDTH 600
+#define HEIGHT 400
+#define WIDTH 400
 
 LPCWSTR g_szClassName = L"myWindowClass";
 HDC windowsHDC;
@@ -142,15 +142,11 @@ int main()
     //transformRotate(0.25)
 
     Mat3 m1 = transformTranslate((Vec2f){-20,-20}); //Translate to center
-    Mat3 m2 = transformScale((Vec2f){2,2});         //Double size
-
+    Mat3 m2 = transformScale((Vec2f){2.5,2});         //Double size
     Mat3 m3 = transformMultiplyM(&m1, &m2); //first translate then scale
-
-    m2 = transformRotate(3.14 * 0.25); //rotate about 45 degrees
+    m2 = transformRotate(3.14 * 0.15); //rotate about 45 degrees
     m1 = transformMultiplyM(&m3, &m2);
-
     m3 = transformTranslate((Vec2f){200,200});
-
     m2 = transformMultiplyM(&m1, &m3);
 
     qrCodeInit(&qr,m2,(Vector2I){41,41}, qrCodeFrameBuffer[0], qrCodeTempBuffer, qrCodeLevel, qrCodeDataString );
@@ -170,6 +166,7 @@ int main()
     windowsHDC = GetDC(window);
     prepareBitMap();
     while (true ) {
+
         rendererRender(&r); //actually render scene to draw buffer
         rendererSwap(&r); //swap draw buffer and read buffer
         Frame currentBuffer = rendererCurrentBuffer(&r);

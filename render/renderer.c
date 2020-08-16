@@ -49,17 +49,18 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     int maxY = fmax(fmax(a.y,b.y),fmax(c.y,d.y));
 
     //Now we can iterate over the pixels of the AABB which contain the source frame
-    for (int y = minY; y < maxY; y++) {
-        for (int x = minX; x < maxX; x++) {
+    for (int y = minY; y <= maxY; y++) {
+        for (int x = minX; x <= maxX; x++) {
             //Transform the coordinate back to sprite space
             Vector2I desPos = {x,y};
             Vec2f desPosF = vecItoF(desPos);
             Vec2f srcPosF = transformMultiply(&desPosF,&inv);
+            Vector2I srcPosI = vecFtoI(srcPosF);
             if (srcPosF.x < 0) continue;
             if (srcPosF.y < 0) continue;
-            if (srcPosF.x >= src->size.x) continue;
-            if (srcPosF.y >= src->size.y) continue;
-            Pixel color = frameRead(src, vecFtoI(srcPosF));
+            if (srcPosF.x > src->size.x) continue;
+            if (srcPosF.y > src->size.y) continue;
+            Pixel color = frameRead(src, srcPosI);
             frameDraw(&des, desPos, color);
         }
     }
