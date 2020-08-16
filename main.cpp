@@ -4,17 +4,13 @@
 #include <wingdi.h>
 #include <gdiplus.h>
 
-LPCWSTR g_szClassName = L"myWindowClass";
-
 #include "render/renderer.h"
 #include "render/sprite.h"
 
-Pixel fb0[800*500];
-Pixel fb1[800*500];
-Vector2I frameSize = {800,500};
-Renderer r;
-Scene s;
+#define HEIGHT 800
+#define WIDTH 600
 
+LPCWSTR g_szClassName = L"myWindowClass";
 HDC windowsHDC;
 HDC bitmapHDC;
 
@@ -86,9 +82,9 @@ HWND WINAPI winMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 void prepareBitMap() {
     /* BITMAP*/
-    COLORREF *arr = (COLORREF*) calloc(frameSize.x*frameSize.y, sizeof(COLORREF));
-    HBITMAP map = CreateBitmap(frameSize.x, // width. 512 in my case
-                               frameSize.y, // height
+    COLORREF *arr = (COLORREF*) calloc(WIDTH*HEIGHT, sizeof(COLORREF));
+    HBITMAP map = CreateBitmap(WIDTH, // width. 512 in my case
+                               HEIGHT, // height
                                1, // Color Planes, unfortanutelly don't know what is it actually. Let it be 1
                                8*4, // Size of memory for one pixel in bits (in win32 4 bytes = 4*8 bits)
                                (void*) arr); // pointer to array
@@ -99,39 +95,61 @@ void prepareBitMap() {
 
 void writeBitmap(){
     BitBlt(windowsHDC, // Destination
-           10,  // x and
-           10,  // y - upper-left corner of place, where we'd like to copy
-           frameSize.x, // width of the region
-           frameSize.y, // height
+           00,  // x and
+           00,  // y - upper-left corner of place, where we'd like to copy
+           WIDTH, // width of the region
+           HEIGHT, // height
            bitmapHDC, // source
            0,   // x and
            0,   // y of upper left corner  of part of the source, from where we'd like to copy
            SRCCOPY); // Defined DWORD to juct copy pixels. Watch more on msdn;
 }
 
+//Renderer FrameBuffers
+Pixel fb0[WIDTH][HEIGHT];
+Pixel fb1[WIDTH][HEIGHT];
+
+//Sprite FrameBuffers
+Pixel spriteFrameBuffer[100][100];
+
 int main()
 {
-    rendererInit(&r, frameSize, fb0, fb1);
+    qDebug("test");
+    //Renderer contains 2 frame buffers for switching and handles the drawing of Renderables in the current Scene
+    Vector2I frameSize = {WIDTH,HEIGHT};
+    Renderer r;
+    rendererInit(&r, frameSize, fb0[0], fb1[0]);
 
-    sceneInit(&s);
 
-    r.scene = &s;
 
+
+
+    //Build a Sprite witha  Frame and  a position
+    Pixel spriteFrameBuffer[100][100];
+
+    //Init Frame for Sprite
     Frame f;
-    frameInit(&f, (Vector2I){100,100}, (Pixel *)malloc(100*100*sizeof (Pixel)));
+    frameInit(&f, (Vector2I){100,100}, spriteFrameBuffer[0]);
 
-
+    //Create the sprite
     Sprite sprite;
     spriteInit(&sprite,f, (Vector2I){50,50});
     spriteRandomize(&sprite);
 
+    //Contains a list of rRenderables
+    Scene s;
+    sceneInit(&s);
+    //Assign Scene to Renderer
+    rendererSetScene(&r, &s);
+
+    //Add sprite to the scene
     //sceneAddRenderable(&s, frameAsRenderable(&f));
     sceneAddRenderable(&s, spriteAsRenderable(&sprite));
 
+    //Windows Stuff
     HWND window = winMain(nullptr,nullptr,nullptr, SW_NORMAL );
     windowsHDC = GetDC(window);
     prepareBitMap();
-
     while (true ) {
         sprite.position.x++;
 
@@ -150,16 +168,4 @@ int main()
 
     }
 
-
-    //DeleteObject(map);
-    //DeleteDC(bitmapHDC); // Deleting temp HDC
-
-    MSG Msg;
-    // Step 3: The Message Loop
-    while(GetMessage(&Msg, NULL, 0, 0) > 0)
-    {
-        TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
-    }
-    return Msg.wParam;
 }
