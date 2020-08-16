@@ -8,6 +8,7 @@ LIBS += -lgdi32
 HEADERS += \
     math/rectI.h \
     math/vector2I.h \
+    qrCodeGen/c/qrcodegen.h \
     render/frame.h \
     render/pixel.h \
     render/renderable.h \
@@ -19,6 +20,7 @@ SOURCES += \
         main.cpp \
         math/rectI.c \
         math/vector2I.c \
+        qrCodeGen/c/qrcodegen.c \
         render/frame.c \
         render/pixel.c \
         render/renderable.c \
