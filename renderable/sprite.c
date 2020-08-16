@@ -1,12 +1,13 @@
 #include "sprite.h"
+#include "math/transform.h"
 
-int spriteInit(Sprite *s, Frame f, Vector2I position)
+int spriteInit(Sprite *s, Frame f, Transform t)
 {
     if (f.frameBuffer == 0)
         return 1;
 
     s->frame = f;
-    s->position = position;
+    s->t = t;
 
     return 0;
 }

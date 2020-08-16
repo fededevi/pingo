@@ -32,10 +32,10 @@ Builds a clean rotation matrix of Θ angle
  |0|0|1|
 
 */
-Transform transformRotate(float Θ)
+Transform transformRotate(float theta)
 {
-    float s = sin(Θ);
-    float c = cos(Θ);
+    float s = sin(theta);
+    float c = cos(theta);
     return (Transform){
         c, -s,  0,
         s,  c,  0,

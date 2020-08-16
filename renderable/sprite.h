@@ -2,18 +2,18 @@
 
 #include "render/frame.h"
 #include "renderable.h"
-#include "../math/rectI.h"
+#include "../math/transform.h"
 
 #ifdef __cplusplus
     extern "C" {
 #endif
 
 typedef struct  {
-   Vector2I position;
+   Transform t;
    Frame frame;
 } Sprite;
 
-extern int spriteInit( Sprite * s, Frame f, Vector2I position);
+extern int spriteInit( Sprite * s, Frame f, Transform t);
 extern int spriteRandomize( Sprite * s);
 extern Renderable spriteAsRenderable( Sprite * s);
 

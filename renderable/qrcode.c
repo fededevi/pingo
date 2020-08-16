@@ -7,13 +7,13 @@ Renderable qrCodeAsRenderable(QrCode * qrc) {
 }
 
 
-int qrCodeInit(QrCode *s, Vector2I position, Vector2I size, Pixel * buf, uint8_t * tempBuf, uint8_t qrCodeLevel, char * dataString)
+int qrCodeInit(QrCode *s, Transform t, Vector2I size, Pixel * buf, uint8_t * tempBuf, uint8_t qrCodeLevel, char * dataString)
 {
     int e;
     e = frameInit(&s->sprite.frame, size,buf);
     if (e) return 1; //Failed to init frame
 
-    e = spriteInit(&s->sprite, s->sprite.frame, position);
+    e = spriteInit(&s->sprite, s->sprite.frame, t);
     if (e) return 2; //Failed to init sprite
 
     int offset = qrcodegen_BUFFER_LEN_FOR_VERSION(qrCodeLevel);
@@ -27,8 +27,8 @@ int qrCodeInit(QrCode *s, Vector2I position, Vector2I size, Pixel * buf, uint8_t
     if (size.x != qrCodeEdgeSize || size.y != qrCodeEdgeSize) return 4; //Wrong size framebuffer for this level of qrcode
 
     //Copy qrCode data to frame
-    for (int y = 0; y < qrCodeEdgeSize; y++) {
-        for (int x = 0; x < qrCodeEdgeSize; x++) {
+    for (uint16_t y = 0; y < qrCodeEdgeSize; y++) {
+        for (uint16_t x = 0; x < qrCodeEdgeSize; x++) {
             Vector2I pos = {x,y};
             if (qrcodegen_getModule(tempBuf, x, y)) {
                 frameDraw(&s->sprite.frame,pos,PIXELBLACK);

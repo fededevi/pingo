@@ -13,7 +13,7 @@ typedef struct {
 } Transform;
 
 extern Transform transformTranslate(Vector2I l);
-extern Transform transformRotate(float Θ);
+extern Transform transformRotate(float theta);
 
 extern Vector2I transformMultiply(Vector2I * v, Transform * t);
 

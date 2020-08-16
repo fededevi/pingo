@@ -26,6 +26,27 @@ int drawRect(Vector2I off, Renderer *r, Frame * src) {
     return 0;
 }
 
+int drawRectTransform(Transform t, Renderer *r, Frame * src) {
+    Frame des = rendererDrawBuffer(r);
+
+    for (int y = 0; y < src->size.y; y++ ) {
+        if (y > des.size.y)
+            break; //Do not draw outside bounds
+
+        for (int x = 0; x < src->size.x; x++ ) {
+            if (x > des.size.x)
+                break; //Do not draw outside bounds
+
+            //Vector2I off = transformMultiply(,&t);
+            Vector2I srcPos = {x,y};
+            Vector2I desPos = transformMultiply(&srcPos,&t);
+            Pixel color = frameRead(src, srcPos);
+            frameDraw(&des, desPos, color);
+        }
+    }
+    return 0;
+}
+
 int renderFrame(Renderer *r, Renderable ren) {
     Frame * f = ren.impl;
     return drawRect((Vector2I){0,0},r,f);
@@ -33,12 +54,12 @@ int renderFrame(Renderer *r, Renderable ren) {
 
 int renderSprite(Renderer *r, Renderable ren) {
     Sprite * s = (ren.impl);
-    return drawRect(s->position,r,&s->frame);
+    return drawRectTransform(s->t,r,&s->frame);
 };
 
 int renderQrCode(Renderer *r, Renderable ren) {
     QrCode * qr = (ren.impl);
-    return drawRect(qr->sprite.position,r,&qr->sprite.frame);
+    return drawRectTransform(qr->sprite.t,r,&qr->sprite.frame);
 };
 
 int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite, &renderQrCode};
