@@ -11,6 +11,7 @@ typedef struct {
    uint16_t y;
 } Vector2I;
 
+#define VECTORZERO (Vector2I){0,0}
 
 extern Vector2I vector2ISum(Vector2I l, Vector2I r);
 

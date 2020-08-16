@@ -13,6 +13,7 @@ HEADERS += \
     render/pixel.h \
     render/renderer.h \
     render/scene.h \
+    renderable/qrcode.h \
     renderable/renderable.h \
     renderable/sprite.h
 
@@ -25,6 +26,7 @@ SOURCES += \
         render/pixel.c \
         render/renderer.c \
         render/scene.c \
+        renderable/qrcode.c \
         renderable/renderable.c \
         renderable/sprite.c
 

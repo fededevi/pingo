@@ -6,6 +6,7 @@
 
 #include "render/renderer.h"
 #include "renderable/sprite.h"
+#include "renderable/qrcode.h"
 
 #define HEIGHT 800
 #define WIDTH 600
@@ -109,12 +110,8 @@ void writeBitmap(){
 Pixel fb0[WIDTH][HEIGHT];
 Pixel fb1[WIDTH][HEIGHT];
 
-//Sprite FrameBuffers
-Pixel spriteFrameBuffer[100][100];
-
 int main()
 {
-    qDebug("test");
     //Renderer contains 2 frame buffers for switching and handles the drawing of Renderables in the current Scene
     Vector2I frameSize = {WIDTH,HEIGHT};
     Renderer r;
@@ -122,44 +119,50 @@ int main()
 
 
 
-
-
-    //Build a Sprite witha  Frame and  a position
-    Pixel spriteFrameBuffer[100][100];
-
-    //Init Frame for Sprite
+    Pixel spriteFrameBuffer[100][100]; //Sprite graphics memory
     Frame f;
-    frameInit(&f, (Vector2I){100,100}, spriteFrameBuffer[0]);
-
+    frameInit(&f, (Vector2I){100,100}, spriteFrameBuffer[0]); //Init Frame for Sprite
     //Create the sprite
     Sprite sprite;
-    spriteInit(&sprite,f, (Vector2I){50,50});
-    spriteRandomize(&sprite);
+    spriteInit(&sprite,f, (Vector2I){50,50}); //Sprite position is 50 50
+    spriteRandomize(&sprite); //Draw random stuff on sprite
 
-    //Contains a list of rRenderables
-    Scene s;
+
+
+
+
+
+    //Build QrCode Renderable
+    QrCode qr;
+    Pixel qrCodeFrameBuffer[41][41];
+    int qrCodeLevel = 6;
+    int tempBufferSize = qrCodeSizeForLevel(qrCodeLevel);
+    uint8_t qrCodeTempBuffer[tempBufferSize];
+    char qrCodeDataString[] = "Pingo!";
+    qrCodeInit(&qr,(Vector2I){200,10},(Vector2I){41,41}, qrCodeFrameBuffer[0], qrCodeTempBuffer, qrCodeLevel, qrCodeDataString );
+
+
+
+    Scene s; //Scene Contains a list of rRenderables
     sceneInit(&s);
-    //Assign Scene to Renderer
-    rendererSetScene(&r, &s);
+    rendererSetScene(&r, &s); //Assign Scene to Renderer
 
-    //Add sprite to the scene
-    //sceneAddRenderable(&s, frameAsRenderable(&f));
-    sceneAddRenderable(&s, spriteAsRenderable(&sprite));
+    sceneAddRenderable(&s, spriteAsRenderable(&sprite)); //Add sprite to the scene
+    sceneAddRenderable(&s, qrCodeAsRenderable(&qr)); //Add qrCode
 
-    //Windows Stuff
+
+    //Copy buffer to window
     HWND window = winMain(nullptr,nullptr,nullptr, SW_NORMAL );
     windowsHDC = GetDC(window);
     prepareBitMap();
     while (true ) {
-        sprite.position.x++;
-
-        rendererRender(&r);
-        rendererSwap(&r);
+        rendererRender(&r); //actually render scene to draw buffer
+        rendererSwap(&r); //swap draw buffer and read buffer
         Frame currentBuffer = rendererCurrentBuffer(&r);
 
         for (uint16_t y = 0; y < currentBuffer.size.y; y++ ) {
             for (uint16_t x = 0; x < currentBuffer.size.x; x++ ) {
-                Pixel p = frameRead(&currentBuffer,(Vector2I){x,y});
+                Pixel p = frameRead(&currentBuffer,(Vector2I){x,y}); //Read data from draw buffer
                 SetPixel(bitmapHDC,x,y, RGB(p.r,p.b,p.g) );
             }
         }

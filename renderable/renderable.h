@@ -1,12 +1,13 @@
 #pragma once
 
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 
 typedef enum  {
     RENDERABLE_FRAME  =0,
     RENDERABLE_SPRITE,
+    RENDERABLE_QRCODE,
     RENDERABLE_COUNT,
 } RenderableType;
 
@@ -16,6 +17,6 @@ typedef struct {
 } Renderable;
 
 #ifdef __cplusplus
-    }
+}
 #endif
 
