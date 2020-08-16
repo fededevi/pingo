@@ -4,10 +4,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 LIBS += -lgdi32
 
-
 HEADERS += \
     math/rectI.h \
     math/vector2I.h \
+    math/transform.h \
     qrCodeGen/c/qrcodegen.h \
     render/frame.h \
     render/pixel.h \
@@ -18,17 +18,18 @@ HEADERS += \
     renderable/sprite.h
 
 SOURCES += \
-        main.cpp \
-        math/rectI.c \
-        math/vector2I.c \
-        qrCodeGen/c/qrcodegen.c \
-        render/frame.c \
-        render/pixel.c \
-        render/renderer.c \
-        render/scene.c \
-        renderable/qrcode.c \
-        renderable/renderable.c \
-        renderable/sprite.c
+    main.cpp \
+    math/rectI.c \
+    math/vector2I.c \
+    math/transform.c \
+    qrCodeGen/c/qrcodegen.c \
+    render/frame.c \
+    render/pixel.c \
+    render/renderer.c \
+    render/scene.c \
+    renderable/qrcode.c \
+    renderable/renderable.c \
+    renderable/sprite.c
 
 
 # Default rules for deployment.
