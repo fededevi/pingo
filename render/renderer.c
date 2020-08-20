@@ -1,6 +1,6 @@
 #include "renderer.h"
-#include "renderable/sprite.h"
-#include "renderable/qrcode.h"
+#include "../renderable/sprite.h"
+#include "../renderable/qrcode.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -8,7 +8,7 @@
 
 
 int drawRect(Vector2I off, Renderer *r, Frame * src) {
-    Frame des = rendererDrawBuffer(r);
+	Frame des = r->frameBuffer;
 
     for (int y = 0; y < src->size.y; y++ ) {
         if (y > des.size.y)
@@ -28,7 +28,7 @@ int drawRect(Vector2I off, Renderer *r, Frame * src) {
 }
 
 int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
-    Frame des = rendererDrawBuffer(r);
+    Frame des = r->frameBuffer;
 
     Mat3 inv = mat3Inverse(&t);
     // Transform 4 points of frame to frame buffer space
@@ -90,42 +90,23 @@ int renderQrCode(Renderer *r, Renderable ren) {
 
 int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite, &renderQrCode};
 
-int rendererInit(Renderer * r, Vector2I size, Pixel *fb0, Pixel *fb1) {
+int rendererInit(Renderer * r, Vector2I size, Pixel *fb0) {
     r->scene = 0;
-
-    r->currentBuffer = 0;
+    r->clearColor = PIXELBLACK;
 
     int e = 0;
-
-    e = frameInit(&(r->frameBuffers[0]), size, fb0);
-    if (e) return e;
-
-    e = frameInit(&(r->frameBuffers[1]), size, fb1);
+    e = frameInit(&(r->frameBuffer), size, fb0);
     if (e) return e;
 
     return 0; //No error
 }
 
-Frame rendererCurrentBuffer(Renderer * r) {
-    return r->frameBuffers[r->currentBuffer];
-}
-
-Frame rendererDrawBuffer(Renderer * r) {
-    return r->frameBuffers[!r->currentBuffer];
-}
-
-void rendererSwap(Renderer * r) {
-    Pixel * p0 = r->frameBuffers[0].frameBuffer;
-    Pixel * p1 = r->frameBuffers[1].frameBuffer;
-    r->frameBuffers[0].frameBuffer = p1;
-    r->frameBuffers[1].frameBuffer = p0;
-}
-
 int rendererRender(Renderer * renderer)
 {
     //Clear draw buffer before rendering
-    Frame des = rendererDrawBuffer(renderer);
-    memset(des.frameBuffer,255,des.size.x*des.size.y*sizeof (Pixel));
+    Frame des = renderer->frameBuffer;
+    if (renderer->clear)
+    	memset(des.frameBuffer,renderer->clearColor,des.size.x*des.size.y*sizeof (Pixel));
 
     for (int i = 0; i < renderer->scene->numberOfRenderables; i++) {
         Renderable r = renderer->scene->renderables[i];

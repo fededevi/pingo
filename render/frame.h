@@ -1,8 +1,8 @@
 #pragma once
 
 #include "pixel.h"
-#include "renderable/renderable.h"
-#include "math/vec2.h"
+#include "../renderable/renderable.h"
+#include "../math/vec2.h"
 
 #ifdef __cplusplus
     extern "C" {

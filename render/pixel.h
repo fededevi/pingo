@@ -9,7 +9,7 @@ extern "C" {
 
 //What format to use:
 //#define UINT8
-#define RGB888
+#define UINT8
 //#define RGBA8888
 
 //Formats definitions:

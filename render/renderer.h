@@ -10,22 +10,17 @@
 #endif
 
 typedef struct {
-    uint8_t currentBuffer;
-    Frame frameBuffers[2];
+    Frame frameBuffer;
+    Pixel clearColor;
+    int clear;
     Scene * scene;
 } Renderer;
 
 extern int rendererRender(Renderer *);
 
-extern int rendererInit(Renderer *, Vector2I size, Pixel *fb0, Pixel *fb1);
-
-extern Frame rendererCurrentBuffer(Renderer *r);
-
-extern Frame rendererDrawBuffer(Renderer *r);
+extern int rendererInit(Renderer *, Vector2I size, Pixel *fb0);
 
 extern int rendererSetScene(Renderer *r, Scene *s);
-
-extern void rendererSwap(Renderer *);
 
 #ifdef __cplusplus
     }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "render/frame.h"
+#include "../render/frame.h"
 #include "renderable.h"
 #include "../math/mat3.h"
 
