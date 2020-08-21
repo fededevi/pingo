@@ -16,6 +16,7 @@ typedef struct {
     void * impl;
 } Renderable;
 
+
 #ifdef __cplusplus
 }
 #endif

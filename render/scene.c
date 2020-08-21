@@ -1,5 +1,5 @@
 #include "scene.h"
-#include "../Pingo/renderable/renderable.h"
+#include "renderable.h"
 
 int sceneAddRenderable(Scene * scene, Renderable renderable)
 {

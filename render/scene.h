@@ -1,8 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "frame.h"
-#include "../renderable/renderable.h"
+#include "renderable.h"
 
 #ifdef __cplusplus
     extern "C" {

@@ -1,9 +1,8 @@
 #pragma once
 
 #include "frame.h"
+#include "renderable.h"
 #include "scene.h"
-
-#include <stdint.h>
 
 #ifdef __cplusplus
     extern "C" {
@@ -21,6 +20,8 @@ extern int rendererRender(Renderer *);
 extern int rendererInit(Renderer *, Vector2I size, Pixel *fb0);
 
 extern int rendererSetScene(Renderer *r, Scene *s);
+
+static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable);
 
 #ifdef __cplusplus
     }

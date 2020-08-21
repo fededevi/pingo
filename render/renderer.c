@@ -1,5 +1,5 @@
 #include "renderer.h"
-#include "../renderable/sprite.h"
+#include "../render/sprite.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -81,6 +81,8 @@ int renderSprite(Renderer *r, Renderable ren) {
     return drawRectTransform(s->t,r,&s->frame);
 };
 
+
+
 void renderRenderable(Renderer *r, Renderable ren) {
     renderingFunctions[ren.renderableType](r,ren);
 };
@@ -89,11 +91,9 @@ int renderScene(Renderer *r, Renderable ren) {
     Scene * s = ren.impl;
 
     for (int i = 0; i < s->numberOfRenderables; i++) {
-    	s->renderables[i]
+    	renderRenderable(r, s->renderables[i]);
     }
 };
-
-int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite, &renderScene};
 
 int rendererInit(Renderer * r, Vector2I size, Pixel *fb0) {
     r->scene = 0;
@@ -105,6 +105,8 @@ int rendererInit(Renderer * r, Vector2I size, Pixel *fb0) {
 
     return 0; //No error
 }
+
+static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite, &renderScene};
 
 int rendererRender(Renderer * renderer)
 {
@@ -126,3 +128,7 @@ int rendererSetScene(Renderer *r, Scene *s)
     r->scene = s;
     return 0;
 }
+
+
+
+
