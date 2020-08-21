@@ -16,7 +16,7 @@ typedef struct {
 } Scene;
 
 extern int sceneInit(Scene * s);
-extern int sceneAddRenderable(Scene * scene, const Renderable renderable);
+extern int sceneAddRenderable(Scene * scene, Renderable renderable);
 
 #ifdef __cplusplus
     }

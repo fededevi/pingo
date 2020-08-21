@@ -4,12 +4,12 @@
 #include <math.h>
 #include <stdint.h>
 
-const Mat3 transformIdentity = {  1,  0,  0,
+const Mat3 mat3Identity = {  1,  0,  0,
 		0,  1,  0,
 		0,  0,  1};
 
 
-Mat3 transformTranslate(Vec2f l) {
+Mat3 mat3Translate(Vec2f l) {
 	T x = l.x;
 	T y = l.y;
 	return (Mat3){
@@ -20,7 +20,7 @@ Mat3 transformTranslate(Vec2f l) {
 }
 
 
-Mat3 mat3(float theta) {
+Mat3 mat3Rotate(float theta) {
 	T s = sin(theta);
 	T c = cos(theta);
 	return (Mat3){
@@ -61,38 +61,6 @@ Mat3 mat3MultiplyM( Mat3 * m1, Mat3 * m2) {
 	out.elements[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7];
 	out.elements[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8];
 	return out;
-}
-
-extern Mat3 mat3Complete( Vec2f origin, Vec2f translation, Vec2f scale, float rotation ){
-	int isRotated = rotation != 0;
-	int isScaled = scale.x != 1.0 || scale.y != 1.0;
-
-	//This is just a translation
-	if (!isRotated && !isScaled) {
-		return mat3Translate(translation);
-	}
-
-	//Transform is more complex, translate first in the origin
-	Mat3 m = mat3Translate((Vec2f){-origin.x,-origin.y});
-
-	//Apply rotation
-	if (isRotated) {
-		Mat3 r = mat3Rotate(rotation);
-		m = mat3MultiplyM(&m, &r);
-	}
-
-	//Apply scale
-	if (isScaled) {
-		Mat3 s = mat3Scale(scale);
-		m = mat3MultiplyM(&m, &s);
-	}
-
-	//Translate it to supposed location
-	Vec2f finalTranslation = {origin.x + translation.x, origin.y + translation.y};
-	Mat3 t = mat3Translate(finalTranslation);
-	m = mat3MultiplyM(&m, &t);
-
-	return m;
 }
 
 int mat3IsOnlyTranslation(Mat3 *m )
@@ -148,4 +116,36 @@ Mat3 mat3Inverse(Mat3 *v)
 	a[8] = a[8] / a[8];
 
 	return out;
+}
+
+extern Mat3 mat3Complete( Vec2f origin, Vec2f translation, Vec2f scale, float rotation ){
+	int isRotated = rotation != 0;
+	int isScaled = scale.x != 1.0 || scale.y != 1.0;
+
+	//This is just a translation
+	if (!isRotated && !isScaled) {
+		return mat3Translate(translation);
+	}
+
+	//Transform is more complex, translate first in the origin
+	Mat3 m = mat3Translate((Vec2f){-origin.x,-origin.y});
+
+	//Apply rotation
+	if (isRotated) {
+		Mat3 r = mat3Rotate(rotation);
+		m = mat3MultiplyM(&m, &r);
+	}
+
+	//Apply scale
+	if (isScaled) {
+		Mat3 s = mat3Scale(scale);
+		m = mat3MultiplyM(&m, &s);
+	}
+
+	//Translate it to supposed location
+	Vec2f finalTranslation = {origin.x + translation.x, origin.y + translation.y};
+	Mat3 t = mat3Translate(finalTranslation);
+	m = mat3MultiplyM(&m, &t);
+
+	return m;
 }

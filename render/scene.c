@@ -1,6 +1,6 @@
 #include "scene.h"
 
-int sceneAddRenderable(Scene * scene, const Renderable renderable)
+int sceneAddRenderable(Scene * scene, Renderable renderable)
 {
     if (scene->numberOfRenderables >= MAX_SCENE_RENDERABLES)
         return 1; //Too many renderables in this scene
