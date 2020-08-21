@@ -1,6 +1,6 @@
 #include "qrcode.h"
 
-#include "../qrCodeGen/c/qrcodegen.h"
+#include "../3rdp/qrcodegen.h"
 
 Renderable qrCodeAsRenderable(QrCode * qrc) {
     return (Renderable){ .renderableType = RENDERABLE_QRCODE, .impl = qrc};
