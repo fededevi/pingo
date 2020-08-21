@@ -1,6 +1,6 @@
 #include "renderer.h"
 #include "../renderable/sprite.h"
-#include "../renderable/qrcode.h"
+
 
 #include <string.h>
 #include <stdio.h>
@@ -83,12 +83,7 @@ int renderSprite(Renderer *r, Renderable ren) {
     return drawRectTransform(s->t,r,&s->frame);
 };
 
-int renderQrCode(Renderer *r, Renderable ren) {
-    QrCode * qr = (ren.impl);
-    return renderSprite(r,spriteAsRenderable(&qr->sprite));
-};
-
-int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite, &renderQrCode};
+int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite};
 
 int rendererInit(Renderer * r, Vector2I size, Pixel *fb0) {
     r->scene = 0;
