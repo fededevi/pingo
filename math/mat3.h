@@ -12,17 +12,47 @@ typedef struct {
     T elements[9];
 } Mat3;
 
-extern Mat3 transformTranslate(Vec2f l);
-extern Mat3 transformRotate(float theta);
-extern Mat3 transformScale(Vec2f s);
+/* Builds a clean translation matrix with x and y translation along relative axes
+ |1|0|x|
+ |0|1|y|
+ |0|0|1|
+*/
+extern Mat3 mat3Translate(Vec2f l);
 
-extern Vec2f transformMultiply(Vec2f * v, Mat3 * t);
-extern Mat3  transformMultiplyM( Mat3 *v, Mat3 *t);
+/* Builds a clean rotation matrix of Θ angle
+ | c(Θ) | -s(Θ)  | 0 |
+ | s(Θ) | c(Θ)   | 0 |
+ | 0    | 0      | 1 |
+*/
+extern Mat3 mat3Rotate(float theta);
 
+
+/* Builds a clean scale matrix of x, y scaling factors
+ | x | 0 | 0 |
+ | 0 | y | 0 |
+ | 0 | 0 | 1 |
+*/
+extern Mat3 mat3Scale(Vec2f s);
+
+//Multiply 2 component vector b 3x3 matrix
+extern Vec2f mat3Multiply(Vec2f * v, Mat3 * t);
+
+//Multiply 3x3 matrix with 3x3 matrix (v*t)
+extern Mat3  mat3MultiplyM( Mat3 *v, Mat3 *t);
+
+//Calculate homogeneous inverse of matrix
 extern Mat3 mat3Inverse( Mat3 *v );
 
+/* Calculate a complete matrix transformation with translation rotation and scale working as expected
+ * Rotation and scaled are applied in reference to the provided origin
+ */
+extern Mat3 mat3Complete( Vec2f origin, Vec2f translation, Vec2f scale, float rotation );
+
+//Calculate determinant of matrix
 extern T mat3Determinant(Mat3 * m);
-extern int transformIsOnlyTranslation(Mat3 *m);
+
+//If a mtrix has only translation some optimization can be done during rendering.
+extern int mat3IsOnlyTranslation(Mat3 *m);
 
 #ifdef __cplusplus
 }

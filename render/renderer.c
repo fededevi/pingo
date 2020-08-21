@@ -37,10 +37,10 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     Vec2f c = (Vec2f){0,src->size.y};
     Vec2f d = (Vec2f){src->size.x,src->size.y};
 
-    a = transformMultiply(&a, &t);
-    b = transformMultiply(&b, &t);
-    c = transformMultiply(&c, &t);
-    d = transformMultiply(&d, &t);
+    a = mat3Multiply(&a, &t);
+    b = mat3Multiply(&b, &t);
+    c = mat3Multiply(&c, &t);
+    d = mat3Multiply(&d, &t);
 
     // .. To find the axis aligned boundig box
     int minX = fmin(fmin(a.x,b.x),fmin(c.x,d.x));
@@ -54,7 +54,7 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
             //Transform the coordinate back to sprite space
             Vector2I desPos = {x,y};
             Vec2f desPosF = vecItoF(desPos);
-            Vec2f srcPosF = transformMultiply(&desPosF,&inv);
+            Vec2f srcPosF = mat3Multiply(&desPosF,&inv);
             Vector2I srcPosI = vecFtoI(srcPosF);
             if (srcPosF.x < 0) continue;
             if (srcPosF.y < 0) continue;
@@ -75,7 +75,7 @@ int renderFrame(Renderer *r, Renderable ren) {
 
 int renderSprite(Renderer *r, Renderable ren) {
     Sprite * s = (ren.impl);
-    if (transformIsOnlyTranslation(&s->t)) {
+    if (mat3IsOnlyTranslation(&s->t)) {
         Vector2I off = {s->t.elements[2], s->t.elements[5]};
         return drawRect(off,r, &s->frame);
     }
