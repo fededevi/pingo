@@ -1,11 +1,9 @@
 #include "renderer.h"
 #include "../renderable/sprite.h"
 
-
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-
 
 int drawRect(Vector2I off, Renderer *r, Frame * src) {
 	Frame des = r->frameBuffer;
@@ -74,7 +72,7 @@ int renderFrame(Renderer *r, Renderable ren) {
 };
 
 int renderSprite(Renderer *r, Renderable ren) {
-    Sprite * s = (ren.impl);
+    Sprite * s = ren.impl;
     if (mat3IsOnlyTranslation(&s->t)) {
         Vector2I off = {s->t.elements[2], s->t.elements[5]};
         return drawRect(off,r, &s->frame);
@@ -83,7 +81,19 @@ int renderSprite(Renderer *r, Renderable ren) {
     return drawRectTransform(s->t,r,&s->frame);
 };
 
-int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite};
+void renderRenderable(Renderer *r, Renderable ren) {
+    renderingFunctions[ren.renderableType](r,ren);
+};
+
+int renderScene(Renderer *r, Renderable ren) {
+    Scene * s = ren.impl;
+
+    for (int i = 0; i < s->numberOfRenderables; i++) {
+    	s->renderables[i]
+    }
+};
+
+int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite, &renderScene};
 
 int rendererInit(Renderer * r, Vector2I size, Pixel *fb0) {
     r->scene = 0;
@@ -103,10 +113,7 @@ int rendererRender(Renderer * renderer)
     if (renderer->clear)
     	memset(des.frameBuffer,renderer->clearColor,des.size.x*des.size.y*sizeof (Pixel));
 
-    for (int i = 0; i < renderer->scene->numberOfRenderables; i++) {
-        Renderable r = renderer->scene->renderables[i];
-        renderingFunctions[r.renderableType](renderer,r);
-    }
+    renderScene(renderer, sceneAsRenderable(renderer->scene));
 
     return 0;
 }

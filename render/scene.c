@@ -1,4 +1,5 @@
 #include "scene.h"
+#include "../Pingo/renderable/renderable.h"
 
 int sceneAddRenderable(Scene * scene, Renderable renderable)
 {
@@ -14,4 +15,9 @@ int sceneInit(Scene * s)
     s->numberOfRenderables = 0;
 
     return 0;
+}
+
+
+extern Renderable sceneAsRenderable(Scene * scene) {
+	return (Renderable){.renderableType = RENDERABLE_SCENE, .impl = scene};
 }

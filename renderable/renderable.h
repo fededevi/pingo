@@ -7,7 +7,7 @@ extern "C" {
 typedef enum  {
     RENDERABLE_FRAME  =0,
     RENDERABLE_SPRITE,
-    RENDERABLE_QRCODE,
+    RENDERABLE_SCENE,
     RENDERABLE_COUNT,
 } RenderableType;
 
