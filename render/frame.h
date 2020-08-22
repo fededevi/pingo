@@ -8,7 +8,7 @@
     extern "C" {
 #endif
 
-typedef struct  {
+typedef struct  Frame {
    Vector2I size;
    Pixel * frameBuffer;
 } Frame;

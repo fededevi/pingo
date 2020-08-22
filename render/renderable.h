@@ -4,14 +4,14 @@
 extern "C" {
 #endif
 
-typedef enum  {
+typedef enum  RenderableType {
     RENDERABLE_FRAME  =0,
     RENDERABLE_SPRITE,
     RENDERABLE_SCENE,
     RENDERABLE_COUNT,
 } RenderableType;
 
-typedef struct {
+typedef struct Renderable {
     RenderableType renderableType;
     void * impl;
 } Renderable;

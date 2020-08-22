@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../render/frame.h"
+#include "frame.h"
 #include "renderable.h"
 #include "../math/mat3.h"
 
@@ -8,7 +8,7 @@
     extern "C" {
 #endif
 
-typedef struct  {
+typedef struct Sprite {
    Mat3 t;
    Frame frame;
 } Sprite;

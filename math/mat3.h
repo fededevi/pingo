@@ -8,7 +8,7 @@ extern "C" {
 
 typedef float T;
 
-typedef struct {
+typedef struct Mat3 {
     T elements[9];
 } Mat3;
 

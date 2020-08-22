@@ -8,8 +8,8 @@
     extern "C" {
 #endif
 
-    typedef struct Scene Scene;
-    typedef struct BackEnd BackEnd;
+typedef struct Scene Scene;
+typedef struct BackEnd BackEnd;
 
 typedef struct Renderer{
     Frame frameBuffer;

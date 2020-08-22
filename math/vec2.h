@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-typedef struct {
+typedef struct Vector2I {
     uint16_t x;
     uint16_t y;
 } Vector2I;
