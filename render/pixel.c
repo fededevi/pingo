@@ -2,7 +2,7 @@
 
 #ifdef UINT8
 extern Pixel pixelRandom() {
-    return rand();
+    return (Pixel){(uint8_t)rand()};
 }
 #endif
 

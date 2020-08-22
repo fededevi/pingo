@@ -9,7 +9,7 @@
 
 #define MAX_SCENE_RENDERABLES 16
 
-typedef struct {
+typedef struct Scene {
     uint8_t numberOfRenderables;
     Renderable renderables[MAX_SCENE_RENDERABLES];
 } Scene;

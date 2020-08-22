@@ -1,12 +1,17 @@
-#include "renderer.h"
-#include "../render/sprite.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
 
+#include "renderer.h"
+#include "sprite.h"
+#include "pixel.h"
+#include "backend.h"
+#include "scene.h"
+
+
 int drawRect(Vector2I off, Renderer *r, Frame * src) {
-	Frame des = r->frameBuffer;
+    Frame des = r->frameBuffer;
 
     for (int y = 0; y < src->size.y; y++ ) {
         if (y > des.size.y)
@@ -91,31 +96,40 @@ int renderScene(Renderer *r, Renderable ren) {
     Scene * s = ren.impl;
 
     for (int i = 0; i < s->numberOfRenderables; i++) {
-    	renderRenderable(r, s->renderables[i]);
+        renderRenderable(r, s->renderables[i]);
     }
+    return 0;
 };
 
-int rendererInit(Renderer * r, Vector2I size, Pixel *fb0) {
+int rendererInit(Renderer * r, Vector2I size, BackEnd * backEnd) {
     r->scene = 0;
     r->clearColor = PIXELBLACK;
+    r->backEnd = backEnd;
+
 
     int e = 0;
-    e = frameInit(&(r->frameBuffer), size, fb0);
+    e = frameInit(&(r->frameBuffer), size, backEnd->getFrameBuffer(r, backEnd));
     if (e) return e;
 
-    return 0; //No error
+    r->backEnd->beforeRender(r, r->backEnd);
+
+    return 0;
 }
 
 static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite, &renderScene};
 
-int rendererRender(Renderer * renderer)
+int rendererRender(Renderer * r)
 {
-    //Clear draw buffer before rendering
-    Frame des = renderer->frameBuffer;
-    if (renderer->clear)
-    	memset(des.frameBuffer,renderer->clearColor,des.size.x*des.size.y*sizeof (Pixel));
+    r->backEnd->beforeRender(r, r->backEnd);
 
-    renderScene(renderer, sceneAsRenderable(renderer->scene));
+    //Clear draw buffer before rendering
+    Frame des = r->frameBuffer;
+    if (r->clear)
+        memset(des.frameBuffer,0,des.size.x*des.size.y*sizeof (Pixel));
+
+    renderScene(r, sceneAsRenderable(r->scene));
+
+    r->backEnd->beforeRender(r, r->backEnd);
 
     return 0;
 }

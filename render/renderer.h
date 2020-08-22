@@ -2,22 +2,26 @@
 
 #include "frame.h"
 #include "renderable.h"
-#include "scene.h"
+#include "pixel.h"
 
 #ifdef __cplusplus
     extern "C" {
 #endif
 
-typedef struct {
+    typedef struct Scene Scene;
+    typedef struct BackEnd BackEnd;
+
+typedef struct Renderer{
     Frame frameBuffer;
     Pixel clearColor;
     int clear;
     Scene * scene;
+    BackEnd * backEnd;
 } Renderer;
 
 extern int rendererRender(Renderer *);
 
-extern int rendererInit(Renderer *, Vector2I size, Pixel *fb0);
+extern int rendererInit(Renderer *, Vector2I size, struct BackEnd * backEnd);
 
 extern int rendererSetScene(Renderer *r, Scene *s);
 

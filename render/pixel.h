@@ -14,13 +14,15 @@ extern "C" {
 
 //Formats definitions:
 #ifdef UINT8
-typedef uint8_t Pixel;
-#define PIXELBLACK 0
-#define PIXELWHITE 255
+typedef struct Pixel {
+    uint8_t g;
+}Pixel;
+#define PIXELBLACK (Pixel){0}
+#define PIXELWHITE (Pixel){255}
 #endif
 
 #ifdef RGB888
-typedef struct {
+typedef struct Pixel {
     uint8_t r;
     uint8_t g;
     uint8_t b;
@@ -31,7 +33,7 @@ typedef struct {
 #endif
 
 #ifdef RGBA8888
-typedef struct {
+typedef struct Pixel {
     uint8_t r;
     uint8_t g;
     uint8_t b;
