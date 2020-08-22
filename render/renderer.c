@@ -13,20 +13,37 @@ static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable);
 int drawRect(Vector2I off, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
 
-    for (int y = 0; y < src->size.y; y++ ) {
-        if (y > des.size.y)
-            break; //Do not draw outside bounds
+    //Transform coords on destination (it is only translation so it is easy)
+    Vec2f a = (Vec2f){off.x,off.y};
+    Vec2f b = (Vec2f){off.x+src->size.x,off.y};
+    Vec2f c = (Vec2f){off.x,off.y+src->size.y};
+    Vec2f d = (Vec2f){off.x+src->size.x,off.y+src->size.y};
 
-        for (int x = 0; x < src->size.x; x++ ) {
-            if (x > des.size.x)
-                break; //Do not draw outside bounds
+    // .. To find the axis aligned boundig box
+    int minX = fmin(fmin(a.x,b.x),fmin(c.x,d.x));
+    int minY = fmin(fmin(a.y,b.y),fmin(c.y,d.y));
+    int maxX = fmax(fmax(a.x,b.x),fmax(c.x,d.x));
+    int maxY = fmax(fmax(a.y,b.y),fmax(c.y,d.y));
 
-            Vector2I srcPos = {x,y};
-            Vector2I desPos = vector2ISum(off,srcPos);
-            Pixel color = frameRead(src, srcPos);
+    //Then clamp max/min values to destination buffer
+    maxX = fmin(des.size.x, fmax(maxX, 0));
+    maxY = fmin(des.size.y, fmax(maxY, 0));
+    minX = fmin(des.size.x, fmax(minX, 0));
+    minY = fmin(des.size.y, fmax(minY, 0));
+
+    if (minX - maxX == 0) return 0; //outside visible frame
+    if (maxX - maxY == 0) return 0; //outside visible frame
+
+    for (int y = minY; y < maxY; y++) {
+        for (int x = minX; x < maxX; x++) {
+            //Transform the coordinate back to sprite space
+            Vector2I desPos = {x,y};
+            Vector2I srcPosI = {x-off.x,y-off.y};
+            Pixel color = frameRead(src, srcPosI);
             frameDraw(&des, desPos, color);
         }
     }
+
     return 0;
 }
 
@@ -34,6 +51,7 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
 
     Mat3 inv = mat3Inverse(&t);
+
     // Transform 4 points of frame to frame buffer space
     Vec2f a = (Vec2f){0,0};
     Vec2f b = (Vec2f){src->size.x,0};
@@ -51,18 +69,34 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     int maxX = fmax(fmax(a.x,b.x),fmax(c.x,d.x));
     int maxY = fmax(fmax(a.y,b.y),fmax(c.y,d.y));
 
-    //Now we can iterate over the pixels of the AABB which contain the source frame
+    //Then clamp max/min values to destination buffer
+    maxX = fmin(des.size.x, fmax(maxX, 0));
+    maxY = fmin(des.size.y, fmax(maxY, 0));
+    minX = fmin(des.size.x, fmax(minX, 0));
+    minY = fmin(des.size.y, fmax(minY, 0));
+
+    if (minX - maxX == 0) return 0; //outside visible frame
+    if (minY - maxY == 0) return 0; //outside visible frame
+
+    //Now we can iterate over the pixels of the axis-alignes-bounding-box (AABB) which contain the source frame
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
-            //Transform the coordinate back to sprite space
+            //Transform the coordinate back to sprite space with the inverse tranform
             Vector2I desPos = {x,y};
             Vec2f desPosF = vecItoF(desPos);
             Vec2f srcPosF = mat3Multiply(&desPosF,&inv);
             Vector2I srcPosI = vecFtoI(srcPosF);
+
+            //TODO: Improve this check by precalculating start/end coord in loop with line intersection
+            //We need to check if transformed coord are inside the frame
+            //Probably there is a faster way of doing this by checking line intersection
+            //with the sprite transformed quad but I don't care for now because we
+            //do not use rotations as of now.
             if (srcPosF.x < 0) continue;
             if (srcPosF.y < 0) continue;
-            if (srcPosF.x > src->size.x) continue;
-            if (srcPosF.y > src->size.y) continue;
+            if (srcPosF.x >= src->size.x) continue;
+            if (srcPosF.y >= src->size.y) continue;
+
             Pixel color = frameRead(src, srcPosI);
             frameDraw(&des, desPos, color);
         }
