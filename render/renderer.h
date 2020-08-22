@@ -25,8 +25,6 @@ extern int rendererInit(Renderer *, Vector2I size, struct BackEnd * backEnd);
 
 extern int rendererSetScene(Renderer *r, Scene *s);
 
-static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable);
-
 #ifdef __cplusplus
     }
 #endif

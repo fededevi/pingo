@@ -1,4 +1,3 @@
-
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -9,6 +8,7 @@
 #include "backend.h"
 #include "scene.h"
 
+static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable);
 
 int drawRect(Vector2I off, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
@@ -102,7 +102,12 @@ int renderScene(Renderer *r, Renderable ren) {
 };
 
 int rendererInit(Renderer * r, Vector2I size, BackEnd * backEnd) {
+    renderingFunctions[RENDERABLE_FRAME] = &renderFrame;
+    renderingFunctions[RENDERABLE_SPRITE] = &renderSprite;
+    renderingFunctions[RENDERABLE_SCENE] = &renderScene;
+
     r->scene = 0;
+    r->clear = 0;
     r->clearColor = PIXELBLACK;
     r->backEnd = backEnd;
 
@@ -114,8 +119,6 @@ int rendererInit(Renderer * r, Vector2I size, BackEnd * backEnd) {
 
     return 0;
 }
-
-static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable)={&renderFrame, &renderSprite, &renderScene};
 
 int rendererRender(Renderer * r)
 {
