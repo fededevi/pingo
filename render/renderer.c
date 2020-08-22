@@ -106,12 +106,11 @@ int rendererInit(Renderer * r, Vector2I size, BackEnd * backEnd) {
     r->clearColor = PIXELBLACK;
     r->backEnd = backEnd;
 
-
     int e = 0;
     e = frameInit(&(r->frameBuffer), size, backEnd->getFrameBuffer(r, backEnd));
     if (e) return e;
 
-    r->backEnd->beforeRender(r, r->backEnd);
+    r->backEnd->init(r, r->backEnd);
 
     return 0;
 }
@@ -122,6 +121,9 @@ int rendererRender(Renderer * r)
 {
     r->backEnd->beforeRender(r, r->backEnd);
 
+    //get current framebuffe from backend
+    r->frameBuffer.frameBuffer= r->backEnd->getFrameBuffer(r, r->backEnd);
+
     //Clear draw buffer before rendering
     Frame des = r->frameBuffer;
     if (r->clear)
@@ -129,7 +131,7 @@ int rendererRender(Renderer * r)
 
     renderScene(r, sceneAsRenderable(r->scene));
 
-    r->backEnd->beforeRender(r, r->backEnd);
+    r->backEnd->afterRender(r, r->backEnd);
 
     return 0;
 }
