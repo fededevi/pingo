@@ -13,11 +13,12 @@ int sceneAddRenderable(Scene * scene, Renderable renderable)
 int sceneInit(Scene * s)
 {
     s->numberOfRenderables = 0;
+    s->visible = 1;
 
     return 0;
 }
 
 
 extern Renderable sceneAsRenderable(Scene * scene) {
-	return (Renderable){.renderableType = RENDERABLE_SCENE, .impl = scene};
+    return (Renderable){.renderableType = RENDERABLE_SCENE, .impl = scene};
 }

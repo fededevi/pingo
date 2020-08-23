@@ -129,6 +129,9 @@ void renderRenderable(Renderer *r, Renderable ren) {
 int renderScene(Renderer *r, Renderable ren) {
     Scene * s = ren.impl;
 
+    if (!s->visible)
+        return 0;
+
     for (int i = 0; i < s->numberOfRenderables; i++) {
         renderRenderable(r, s->renderables[i]);
     }
@@ -141,7 +144,7 @@ int rendererInit(Renderer * r, Vector2I size, BackEnd * backEnd) {
     renderingFunctions[RENDERABLE_SCENE] = &renderScene;
 
     r->scene = 0;
-    r->clear = 0;
+    r->clear = 1;
     r->clearColor = PIXELBLACK;
     r->backEnd = backEnd;
 

@@ -12,6 +12,7 @@
 typedef struct Scene {
     uint8_t numberOfRenderables;
     Renderable renderables[MAX_SCENE_RENDERABLES];
+    uint8_t visible;
 } Scene;
 
 extern int sceneInit(Scene * s);
