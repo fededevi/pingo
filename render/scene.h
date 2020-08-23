@@ -7,7 +7,7 @@
     extern "C" {
 #endif
 
-#define MAX_SCENE_RENDERABLES 16
+#define MAX_SCENE_RENDERABLES 32
 
 typedef struct Scene {
     uint8_t numberOfRenderables;

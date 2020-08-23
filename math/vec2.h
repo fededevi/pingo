@@ -1,15 +1,13 @@
 #pragma once
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct Vector2I {
-    uint16_t x;
-    uint16_t y;
-} Vector2I;
+typedef struct Vec2i {
+    int x;
+    int y;
+} Vec2i;
 
 typedef struct {
     float x;
@@ -18,11 +16,11 @@ typedef struct {
 
 #define VECTORZERO (Vector2I){0,0}
 
-extern Vector2I vector2ISum(Vector2I l, Vector2I r);
+extern Vec2i vector2ISum(Vec2i l, Vec2i r);
 
-extern Vec2f vecItoF(Vector2I v);
+extern Vec2f vecItoF(Vec2i v);
 
-extern Vector2I vecFtoI(Vec2f v);
+extern Vec2i vecFtoI(Vec2f v);
 
 #ifdef __cplusplus
 }

@@ -9,16 +9,16 @@
 #endif
 
 typedef struct  Frame {
-   Vector2I size;
+   Vec2i size;
    Pixel * frameBuffer;
 } Frame;
 
-extern int frameInit( Frame * f, Vector2I size, Pixel *);
+extern int frameInit( Frame * f, Vec2i size, Pixel *);
 
 extern Renderable frameAsRenderable( Frame * s);
 
-extern void  frameDraw(Frame * f, Vector2I pos, Pixel color);
-extern Pixel frameRead(Frame * f, Vector2I pos);
+extern void  frameDraw(Frame * f, Vec2i pos, Pixel color);
+extern Pixel frameRead(Frame * f, Vec2i pos);
 
 #ifdef __cplusplus
     }

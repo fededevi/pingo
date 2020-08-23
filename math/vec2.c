@@ -1,16 +1,16 @@
 #include "vec2.h"
 
-Vector2I vector2ISum(Vector2I l, Vector2I r)
+Vec2i vector2ISum(Vec2i l, Vec2i r)
 {
-    return (Vector2I){l.x+r.x,l.y+r.y};
+    return (Vec2i){l.x+r.x,l.y+r.y};
 }
 
-Vec2f vecItoF(Vector2I v)
+Vec2f vecItoF(Vec2i v)
 {
     return (Vec2f){v.x,v.y};
 }
 
-Vector2I vecFtoI(Vec2f v)
+Vec2i vecFtoI(Vec2f v)
 {
-    return (Vector2I){v.x,v.y};
+    return (Vec2i){v.x,v.y};
 }

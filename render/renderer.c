@@ -10,7 +10,7 @@
 
 static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable);
 
-int drawRect(Vector2I off, Renderer *r, Frame * src) {
+int drawRect(Vec2i off, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
 
     //Transform coords on destination (it is only translation so it is easy)
@@ -37,8 +37,8 @@ int drawRect(Vector2I off, Renderer *r, Frame * src) {
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
             //Transform the coordinate back to sprite space
-            Vector2I desPos = {x,y};
-            Vector2I srcPosI = {x-off.x,y-off.y};
+            Vec2i desPos = {x,y};
+            Vec2i srcPosI = {x-off.x,y-off.y};
             Pixel color = frameRead(src, srcPosI);
             frameDraw(&des, desPos, color);
         }
@@ -82,10 +82,10 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
             //Transform the coordinate back to sprite space with the inverse tranform
-            Vector2I desPos = {x,y};
+            Vec2i desPos = {x,y};
             Vec2f desPosF = vecItoF(desPos);
             Vec2f srcPosF = mat3Multiply(&desPosF,&inv);
-            Vector2I srcPosI = vecFtoI(srcPosF);
+            Vec2i srcPosI = vecFtoI(srcPosF);
 
             //TODO: Improve this check by precalculating start/end coord in loop with line intersection
             //We need to check if transformed coord are inside the frame
@@ -107,13 +107,13 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
 
 int renderFrame(Renderer *r, Renderable ren) {
     Frame * f = ren.impl;
-    return drawRect((Vector2I){0,0},r,f);
+    return drawRect((Vec2i){0,0},r,f);
 };
 
 int renderSprite(Renderer *r, Renderable ren) {
     Sprite * s = ren.impl;
     if (mat3IsOnlyTranslation(&s->t)) {
-        Vector2I off = {s->t.elements[2], s->t.elements[5]};
+        Vec2i off = {s->t.elements[2], s->t.elements[5]};
         return drawRect(off,r, &s->frame);
     }
 
@@ -138,7 +138,7 @@ int renderScene(Renderer *r, Renderable ren) {
     return 0;
 };
 
-int rendererInit(Renderer * r, Vector2I size, BackEnd * backEnd) {
+int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     renderingFunctions[RENDERABLE_FRAME] = &renderFrame;
     renderingFunctions[RENDERABLE_SPRITE] = &renderSprite;
     renderingFunctions[RENDERABLE_SCENE] = &renderScene;

@@ -22,7 +22,7 @@ int spriteRandomize(Sprite * s)
     for (int x = 0; x < s->frame.size.x; x++ ) {
         for (int y = 0; y < s->frame.size.y; y++ ) {
 
-            frameDraw(&s->frame,(Vector2I){x,y},pixelRandom());
+            frameDraw(&s->frame,(Vec2i){x,y},pixelRandom());
         }
     }
 

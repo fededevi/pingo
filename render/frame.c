@@ -1,6 +1,6 @@
 #include "frame.h"
 
-int frameInit( Frame * f, Vector2I size, Pixel * buf ) {
+int frameInit( Frame * f, Vec2i size, Pixel * buf ) {
 
     if (size.x * size.y == 0)
         return 1; // 0 sized rect
@@ -19,12 +19,12 @@ Renderable frameAsRenderable(Frame * s) {
     return (Renderable){ .renderableType = RENDERABLE_FRAME, .impl = s};
 }
 
-void frameDraw(Frame *f, Vector2I pos, Pixel color)
+void frameDraw(Frame *f, Vec2i pos, Pixel color)
 {
     f->frameBuffer[pos.x + pos.y * f->size.x] = color;
 }
 
-Pixel frameRead(Frame *f, Vector2I pos)
+Pixel frameRead(Frame *f, Vec2i pos)
 {
     return f->frameBuffer[pos.x + pos.y * f->size.x];
 }

@@ -21,7 +21,7 @@ typedef struct Renderer{
 
 extern int rendererRender(Renderer *);
 
-extern int rendererInit(Renderer *, Vector2I size, struct BackEnd * backEnd);
+extern int rendererInit(Renderer *, Vec2i size, struct BackEnd * backEnd);
 
 extern int rendererSetScene(Renderer *r, Scene *s);
 
