@@ -8,9 +8,7 @@ extern "C" {
 #endif
 
 //What format to use:
-//#define UINT8
-#define UINT8
-//#define RGBA8888
+#define UINT8 // [ RGBA8888 | RGB888 ]
 
 //Formats definitions:
 #ifdef UINT8
@@ -44,7 +42,11 @@ typedef struct Pixel {
 #define PIXELWHITE (Pixel){255,255,255,255}
 #endif
 
+//Interface
 extern Pixel pixelRandom();
+extern Pixel pixelFromUInt8( uint8_t);
+extern uint8_t pixelToUInt8( Pixel *);
+extern uint32_t pixelToRGBA( Pixel *);
 
 #ifdef __cplusplus
 }
