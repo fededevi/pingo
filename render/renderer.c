@@ -1,12 +1,12 @@
 #include <string.h>
 #include <stdio.h>
-#include <math.h>
 
 #include "renderer.h"
 #include "sprite.h"
 #include "pixel.h"
 #include "backend.h"
 #include "scene.h"
+#include "macro.h"
 
 static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable);
 
@@ -20,16 +20,16 @@ int drawRect(Vec2i off, Renderer *r, Frame * src) {
     Vec2f d = (Vec2f){off.x+src->size.x,off.y+src->size.y};
 
     // .. To find the axis aligned boundig box
-    int minX = fmin(fmin(a.x,b.x),fmin(c.x,d.x));
-    int minY = fmin(fmin(a.y,b.y),fmin(c.y,d.y));
-    int maxX = fmax(fmax(a.x,b.x),fmax(c.x,d.x));
-    int maxY = fmax(fmax(a.y,b.y),fmax(c.y,d.y));
+    int minX = MIN(MIN(a.x,b.x),MIN(c.x,d.x));
+    int minY = MIN(MIN(a.y,b.y),MIN(c.y,d.y));
+    int maxX = MAX(MAX(a.x,b.x),MAX(c.x,d.x));
+    int maxY = MAX(MAX(a.y,b.y),MAX(c.y,d.y));
 
     //Then clamp max/min values to destination buffer
-    maxX = fmin(des.size.x, fmax(maxX, 0));
-    maxY = fmin(des.size.y, fmax(maxY, 0));
-    minX = fmin(des.size.x, fmax(minX, 0));
-    minY = fmin(des.size.y, fmax(minY, 0));
+    maxX = MIN(des.size.x, MAX(maxX, 0));
+    maxY = MIN(des.size.y, MAX(maxY, 0));
+    minX = MIN(des.size.x, MAX(minX, 0));
+    minY = MIN(des.size.y, MAX(minY, 0));
 
     if (minX - maxX == 0) return 0; //outside visible frame
     if (maxX - maxY == 0) return 0; //outside visible frame
@@ -64,16 +64,16 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     d = mat3Multiply(&d, &t);
 
     // .. To find the axis aligned boundig box
-    int minX = fmin(fmin(a.x,b.x),fmin(c.x,d.x));
-    int minY = fmin(fmin(a.y,b.y),fmin(c.y,d.y));
-    int maxX = fmax(fmax(a.x,b.x),fmax(c.x,d.x));
-    int maxY = fmax(fmax(a.y,b.y),fmax(c.y,d.y));
+    int minX = MIN(MIN(a.x,b.x),MIN(c.x,d.x));
+    int minY = MIN(MIN(a.y,b.y),MIN(c.y,d.y));
+    int maxX = MAX(MAX(a.x,b.x),MAX(c.x,d.x));
+    int maxY = MAX(MAX(a.y,b.y),MAX(c.y,d.y));
 
     //Then clamp max/min values to destination buffer
-    maxX = fmin(des.size.x, fmax(maxX, 0));
-    maxY = fmin(des.size.y, fmax(maxY, 0));
-    minX = fmin(des.size.x, fmax(minX, 0));
-    minY = fmin(des.size.y, fmax(minY, 0));
+    maxX = MIN(des.size.x, MAX(maxX, 0));
+    maxY = MIN(des.size.y, MAX(maxY, 0));
+    minX = MIN(des.size.x, MAX(minX, 0));
+    minY = MIN(des.size.y, MAX(minY, 0));
 
     if (minX - maxX == 0) return 0; //outside visible frame
     if (minY - maxY == 0) return 0; //outside visible frame
