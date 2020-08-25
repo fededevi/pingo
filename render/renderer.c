@@ -6,9 +6,11 @@
 #include "pixel.h"
 #include "backend.h"
 #include "scene.h"
-#include "macro.h"
 
 static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable);
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 int drawRect(Vec2i off, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
@@ -169,7 +171,8 @@ int rendererRender(Renderer * r)
     if (r->clear)
         memset(des.frameBuffer,0,des.size.x*des.size.y*sizeof (Pixel));
 
-    renderScene(r, sceneAsRenderable(r->scene));
+    if (r->scene)
+        renderScene(r, sceneAsRenderable(r->scene));
 
     r->backEnd->afterRender(r, r->backEnd);
 

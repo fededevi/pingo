@@ -9,6 +9,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    example/windowbackend.h \
     math/mat3.h \
     math/vec2.h \
     render/backend.h \
@@ -20,6 +21,8 @@ HEADERS += \
     render/sprite.h
 
 SOURCES += \
+    example/main.c \
+    example/windowbackend.c \
     math/mat3.c \
     math/vec2.c \
     render/frame.c \
