@@ -63,20 +63,6 @@ Mat3 mat3MultiplyM( Mat3 * m1, Mat3 * m2) {
     return out;
 }
 
-int mat3IsOnlyTranslation(Mat3 *m )
-{
-    if (m->elements[0] != 1.0) return 0;
-    if (m->elements[1] != 0.0) return 0;
-    //if (m->elements[2] != 0.0) return 0; This is a translation component
-    if (m->elements[3] != 0.0) return 0;
-    if (m->elements[4] != 1.0) return 0;
-    //if (m->elements[5] != 1.0) return 0; This is a translation component
-    if (m->elements[6] != 0.0) return 0;
-    if (m->elements[7] != 0.0) return 0;
-    if (m->elements[8] != 1.0) return 0;
-    return 1;
-}
-
 T mat3Determinant(Mat3 * mat)
 {
     T * m = mat->elements;
@@ -148,4 +134,32 @@ extern Mat3 mat3Complete( Vec2f origin, Vec2f translation, Vec2f scale, float ro
     m = mat3MultiplyM(&m, &t);
 
     return m;
+}
+
+int mat3IsOnlyTranslation(Mat3 *m )
+{
+    if (m->elements[0] != 1.0) return 0;
+    if (m->elements[1] != 0.0) return 0;
+    //if (m->elements[2] != 0.0) return 0; This is a translation component
+    if (m->elements[3] != 0.0) return 0;
+    if (m->elements[4] != 1.0) return 0;
+    //if (m->elements[5] != 1.0) return 0; This is a translation component
+    if (m->elements[6] != 0.0) return 0;
+    if (m->elements[7] != 0.0) return 0;
+    if (m->elements[8] != 1.0) return 0;
+    return 1;
+}
+
+int mat3IsOnlyTranslationDoubled(Mat3 *m)
+{
+    if (m->elements[0] != 2.0) return 0;
+    if (m->elements[1] != 0.0) return 0;
+    //if (m->elements[2] != 0.0) return 0; This is a translation component
+    if (m->elements[3] != 0.0) return 0;
+    if (m->elements[4] != 2.0) return 0;
+    //if (m->elements[5] != 1.0) return 0; This is a translation component
+    if (m->elements[6] != 0.0) return 0;
+    if (m->elements[7] != 0.0) return 0;
+    if (m->elements[8] != 1.0) return 0;
+    return 1;
 }

@@ -51,8 +51,11 @@ extern Mat3 mat3Complete( Vec2f origin, Vec2f translation, Vec2f scale, float ro
 //Calculate determinant of matrix
 extern T mat3Determinant(Mat3 * m);
 
-//If a mtrix has only translation some optimization can be done during rendering.
+//If a matrix has only translation some optimization can be done during rendering.
 extern int mat3IsOnlyTranslation(Mat3 *m);
+
+//If a matrix has only translation and doubles the size some optimization can be done during rendering.
+extern int mat3IsOnlyTranslationDoubled(Mat3 *m);
 
 #ifdef __cplusplus
 }

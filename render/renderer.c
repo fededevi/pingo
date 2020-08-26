@@ -47,6 +47,50 @@ int drawRect(Vec2i off, Renderer *r, Frame * src) {
     return 0;
 }
 
+int drawRectDoubled(Vec2i off, Renderer *r, Frame * src) {
+    Frame des = r->frameBuffer;
+
+    //Transform coords on destination (double the size of the frame)
+    Vec2f a = (Vec2f){off.x,off.y};
+    Vec2f b = (Vec2f){off.x+src->size.x*2,off.y};
+    Vec2f c = (Vec2f){off.x,off.y+src->size.y*2};
+    Vec2f d = (Vec2f){off.x+src->size.x*2,off.y+src->size.y*2};
+
+    // .. To find the axis aligned boundig box
+    int minX = MIN(MIN(a.x,b.x),MIN(c.x,d.x));
+    int minY = MIN(MIN(a.y,b.y),MIN(c.y,d.y));
+    int maxX = MAX(MAX(a.x,b.x),MAX(c.x,d.x));
+    int maxY = MAX(MAX(a.y,b.y),MAX(c.y,d.y));
+
+    //Then clamp max/min values to destination buffer
+    maxX = MIN(des.size.x, MAX(maxX, 0));
+    maxY = MIN(des.size.y, MAX(maxY, 0));
+    minX = MIN(des.size.x, MAX(minX, 0));
+    minY = MIN(des.size.y, MAX(minY, 0));
+
+    if (minX - maxX == 0) return 0; //outside visible frame
+    if (maxX - maxY == 0) return 0; //outside visible frame
+
+    for (int y = minY; y < maxY; y+=2) {
+        for (int x = minX; x < maxX; x=x+2) {
+            //Transform the coordinate back to sprite space
+            Vec2i srcPosI = {(x-off.x)/2,(y-off.y)/2};
+            Pixel color = frameRead(src, srcPosI);
+            frameDraw(&des, (Vec2i){x,y}, color);
+            frameDraw(&des, (Vec2i){x+1,y}, color);
+        }
+        for (int x = minX; x < maxX; x=x+2) {
+            //Transform the coordinate back to sprite space
+            Vec2i srcPosI = {(x-off.x)/2,(y-off.y)/2};
+            Pixel color = frameRead(src, srcPosI);
+            frameDraw(&des, (Vec2i){x,y+1}, color);
+            frameDraw(&des, (Vec2i){x+1,y+1}, color);
+        }
+    }
+
+    return 0;
+}
+
 int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
 
@@ -115,6 +159,11 @@ int renderSprite(Renderer *r, Renderable ren) {
     if (mat3IsOnlyTranslation(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
         return drawRect(off,r, &s->frame);
+    }
+
+    if (mat3IsOnlyTranslationDoubled(&s->t)) {
+        Vec2i off = {s->t.elements[2], s->t.elements[5]};
+        return drawRectDoubled(off,r, &s->frame);
     }
 
     return drawRectTransform(s->t,r,&s->frame);

@@ -1,4 +1,4 @@
-#include <QCoreApplication>
+/*#include <QCoreApplication>
 
 #include <Windows.h>
 #include <wingdi.h>
@@ -86,3 +86,4 @@ int main()
     }
 
 }
+*/
