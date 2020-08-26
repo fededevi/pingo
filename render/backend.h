@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../math/vec2.h"
+
 /**
   * Privdes a common interface to multiple graphical backends
   */
@@ -9,7 +11,7 @@ typedef struct Pixel Pixel;
 
 typedef struct BackEnd {
     //Called on initialization and re-initialization
-    void (*init)(Renderer *, struct BackEnd * );
+    void (*init)(Renderer *, struct BackEnd *, Vec2i pos, Vec2i size);
 
     //Called before starting rendering
     void (*beforeRender)(Renderer *, struct BackEnd * );

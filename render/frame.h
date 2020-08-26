@@ -18,6 +18,7 @@ extern int frameInit( Frame * f, Vec2i size, Pixel *);
 extern Renderable frameAsRenderable( Frame * s);
 
 extern void  frameDraw(Frame * f, Vec2i pos, Pixel color);
+
 extern Pixel frameRead(Frame * f, Vec2i pos);
 
 #ifdef __cplusplus

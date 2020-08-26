@@ -31,9 +31,6 @@ int drawRect(Vec2i off, Renderer *r, Frame * src) {
     minX = MIN(des.size.x, MAX(minX, 0));
     minY = MIN(des.size.y, MAX(minY, 0));
 
-    if (minX - maxX == 0) return 0; //outside visible frame
-    if (maxX - maxY == 0) return 0; //outside visible frame
-
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
             //Transform the coordinate back to sprite space
@@ -67,9 +64,6 @@ int drawRectDoubled(Vec2i off, Renderer *r, Frame * src) {
     maxY = MIN(des.size.y, MAX(maxY, 0));
     minX = MIN(des.size.x, MAX(minX, 0));
     minY = MIN(des.size.y, MAX(minY, 0));
-
-    if (minX - maxX == 0) return 0; //outside visible frame
-    if (maxX - maxY == 0) return 0; //outside visible frame
 
     for (int y = minY; y < maxY; y+=2) {
         for (int x = minX; x < maxX; x=x+2) {
@@ -119,9 +113,6 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     minX = MIN(des.size.x, MAX(minX, 0));
     minY = MIN(des.size.y, MAX(minY, 0));
 
-    if (minX - maxX == 0) return 0; //outside visible frame
-    if (minY - maxY == 0) return 0; //outside visible frame
-
     //Now we can iterate over the pixels of the axis-alignes-bounding-box (AABB) which contain the source frame
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
@@ -156,17 +147,26 @@ int renderFrame(Renderer *r, Renderable ren) {
 
 int renderSprite(Renderer *r, Renderable ren) {
     Sprite * s = ren.impl;
+    Mat3 backUp = s->t;
+    Mat3 deOffset = mat3Translate((Vec2f){-r->offset.x,-r->offset.y});
+    s->t = mat3MultiplyM(&s->t, &deOffset);
     if (mat3IsOnlyTranslation(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
-        return drawRect(off,r, &s->frame);
+        drawRect(off,r, &s->frame);
+        s->t = backUp;
+        return 0;
     }
 
     if (mat3IsOnlyTranslationDoubled(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
-        return drawRectDoubled(off,r, &s->frame);
+        drawRectDoubled(off,r, &s->frame);
+        s->t = backUp;
+        return 0;
     }
 
-    return drawRectTransform(s->t,r,&s->frame);
+    drawRectTransform(s->t,r,&s->frame);
+    s->t = backUp;
+    return 0;
 };
 
 
@@ -197,14 +197,29 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     r->clearColor = PIXELBLACK;
     r->backEnd = backEnd;
 
+    r->backEnd->init(r, r->backEnd, (Vec2i){0,0}, (Vec2i){0,0});
+
     int e = 0;
     e = frameInit(&(r->frameBuffer), size, backEnd->getFrameBuffer(r, backEnd));
     if (e) return e;
 
-    r->backEnd->init(r, r->backEnd);
 
     return 0;
 }
+
+/**
+ * @brief Clear the whole framebuffer slowly. This prevents underrun in the FPGA draw buffer and prevents desynchronization
+ * of the video signal
+ */
+void clearBufferSlowly (Frame f)
+{
+    int length = f.size.x*sizeof (Pixel);
+    for (int y = 0; y < f.size.y; y++) {
+        uint16_t offset = f.size.x*sizeof (Pixel);
+        memset(f.frameBuffer+offset*y,0,length);
+    }
+}
+
 
 int rendererRender(Renderer * r)
 {
@@ -215,8 +230,9 @@ int rendererRender(Renderer * r)
 
     //Clear draw buffer before rendering
     Frame des = r->frameBuffer;
-    if (r->clear)
-        memset(des.frameBuffer,0,des.size.x*des.size.y*sizeof (Pixel));
+    if (r->clear) {
+        clearBufferSlowly(des);
+    }
 
     renderScene(r, sceneAsRenderable(r->scene));
 
@@ -234,6 +250,11 @@ int rendererSetScene(Renderer *r, Scene *s)
     return 0;
 }
 
-
-
-
+int rendererSetArea(Renderer *r, Vec2i offset, Vec2i size)
+{
+    r->offset = offset;
+    r->backEnd->init(r, r->backEnd, offset, size);
+    r->frameBuffer.frameBuffer = r->backEnd->getFrameBuffer(r,r->backEnd);
+    r->frameBuffer.size = size;
+    return 0;
+}
