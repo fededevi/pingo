@@ -229,9 +229,8 @@ int rendererRender(Renderer * r)
     r->frameBuffer.frameBuffer= r->backEnd->getFrameBuffer(r, r->backEnd);
 
     //Clear draw buffer before rendering
-    Frame des = r->frameBuffer;
     if (r->clear) {
-        clearBufferSlowly(des);
+        clearBufferSlowly(r->frameBuffer);
     }
 
     renderScene(r, sceneAsRenderable(r->scene));
@@ -254,7 +253,6 @@ int rendererSetCamera(Renderer *r, Vec4i rect)
 {
     r->camera = rect;
     r->backEnd->init(r, r->backEnd, rect);
-    r->frameBuffer.frameBuffer = r->backEnd->getFrameBuffer(r,r->backEnd);
     r->frameBuffer.size = (Vec2i){rect.z, rect.w};
     return 0;
 }
