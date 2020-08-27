@@ -1,15 +1,14 @@
 #pragma once
-
+#include "types.h"
 #include "vec2.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef float T;
 
 typedef struct Mat3 {
-    T elements[9];
+    F_TYPE elements[9];
 } Mat3;
 
 /* Builds a clean translation matrix with x and y translation along relative axes
@@ -49,7 +48,7 @@ extern Mat3 mat3Inverse( Mat3 *v );
 extern Mat3 mat3Complete( Vec2f origin, Vec2f translation, Vec2f scale, float rotation );
 
 //Calculate determinant of matrix
-extern T mat3Determinant(Mat3 * m);
+extern F_TYPE mat3Determinant(Mat3 * m);
 
 //If a matrix has only translation some optimization can be done during rendering.
 extern int mat3IsOnlyTranslation(Mat3 *m);

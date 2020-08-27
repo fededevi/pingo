@@ -3,6 +3,7 @@
 #include "frame.h"
 #include "renderable.h"
 #include "pixel.h"
+#include "../math/vec4.h"
 
 #ifdef __cplusplus
     extern "C" {
@@ -12,7 +13,7 @@ typedef struct Scene Scene;
 typedef struct BackEnd BackEnd;
 
 typedef struct Renderer{
-    Vec2i offset;
+    Vec4i camera;
     Frame frameBuffer;
     Pixel clearColor;
     int clear;
@@ -26,7 +27,7 @@ extern int rendererInit(Renderer *, Vec2i size, struct BackEnd * backEnd);
 
 extern int rendererSetScene(Renderer *r, Scene *s);
 
-extern int rendererSetArea(Renderer *r, Vec2i offset, Vec2i size);
+extern int rendererSetCamera(Renderer *r, Vec4i camera);
 
 #ifdef __cplusplus
     }

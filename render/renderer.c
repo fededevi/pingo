@@ -148,7 +148,7 @@ int renderFrame(Renderer *r, Renderable ren) {
 int renderSprite(Renderer *r, Renderable ren) {
     Sprite * s = ren.impl;
     Mat3 backUp = s->t;
-    Mat3 deOffset = mat3Translate((Vec2f){-r->offset.x,-r->offset.y});
+    Mat3 deOffset = mat3Translate((Vec2f){-r->camera.x,-r->camera.y});
     s->t = mat3MultiplyM(&s->t, &deOffset);
     if (mat3IsOnlyTranslation(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
@@ -197,7 +197,7 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     r->clearColor = PIXELBLACK;
     r->backEnd = backEnd;
 
-    r->backEnd->init(r, r->backEnd, (Vec2i){0,0}, (Vec2i){0,0});
+    r->backEnd->init(r, r->backEnd, (Vec4i){0,0,0,0});
 
     int e = 0;
     e = frameInit(&(r->frameBuffer), size, backEnd->getFrameBuffer(r, backEnd));
@@ -250,11 +250,11 @@ int rendererSetScene(Renderer *r, Scene *s)
     return 0;
 }
 
-int rendererSetArea(Renderer *r, Vec2i offset, Vec2i size)
+int rendererSetCamera(Renderer *r, Vec4i rect)
 {
-    r->offset = offset;
-    r->backEnd->init(r, r->backEnd, offset, size);
+    r->camera = rect;
+    r->backEnd->init(r, r->backEnd, rect);
     r->frameBuffer.frameBuffer = r->backEnd->getFrameBuffer(r,r->backEnd);
-    r->frameBuffer.size = size;
+    r->frameBuffer.size = (Vec2i){rect.z, rect.w};
     return 0;
 }
