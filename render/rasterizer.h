@@ -1,6 +1,6 @@
 #pragma once
 
-#include "frame.h"
+#include "texture.h"
 #include "sprite.h"
 #include "renderer.h"
 
@@ -21,8 +21,8 @@
 //#define FILTERING_ANISOTROPIC
 #define FILTERING_ANISOTROPICX2
 
-int rasterizer_draw_pixel_perfect(Vec2i off, Renderer *r, Frame * src);
+int rasterizer_draw_pixel_perfect(Vec2i off, Renderer *r, Texture * src);
 
-int rasterizer_draw_pixel_perfect_doubled(Vec2i off, Renderer *r, Frame * src);
+int rasterizer_draw_pixel_perfect_doubled(Vec2i off, Renderer *r, Texture * src);
 
-int rasterizer_draw_transformed(Mat3 t, Renderer *r, Frame * src);
+int rasterizer_draw_transformed(Mat3 t, Renderer *r, Texture * src);

@@ -7,7 +7,7 @@
 #include "windowbackend.h"
 
 #include "../render/renderer.h"
-#include "../render/frame.h"
+#include "../render/texture.h"
 #include "../render/pixel.h"
 
 LPCWSTR g_szClassName = L"myWindowClass";

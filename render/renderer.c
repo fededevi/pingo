@@ -11,7 +11,7 @@
 static int (*renderingFunctions[RENDERABLE_COUNT])(Mat3 transform, Renderer *, Renderable);
 
 int renderFrame(Renderer *r, Renderable ren) {
-    Frame * f = ren.impl;
+    Texture * f = ren.impl;
     return rasterizer_draw_pixel_perfect((Vec2i){0,0},r,f);
 };
 
@@ -76,7 +76,7 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     r->backEnd->init(r, r->backEnd, (Vec4i){0,0,0,0});
 
     int e = 0;
-    e = frameInit(&(r->frameBuffer), size, backEnd->getFrameBuffer(r, backEnd));
+    e = texture_init(&(r->frameBuffer), size, backEnd->getFrameBuffer(r, backEnd));
     if (e) return e;
 
 
@@ -87,7 +87,7 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
  * @brief Clear the whole framebuffer slowly. This prevents underrun in the FPGA draw buffer and prevents desynchronization
  * of the video signal
  */
-void clearBufferSlowly (Frame f)
+void clearBufferSlowly (Texture f)
 {
     int length = f.size.x*sizeof (Pixel);
     for (int y = 0; y < f.size.y; y++) {

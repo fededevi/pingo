@@ -1,6 +1,6 @@
 #pragma once
 
-#include "frame.h"
+#include "texture.h"
 #include "renderable.h"
 #include "pixel.h"
 #include "../math/vec4.h"
@@ -14,7 +14,7 @@ typedef struct BackEnd BackEnd;
 
 typedef struct Renderer{
     Vec4i camera;
-    Frame frameBuffer;
+    Texture frameBuffer;
     Pixel clearColor;
     int clear;
     Scene * scene;

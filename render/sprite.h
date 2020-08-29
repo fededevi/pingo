@@ -1,6 +1,6 @@
 #pragma once
 
-#include "frame.h"
+#include "texture.h"
 #include "renderable.h"
 #include "../math/mat3.h"
 
@@ -10,10 +10,10 @@
 
 typedef struct Sprite {
    Mat3 t;
-   Frame frame;
+   Texture frame;
 } Sprite;
 
-extern int spriteInit( Sprite * s, Frame f, Mat3 t);
+extern int spriteInit( Sprite * s, Texture f, Mat3 t);
 extern int spriteRandomize( Sprite * s);
 extern Renderable spriteAsRenderable( Sprite * s);
 

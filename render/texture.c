@@ -1,7 +1,7 @@
-#include "frame.h"
+#include "texture.h"
 #include "math.h"
 
-int frameInit( Frame *f, Vec2i size, Pixel *buf )
+int texture_init( Texture *f, Vec2i size, Pixel *buf )
 {
     if(size.x * size.y == 0)
         return 1; // 0 sized rect
@@ -15,17 +15,17 @@ int frameInit( Frame *f, Vec2i size, Pixel *buf )
     return 0;
 }
 
-void frameDraw(Frame *f, Vec2i pos, Pixel color)
+void texture_draw(Texture *f, Vec2i pos, Pixel color)
 {
     f->frameBuffer[pos.x + pos.y * f->size.x] = color;
 }
 
-Pixel frameRead(Frame *f, Vec2i pos)
+Pixel texture_read(Texture *f, Vec2i pos)
 {
     return f->frameBuffer[pos.x + pos.y * f->size.x];
 }
 
-Pixel frameReadBilinear(Frame *f, Vec2f pos)
+Pixel texture_read_bilinear(Texture *f, Vec2f pos)
 {
     float kX = fmodf(pos.x, 1.0f);
     int lowX = floorf(pos.x);

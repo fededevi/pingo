@@ -1,6 +1,6 @@
 #include "windowbackend.h"
 #include "../render/renderer.h"
-#include "../render/frame.h"
+#include "../render/texture.h"
 #include "../render/sprite.h"
 #include "../render/scene.h"
 #include "../math/mat3.h"
@@ -19,8 +19,8 @@ int main(){
     Renderer renderer;
     rendererInit(&renderer, size,(BackEnd*) &backend );
 
-    Frame frame;
-    frameInit(&frame, (Vec2i){16,16}, malloc(16*16*sizeof(Pixel)));
+    Texture frame;
+    texture_init(&frame, (Vec2i){16,16}, malloc(16*16*sizeof(Pixel)));
 
     for (int i = 0; i < 16; i++)
         for (int y = 0; y < 16; y++)
