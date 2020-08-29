@@ -11,7 +11,7 @@ Vec2i vec2iClamp(Vec2i in, Vec2i min, Vec2i max) {
     return in;
 }
 
-int drawRect(Vec2i off, Renderer *r, Frame * src) {
+int rasterizer_draw_pixel_perfect(Vec2i off, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
 
     //Transform coords on destination (it is only translation so it is easy)
@@ -45,7 +45,7 @@ int drawRect(Vec2i off, Renderer *r, Frame * src) {
     return 0;
 }
 
-int drawRectDoubled(Vec2i off, Renderer *r, Frame * src) {
+int rasterizer_draw_pixel_perfect_doubled(Vec2i off, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
 
     //Transform coords on destination (double the size of the frame)
@@ -86,7 +86,7 @@ int drawRectDoubled(Vec2i off, Renderer *r, Frame * src) {
     return 0;
 }
 
-int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
+int rasterizer_draw_transformed(Mat3 t, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
 
     Mat3 inv = mat3Inverse(&t);

@@ -12,7 +12,7 @@ static int (*renderingFunctions[RENDERABLE_COUNT])(Mat3 transform, Renderer *, R
 
 int renderFrame(Renderer *r, Renderable ren) {
     Frame * f = ren.impl;
-    return drawRect((Vec2i){0,0},r,f);
+    return rasterizer_draw_pixel_perfect((Vec2i){0,0},r,f);
 };
 
 int renderSprite(Mat3 transform, Renderer *r, Renderable ren) {
@@ -28,19 +28,19 @@ int renderSprite(Mat3 transform, Renderer *r, Renderable ren) {
 
     if (mat3IsOnlyTranslation(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
-        drawRect(off,r, &s->frame);
+        rasterizer_draw_pixel_perfect(off,r, &s->frame);
         s->t = backUp;
         return 0;
     }
 
     if (mat3IsOnlyTranslationDoubled(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
-        drawRectDoubled(off,r, &s->frame);
+        rasterizer_draw_pixel_perfect_doubled(off,r, &s->frame);
         s->t = backUp;
         return 0;
     }
 
-    drawRectTransform(s->t,r,&s->frame);
+    rasterizer_draw_transformed(s->t,r,&s->frame);
     s->t = backUp;
     return 0;
 };

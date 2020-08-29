@@ -115,16 +115,16 @@ HWND WINAPI winMain(HINSTANCE hInstance,  HINSTANCE hINSTANCE,  LPSTR lPSTR, int
     return hwnd;
 }
 
-void init(  Renderer * ren,  BackEnd * backEnd, Vec4i _rect) {
+void init( Renderer * ren, BackEnd * backEnd, Vec4i _rect) {
     //Save the rect so the windows drawing code knows whhere and how to copy the rendered buffer on the window
     rect = _rect;
 }
 
-void beforeRender(  Renderer * ren, BackEnd * backEnd) {
+void beforeRender( Renderer * ren, BackEnd * backEnd) {
     WindowBackEnd * this = (WindowBackEnd *) backEnd;
 }
 
-void afterRender(   Renderer * ren,  BackEnd * backEnd) {
+void afterRender( Renderer * ren,  BackEnd * backEnd) {
     //Dispatch window messages, eventually one of the messages will be a redraw and the window rect will be updated
     MSG msg;
     if ( GetMessage( &msg, NULL, 0, 0 ) ) {
@@ -133,11 +133,11 @@ void afterRender(   Renderer * ren,  BackEnd * backEnd) {
     }
 }
 
-Pixel * getFrameBuffer(  Renderer * ren,  BackEnd * backEnd) {
+Pixel * getFrameBuffer( Renderer * ren,  BackEnd * backEnd) {
     return frameBuffer;
 }
 
-void windowBackEndInit(WindowBackEnd *b) {
+void windowBackEndInit( WindowBackEnd *b) {
     b->backend.init = &init;
     b->backend.beforeRender = &beforeRender;
     b->backend.afterRender = &afterRender;

@@ -15,13 +15,14 @@
   * distributed uniformly over the area occupied by the destination pixel on
   * the source image and makes an average of those values.
   */
+
 //#define FILTERING_NEAREST
 //#define FILTERING_BILINEAR
 //#define FILTERING_ANISOTROPIC
 #define FILTERING_ANISOTROPICX2
 
-int drawRect(Vec2i off, Renderer *r, Frame * src);
+int rasterizer_draw_pixel_perfect(Vec2i off, Renderer *r, Frame * src);
 
-int drawRectDoubled(Vec2i off, Renderer *r, Frame * src);
+int rasterizer_draw_pixel_perfect_doubled(Vec2i off, Renderer *r, Frame * src);
 
-int drawRectTransform(Mat3 t, Renderer *r, Frame * src);
+int rasterizer_draw_transformed(Mat3 t, Renderer *r, Frame * src);
