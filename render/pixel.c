@@ -29,6 +29,13 @@ uint32_t pixelToRGBA(Pixel * p)
 extern Pixel pixelRandom() {
     return (Pixel){(uint8_t)rand(),(uint8_t)rand(),(uint8_t)rand()};
 }
+
+uint32_t pixelToRGBA(Pixel * p)
+{
+    uint8_t g = p->g;
+    uint32_t a = p->r | p->g <<8 | p->b<<16| 255<<24;
+    return a;
+}
 #endif
 
 #ifdef RGBA8888
