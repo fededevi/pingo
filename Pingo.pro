@@ -15,6 +15,7 @@ HEADERS += \
     render/backend.h \
     render/frame.h \
     render/pixel.h \
+    render/rasterizer.h \
     render/renderable.h \
     render/renderer.h \
     render/scene.h \
@@ -27,6 +28,7 @@ SOURCES += \
     math/vec2.c \
     render/frame.c \
     render/pixel.c \
+    render/rasterizer.c \
     render/renderable.c \
     render/renderer.c \
     render/scene.c \
