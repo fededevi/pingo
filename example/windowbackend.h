@@ -37,6 +37,6 @@ typedef  struct {
  * @param Position of the overlay
  * @param Size of the overlay
  */
-void windowBackEndInit(WindowBackEnd * this, Vec2i pos, Vec2i size);
+void windowBackEndInit(WindowBackEnd * this);
 
 #endif

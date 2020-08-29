@@ -5,20 +5,27 @@
 #include "../render/scene.h"
 #include "../math/mat3.h"
 #include <math.h>
-    #define SIZE 1024
+#include <string.h>
+
+#define SIZEW 1366
+#define SIZEH 768
+
 int main(){
-    Pixel fb[1];
-    Vec2i pos = {0,0};
-    Vec2i size = {SIZE,SIZE};
+    Vec2i size = {SIZEW,SIZEH};
 
     WindowBackEnd backend;
-    windowBackEndInit(&backend, pos, size);
+    windowBackEndInit(&backend);
 
     Renderer renderer;
     rendererInit(&renderer, size,(BackEnd*) &backend );
 
     Frame frame;
-    frameInit(&frame,(Vec2i){SIZE,SIZE},fb);
+    frameInit(&frame, (Vec2i){16,16}, malloc(16*16*sizeof(Pixel)));
+
+    for (int i = 0; i < 16; i++)
+        for (int y = 0; y < 16; y++)
+            ((uint8_t *)frame.frameBuffer)[i * 16+ y ] = (i + y) % 2 == 0 ? 0x22 : 0xBB;
+
     Sprite sprite;
     spriteInit(&sprite,frame,mat3Rotate(45));
 
@@ -28,29 +35,21 @@ int main(){
 
     rendererSetScene(&renderer, &s);
 
-
-    Pixel fb2[256] = {PIXELWHITE};
-    memset(&fb2, 255, 256);
-    Frame frame2;
-    frameInit(&frame2,(Vec2i){16,16},fb2);
-    Sprite sprite2;
-    spriteInit(&sprite2,frame2,mat3Rotate(45));
-    sceneAddRenderable(&s, spriteAsRenderable(&sprite2));
-
-    float y;
-    float i[256];
+    float phi = 0;
+    Mat3 t;
     while (1) {
-        y += 0.01;
-        i[rand() % 256] = rand();
-        Mat3 m1 = mat3Rotate(i[0]);
-        Mat3 m2 = mat3Scale((Vec2f){2,2});
-        m1 = mat3MultiplyM(&m1,&m2);
-        m2 = mat3Translate((Vec2f){300,300});
-        m1 = mat3MultiplyM(&m1,&m2);
-        sprite.t = mat3Scale((Vec2f){1,1});
+        sprite.t = mat3Translate((Vec2f){-7.5,-8});
 
+        t = mat3Rotate(phi += 0.01);
+        sprite.t = mat3MultiplyM(&sprite.t, &t );
 
-        sprite2.t = mat3Translate((Vec2f){128 * (1 + sin(y)),16 *(1 - cos(y))});
+        t = mat3Scale((Vec2f){20,20});
+        sprite.t = mat3MultiplyM(&sprite.t,&t);
+
+        t = mat3Translate((Vec2f){400,300});
+        sprite.t = mat3MultiplyM(&sprite.t,&t);
+
+        rendererSetCamera(&renderer,(Vec4i){0,0,SIZEW,SIZEH});
         rendererRender(&renderer);
     }
 

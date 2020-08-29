@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 //What format to use:
-#define RGB888 // [ RGBA8888 | RGB888 ]
+#define UINT8 // [ RGBA8888 | RGB888 ]
 
 //Formats definitions:
 #ifdef UINT8
