@@ -4,6 +4,14 @@
 #include <math.h>
 #include <stdint.h>
 
+Mat3 mat3Identity() {
+    return (Mat3){{
+        1,  0,  0,
+        0,  1,  0,
+        0,  0,  1
+    }};
+}
+
 Mat3 mat3Translate(Vec2f l) {
     F_TYPE x = l.x;
     F_TYPE y = l.y;
@@ -13,7 +21,6 @@ Mat3 mat3Translate(Vec2f l) {
         0,  0,  1
     }};
 }
-
 
 Mat3 mat3Rotate(F_TYPE theta) {
     F_TYPE s = sin(theta);

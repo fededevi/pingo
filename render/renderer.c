@@ -8,7 +8,13 @@
 #include "scene.h"
 #include "macro.h"
 
-static int (*renderingFunctions[RENDERABLE_COUNT])(Renderer *, Renderable);
+static int (*renderingFunctions[RENDERABLE_COUNT])(Mat3 transform, Renderer *, Renderable);
+
+Vec2i vec2iClamp(Vec2i in, Vec2i min, Vec2i max) {
+    in.x = (in.x > max.x-1)? max.x-1 : (in.x < min.x)? min.x : in.x;
+    in.y = (in.y > max.y-1)? max.y-1 : (in.y < min.y)? min.y : in.y;
+    return in;
+}
 
 int drawRect(Vec2i off, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
@@ -116,9 +122,12 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     //Now we can iterate over the pixels of the axis-alignes-bounding-box (AABB) which contain the source frame
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
+
+
+#ifdef FILTERING_NEAREST
             //Transform the coordinate back to sprite space with the inverse tranform
             Vec2i desPos = {x,y};
-            Vec2f desPosF = vecItoF(desPos);
+            Vec2f desPosF = (Vec2f){desPos.x+0.5,desPos.y+0.5};
             Vec2f srcPosF = mat3Multiply(&desPosF,&inv);
             Vec2i srcPosI = vecFtoI(srcPosF);
 
@@ -131,8 +140,104 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
             if (srcPosF.y < 0) continue;
             if (srcPosF.x >= src->size.x) continue;
             if (srcPosF.y >= src->size.y) continue;
-
             Pixel color = frameRead(src, srcPosI);
+#endif
+#ifdef FILTERING_BILINEAR
+            Vec2i desPos = {x,y};
+            Vec2f desPosF = (Vec2f){desPos.x+0.5f,desPos.y+0.5f};
+            Vec2f srcPosF = mat3Multiply(&desPosF,&inv);
+
+            //TODO: Improve this check by precalculating start/end coord in loop with line intersection
+            //We need to check if transformed coord are inside the frame
+            //Probably there is a faster way of doing this by checking line intersection
+            //with the sprite transformed quad but I don't care for now because we
+            //do not use rotations as of now.
+            if (srcPosF.x < 0) continue;
+            if (srcPosF.y < 0) continue;
+            if (srcPosF.x >= src->size.x-1) continue;
+            if (srcPosF.y >= src->size.y-1) continue;
+
+            Pixel color = frameReadBilinear(src, srcPosF);
+#endif
+#ifdef FILTERING_ANISOTROPIC //4X
+            Vec2i desPos = {x,y};
+            Vec2f desPosF1 = (Vec2f){desPos.x+0.25f,desPos.y+0.25f};
+            Vec2f desPosF2 = (Vec2f){desPos.x+0.75f,desPos.y+0.75f};
+            Vec2f srcPosF1 = mat3Multiply(&desPosF1,&inv);
+            Vec2f srcPosF2 = mat3Multiply(&desPosF2,&inv);
+
+            if (srcPosF1.x < 0 && srcPosF2.x < 0) continue;
+            if (srcPosF1.y < 0 && srcPosF2.y < 0) continue;
+            if (srcPosF1.x > src->size.x && srcPosF2.x > src->size.x) continue;
+            if (srcPosF1.y > src->size.y && srcPosF2.y > src->size.y) continue;
+
+            Vec2i srcPosI1 = vec2iClamp((Vec2i) {srcPosF1.x,srcPosF1.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI2 = vec2iClamp((Vec2i) {srcPosF1.x,srcPosF2.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI3 = vec2iClamp((Vec2i) {srcPosF2.x,srcPosF1.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI4 = vec2iClamp((Vec2i) {srcPosF2.x,srcPosF2.y},(Vec2i){0,0},src->size);
+
+            float p1 = src->frameBuffer[(int)(srcPosI1.x + srcPosI1.y * src->size.x)].g;
+            float p2 = src->frameBuffer[(int)(srcPosI2.x + srcPosI2.y * src->size.x)].g;
+            float p3 = src->frameBuffer[(int)(srcPosI3.x + srcPosI3.y * src->size.x)].g;
+            float p4 = src->frameBuffer[(int)(srcPosI4.x + srcPosI4.y * src->size.x)].g;
+
+            Pixel color = {(p1+p2+p3+p4) / 4};
+#endif
+#ifdef FILTERING_ANISOTROPICX2 //8X
+            Vec2i desPos = {x,y};
+            Vec2f desPosF1  = (Vec2f){desPos.x+0.125f,desPos.y+0.125f};
+            Vec2f desPosF2  = (Vec2f){desPos.x+0.375f,desPos.y+0.375f};
+            Vec2f desPosF3  = (Vec2f){desPos.x+0.625f,desPos.y+0.625f};
+            Vec2f desPosF4  = (Vec2f){desPos.x+0.875f,desPos.y+0.875f};
+
+            Vec2f srcPosF1  = mat3Multiply(&desPosF1,&inv);
+            Vec2f srcPosF2  = mat3Multiply(&desPosF2,&inv);
+            Vec2f srcPosF3  = mat3Multiply(&desPosF3,&inv);
+            Vec2f srcPosF4  = mat3Multiply(&desPosF4,&inv);
+
+            if (srcPosF1.x < 0 && srcPosF2.x < 0 && srcPosF3.x < 0 && srcPosF4.x < 0) continue;
+            if (srcPosF1.y < 0 && srcPosF2.y < 0 && srcPosF3.y < 0 && srcPosF4.y < 0) continue;
+            if (srcPosF1.x > src->size.x && srcPosF2.x > src->size.x &&
+                srcPosF3.x > src->size.x && srcPosF4.x > src->size.x) continue;
+            if (srcPosF1.y > src->size.y && srcPosF2.y > src->size.y &&
+                srcPosF3.y > src->size.y && srcPosF4.y > src->size.y) continue;
+
+            Vec2i srcPosI1  = vec2iClamp((Vec2i) {srcPosF1.x,srcPosF1.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI2  = vec2iClamp((Vec2i) {srcPosF1.x,srcPosF2.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI3  = vec2iClamp((Vec2i) {srcPosF1.x,srcPosF3.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI4  = vec2iClamp((Vec2i) {srcPosF1.x,srcPosF4.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI5  = vec2iClamp((Vec2i) {srcPosF2.x,srcPosF1.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI6  = vec2iClamp((Vec2i) {srcPosF2.x,srcPosF2.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI7  = vec2iClamp((Vec2i) {srcPosF2.x,srcPosF3.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI8  = vec2iClamp((Vec2i) {srcPosF2.x,srcPosF4.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI9  = vec2iClamp((Vec2i) {srcPosF3.x,srcPosF1.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI0  = vec2iClamp((Vec2i) {srcPosF3.x,srcPosF2.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI11 = vec2iClamp((Vec2i) {srcPosF3.x,srcPosF3.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI12 = vec2iClamp((Vec2i) {srcPosF3.x,srcPosF4.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI13 = vec2iClamp((Vec2i) {srcPosF4.x,srcPosF1.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI14 = vec2iClamp((Vec2i) {srcPosF4.x,srcPosF2.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI15 = vec2iClamp((Vec2i) {srcPosF4.x,srcPosF3.y},(Vec2i){0,0},src->size);
+            Vec2i srcPosI16 = vec2iClamp((Vec2i) {srcPosF4.x,srcPosF4.y},(Vec2i){0,0},src->size);
+
+            float p1 = src->frameBuffer[(int)(srcPosI1.x + srcPosI1.y * src->size.x)].g;
+            float p2 = src->frameBuffer[(int)(srcPosI2.x + srcPosI2.y * src->size.x)].g;
+            float p3 = src->frameBuffer[(int)(srcPosI3.x + srcPosI3.y * src->size.x)].g;
+            float p4 = src->frameBuffer[(int)(srcPosI4.x + srcPosI4.y * src->size.x)].g;
+            float p5 = src->frameBuffer[(int)(srcPosI5.x + srcPosI5.y * src->size.x)].g;
+            float p6 = src->frameBuffer[(int)(srcPosI6.x + srcPosI6.y * src->size.x)].g;
+            float p7 = src->frameBuffer[(int)(srcPosI7.x + srcPosI7.y * src->size.x)].g;
+            float p8 = src->frameBuffer[(int)(srcPosI8.x + srcPosI8.y * src->size.x)].g;
+            float p9 = src->frameBuffer[(int)(srcPosI9.x + srcPosI9.y * src->size.x)].g;
+            float p0 = src->frameBuffer[(int)(srcPosI0.x + srcPosI0.y * src->size.x)].g;
+            float p11 = src->frameBuffer[(int)(srcPosI11.x + srcPosI11.y * src->size.x)].g;
+            float p12 = src->frameBuffer[(int)(srcPosI12.x + srcPosI12.y * src->size.x)].g;
+            float p13 = src->frameBuffer[(int)(srcPosI13.x + srcPosI13.y * src->size.x)].g;
+            float p14 = src->frameBuffer[(int)(srcPosI14.x + srcPosI14.y * src->size.x)].g;
+            float p15 = src->frameBuffer[(int)(srcPosI15.x + srcPosI15.y * src->size.x)].g;
+            float p16 = src->frameBuffer[(int)(srcPosI16.x + srcPosI16.y * src->size.x)].g;
+
+            Pixel color = {(p1+p2+p3+p4+p5+p6+p7+p8+p9+p0+p11+p12+p13+p14+p15+p16) / 16};
+#endif
             frameDraw(&des, desPos, color);
         }
     }
@@ -145,11 +250,17 @@ int renderFrame(Renderer *r, Renderable ren) {
     return drawRect((Vec2i){0,0},r,f);
 };
 
-int renderSprite(Renderer *r, Renderable ren) {
+int renderSprite(Mat3 transform, Renderer *r, Renderable ren) {
     Sprite * s = ren.impl;
     Mat3 backUp = s->t;
-    Mat3 deOffset = mat3Translate((Vec2f){-r->camera.x,-r->camera.y});
-    s->t = mat3MultiplyM(&s->t, &deOffset);
+
+    //Apply parent transform to the local transform
+    s->t = mat3MultiplyM( &s->t, &transform);
+
+    //Apply camera translation
+    Mat3 newMat = mat3Translate((Vec2f){-r->camera.x,-r->camera.y});
+    s->t = mat3MultiplyM(&s->t, &newMat);
+
     if (mat3IsOnlyTranslation(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
         drawRect(off,r, &s->frame);
@@ -171,24 +282,24 @@ int renderSprite(Renderer *r, Renderable ren) {
 
 
 
-void renderRenderable(Renderer *r, Renderable ren) {
-    renderingFunctions[ren.renderableType](r,ren);
+void renderRenderable(Mat3 transform, Renderer *r, Renderable ren) {
+    renderingFunctions[ren.renderableType](transform, r, ren);
 };
 
-int renderScene(Renderer *r, Renderable ren) {
+int renderScene(Mat3 transform, Renderer *r, Renderable ren) {
     Scene * s = ren.impl;
-
     if (!s->visible)
         return 0;
 
+    //Apply hierarchy transfom
+    Mat3 newTransform = mat3MultiplyM(&s->transform,&transform);
     for (int i = 0; i < s->numberOfRenderables; i++) {
-        renderRenderable(r, s->renderables[i]);
+        renderRenderable(newTransform, r, s->renderables[i]);
     }
     return 0;
 };
 
 int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
-    renderingFunctions[RENDERABLE_FRAME] = &renderFrame;
     renderingFunctions[RENDERABLE_SPRITE] = &renderSprite;
     renderingFunctions[RENDERABLE_SCENE] = &renderScene;
 
@@ -233,7 +344,7 @@ int rendererRender(Renderer * r)
         clearBufferSlowly(r->frameBuffer);
     }
 
-    renderScene(r, sceneAsRenderable(r->scene));
+    renderScene(mat3Identity(), r, sceneAsRenderable(r->scene));
 
     r->backEnd->afterRender(r, r->backEnd);
 

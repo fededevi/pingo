@@ -11,6 +11,13 @@ typedef struct Mat3 {
     F_TYPE elements[9];
 } Mat3;
 
+/* Returns identity
+ |1|0|x|
+ |0|1|y|
+ |0|0|1|
+*/
+extern Mat3 mat3Identity();
+
 /* Builds a clean translation matrix with x and y translation along relative axes
  |1|0|x|
  |0|1|y|

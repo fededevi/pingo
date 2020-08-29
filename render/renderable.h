@@ -5,8 +5,7 @@ extern "C" {
 #endif
 
 typedef enum  RenderableType {
-    RENDERABLE_FRAME  =0,
-    RENDERABLE_SPRITE,
+    RENDERABLE_SPRITE=0,
     RENDERABLE_SCENE,
     RENDERABLE_COUNT,
 } RenderableType;

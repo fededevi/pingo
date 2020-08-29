@@ -13,6 +13,7 @@ int sceneAddRenderable(Scene * scene, Renderable renderable)
 
 int sceneInit(Scene * s)
 {
+    s->transform = mat3Identity();
     s->numberOfRenderables = 0;
     s->visible = 1;
 

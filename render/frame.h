@@ -21,6 +21,8 @@ extern void  frameDraw(Frame * f, Vec2i pos, Pixel color);
 
 extern Pixel frameRead(Frame * f, Vec2i pos);
 
+extern Pixel frameReadBilinear(Frame *f, Vec2f pos);
+
 #ifdef __cplusplus
     }
 #endif

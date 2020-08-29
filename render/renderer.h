@@ -5,6 +5,17 @@
 #include "pixel.h"
 #include "../math/vec4.h"
 
+/**
+  * Defines the type of filtering used when textures are resized and rotated by a transformation
+  * Point filtering just take 1 texture sample in the single pixel which thee coordinate is tranformed to
+  * Bilinear filtering takes 4 samples on the source texture to compute a weighted average of the value
+  * Anisotropic filtering takes N samples crrectly distributed in space to compute the best quality image
+  */
+//#define FILTERING_NEAREST
+//#define FILTERING_BILINEAR
+#define FILTERING_ANISOTROPIC
+//#define FILTERING_ANISOTROPICX2
+
 #ifdef __cplusplus
     extern "C" {
 #endif

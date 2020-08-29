@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "renderable.h"
+#include "../math/mat3.h"
 
 #ifdef __cplusplus
     extern "C" {
@@ -12,6 +13,7 @@
 typedef struct Scene {
     uint8_t numberOfRenderables;
     Renderable renderables[MAX_SCENE_RENDERABLES];
+    Mat3 transform;
     uint8_t visible;
 } Scene;
 
