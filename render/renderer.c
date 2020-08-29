@@ -122,8 +122,8 @@ int drawRectTransform(Mat3 t, Renderer *r, Frame * src) {
     minY = MIN(des.size.y, MAX(minY, 0));
 
     //Now we can iterate over the pixels of the axis-alignes-bounding-box (AABB) which contain the source frame
-    for (int y = minY; y < maxY; y++) {
-        for (int x = minX; x < maxX; x++) {
+    for (int y = minY; y <= maxY; y++) {
+        for (int x = minX; x <= maxX; x++) {
 
 
 #ifdef FILTERING_NEAREST

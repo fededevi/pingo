@@ -40,7 +40,7 @@ int main(){
     while (1) {
         sprite.t = mat3Translate((Vec2f){-7.5,-8});
 
-        t = mat3Rotate(phi += 0.01);
+        t = mat3Rotate(phi += 0.001);
         sprite.t = mat3MultiplyM(&sprite.t, &t );
 
         t = mat3Scale((Vec2f){20,20});
