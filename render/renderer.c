@@ -6,7 +6,6 @@
 #include "pixel.h"
 #include "backend.h"
 #include "scene.h"
-#include "macro.h"
 
 static int (*renderingFunctions[RENDERABLE_COUNT])(Mat3 transform, Renderer *, Renderable);
 
@@ -15,6 +14,9 @@ Vec2i vec2iClamp(Vec2i in, Vec2i min, Vec2i max) {
     in.y = (in.y > max.y-1)? max.y-1 : (in.y < min.y)? min.y : in.y;
     return in;
 }
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 int drawRect(Vec2i off, Renderer *r, Frame * src) {
     Frame des = r->frameBuffer;
