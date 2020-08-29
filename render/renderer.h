@@ -14,10 +14,12 @@ typedef struct BackEnd BackEnd;
 
 typedef struct Renderer{
     Vec4i camera;
+    Scene * scene;
+
     Texture frameBuffer;
     Pixel clearColor;
     int clear;
-    Scene * scene;
+
     BackEnd * backEnd;
 } Renderer;
 
