@@ -67,6 +67,32 @@ int renderScene(Mat4 transform, Renderer *r, Renderable ren) {
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+float area(int x1, int y1, int x2, int y2, int x3, int y3)
+{
+   return abs((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0);
+}
+
+int isInside(int x1, int y1, int x2, int y2, int x3, int y3, int x, int y)
+{
+   /* Calculate area of triangle ABC */
+   float A = area (x1, y1, x2, y2, x3, y3);
+
+   /* Calculate area of triangle PBC */
+   float A1 = area (x, y, x2, y2, x3, y3);
+
+   /* Calculate area of triangle PAC */
+   float A2 = area (x1, y1, x, y, x3, y3);
+
+   /* Calculate area of triangle PAB */
+   float A3 = area (x1, y1, x2, y2, x, y);
+
+   /* Check if sum of A1, A2 and A3 is same as A */
+   return (A == A1 + A2 + A3);
+}
+int isClockWise(int x1, int y1, int x2, int y2, int x3, int y3) {
+    Mat3 m = {x1,y1,1,x2,y2,1,x3,y3,1};
+    return mat3Determinant(&m);
+}
 
 int renderObject(Mat4 object_transform, Renderer *r, Renderable ren) {
     Object * o = ren.impl;
@@ -75,14 +101,31 @@ int renderObject(Mat4 object_transform, Renderer *r, Renderable ren) {
     Mat4 modelview = mat4MultiplyM(  &model, &r->camera_transform);
     //Apply camera transform
 
-    for (int i = 0; i < o->mesh.vertices_count; i++) {
-        Vec3f trans_vert = mat4MultiplyVec3(&o->mesh.vertices[i], &modelview);
-
+    for (int i = 0; i < o->mesh.vertices_count; i+=3) {
+        Vec3f a = mat4MultiplyVec3(&o->mesh.vertices[i+0], &modelview);
+        Vec3f b = mat4MultiplyVec3(&o->mesh.vertices[i+1], &modelview);
+        Vec3f c = mat4MultiplyVec3(&o->mesh.vertices[i+2], &modelview);
+        if (!isClockWise(a.x,a.y,b.x,b.y,c.x,c.y))
+            continue;
         //Then clamp max/min values to destination buffer
-        trans_vert.x = MIN(r->frameBuffer.size.x, MAX(trans_vert.x, 0));
-        trans_vert.y = MIN(r->frameBuffer.size.y, MAX(trans_vert.y, 0));
+        //trans_vert.x = MIN(r->frameBuffer.size.x, MAX(trans_vert.x, 0));
+        //trans_vert.y = MIN(r->frameBuffer.size.y, MAX(trans_vert.y, 0));
 
-        texture_draw(&r->frameBuffer, (Vec2i){trans_vert.x,trans_vert.y}, pixelFromUInt8(200));
+        int minX = MIN(MIN(a.x,b.x),c.x);
+        int minY = MIN(MIN(a.y,b.y),c.y);
+        int maxX = MAX(MAX(a.x,b.x),c.x);
+        int maxY = MAX(MAX(a.y,b.y),c.y);
+
+        for (int y = minY; y < maxY; y++) {
+            for (int x = minX; x < maxX; x++) {
+                //Transform the coordinate back to sprite space
+                Vec2i desPos = {x,y};
+                if (isInside(a.x,a.y,b.x,b.y,c.x,c.y,x,y))
+                    texture_draw(&r->frameBuffer, desPos, pixelFromUInt8(250));
+            }
+        }
+
+        texture_draw(&r->frameBuffer, (Vec2i){a.x,a.y}, pixelFromUInt8(100));
     }
 
     return 0;
