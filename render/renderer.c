@@ -7,8 +7,8 @@
 #include "backend.h"
 #include "scene.h"
 #include "rasterizer.h"
+#include "object.h"
 
-static int (*renderingFunctions[RENDERABLE_COUNT])(Mat4 transform, Renderer *, Renderable);
 
 int renderFrame(Renderer *r, Renderable ren) {
     Texture * f = ren.impl;
@@ -64,9 +64,22 @@ int renderScene(Mat4 transform, Renderer *r, Renderable ren) {
     return 0;
 };
 
+int renderObject(Mat4 object_transform, Renderer *r, Renderable ren) {
+    Object * o = ren.impl;
+    Mat4 transform = mat4MultiplyM(&o->transform,&object_transform);
+
+    for (int i = 0; i < o->mesh.vertices_count; i++) {
+        Vec3f trans_vert = mat4MultiplyVec3(&o->mesh.vertices[i], &transform);
+        texture_draw(&r->frameBuffer, (Vec2i){trans_vert.x,trans_vert.y}, pixelFromUInt8(200));
+    }
+
+    return 0;
+};
+
 int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     renderingFunctions[RENDERABLE_SPRITE] = &renderSprite;
     renderingFunctions[RENDERABLE_SCENE] = &renderScene;
+    renderingFunctions[RENDERABLE_OBJECT] = &renderObject;
 
     r->scene = 0;
     r->clear = 1;
