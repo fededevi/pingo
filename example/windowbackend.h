@@ -17,8 +17,8 @@ struct Renderer;
 #include "../render/backend.h"
 #include "../math/vec2.h"
 
-#define WIDTH 800
-#define HEIGHT 600
+#define WIDTH 1366
+#define HEIGHT 768
 
 typedef struct Pixel Pixel;
 

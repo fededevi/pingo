@@ -64,12 +64,24 @@ int renderScene(Mat4 transform, Renderer *r, Renderable ren) {
     return 0;
 };
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
+
 int renderObject(Mat4 object_transform, Renderer *r, Renderable ren) {
     Object * o = ren.impl;
-    Mat4 transform = mat4MultiplyM(&o->transform,&object_transform);
+    //Apply model transform to hierarchy transform
+    Mat4 model = mat4MultiplyM(&o->transform,&object_transform);
+    Mat4 modelview = mat4MultiplyM(  &model, &r->camera_transform);
+    //Apply camera transform
 
     for (int i = 0; i < o->mesh.vertices_count; i++) {
-        Vec3f trans_vert = mat4MultiplyVec3(&o->mesh.vertices[i], &transform);
+        Vec3f trans_vert = mat4MultiplyVec3(&o->mesh.vertices[i], &modelview);
+
+        //Then clamp max/min values to destination buffer
+        trans_vert.x = MIN(r->frameBuffer.size.x, MAX(trans_vert.x, 0));
+        trans_vert.y = MIN(r->frameBuffer.size.y, MAX(trans_vert.y, 0));
+
         texture_draw(&r->frameBuffer, (Vec2i){trans_vert.x,trans_vert.y}, pixelFromUInt8(200));
     }
 

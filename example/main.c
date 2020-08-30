@@ -3,6 +3,8 @@
 #include "../render/texture.h"
 #include "../render/sprite.h"
 #include "../render/scene.h"
+#include "../render/object.h"
+#include "../render/mesh.h"
 #include "../math/mat3.h"
 #include <math.h>
 #include <string.h>
@@ -11,6 +13,53 @@
 #define SIZEH 768
 
 int main(){
+    Vec2i size = {SIZEW, SIZEH};
+
+    WindowBackEnd backend;
+    windowBackEndInit(&backend);
+
+    Renderer renderer;
+    rendererInit(&renderer, size,(BackEnd*) &backend );
+
+    Scene s;
+    sceneInit(&s);
+    rendererSetScene(&renderer, &s);
+
+    Object o;
+    o.mesh = mesh_test();
+    sceneAddRenderable(&s, object_as_renderable(&o));
+
+    float phi = 0;
+    float a = 0;
+    Mat4 t;
+    while (1) {
+        //rotate camera to look "down" by rotating around right axis
+        renderer.camera_transform = mat4RotateX(0.7);
+
+        //translate camera so that center pixel is 0,0 and 100 units back
+        t = mat4Translate((Vec3f){WIDTH/2,HEIGHT/2,-100});
+        renderer.camera_transform = mat4MultiplyM(&renderer.camera_transform, &t );
+
+
+        //translate object to its center of mass
+        o.transform =  mat4Translate((Vec3f){-0,0.8,-0});
+        //Scale it upp to a size of 300pixels
+        t = mat4Scale((Vec3f){200,200,200});
+        o.transform = mat4MultiplyM(&o.transform, &t );
+        //rotate around "up" axis
+        t = mat4RotateY(phi += 0.001);
+        o.transform = mat4MultiplyM(&o.transform, &t );
+
+
+        rendererSetCamera(&renderer,(Vec4i){0,0,SIZEW,SIZEH});
+        rendererRender(&renderer);
+    }
+
+    return 0;
+}
+
+
+int main_2d_example(){
     Vec2i size = {SIZEW,SIZEH};
 
     WindowBackEnd backend;

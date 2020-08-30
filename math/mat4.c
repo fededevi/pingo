@@ -43,7 +43,7 @@ Mat4 mat4RotateY(F_TYPE phi) {
     return (Mat4){{
             c,  0,  s, 0,
             0,  1,  0, 0,
-           -s,  0,  c, 0,
+            -s,  0,  c, 0,
             0,  0,  0, 1,
         }};
 }
@@ -260,6 +260,23 @@ Mat4 mat4Inverse(Mat4 * mat)
             m[4] * m[2] * m[9] +
             m[8] * m[1] * m[6] -
             m[8] * m[2] * m[5];
+
+    det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+    //assert(det != 0);
+
+    Mat4 out;
+    det = 1.0 / det;
+
+    for (int i = 0; i < 16; i++)
+        out.elements[i] = inv[i] * det;
+
+    return out;
+}
+
+Mat4 mat4Perspective(Mat4 * mat)
+{
+    F_TYPE * m = mat->elements;
+    float inv[16], det;
 
     det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
     //assert(det != 0);
