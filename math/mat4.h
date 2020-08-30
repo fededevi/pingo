@@ -1,7 +1,9 @@
 #pragma once
 
 #include "types.h"
+#include "vec2.h"
 #include "vec3.h"
+#include "vec4.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,6 +19,10 @@ Mat4 mat4Translate(Vec3f l);
 Mat4 mat4RotateX(F_TYPE phi);
 Mat4 mat4RotateY(F_TYPE phi);
 Mat4 mat4RotateZ(F_TYPE phi);
+
+Vec2f mat4MultiplyVec2(Vec2f *v, Mat4 *t);
+Vec3f mat4MultiplyVec3(Vec3f *v, Mat4 *t);
+Vec4f mat4MultiplyVec4(Vec4f *v, Mat4 *t);
 
 Mat4 mat4MultiplyM( Mat4 * m1, Mat4 * m2);
 Mat4 mat4Inverse(Mat4 * mat);

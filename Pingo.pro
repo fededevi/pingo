@@ -27,7 +27,6 @@ HEADERS += \
 
 SOURCES += \
     example/main.c \
-    example/mainTest.c \
     example/windowbackend.c \
     math/mat3.c \
     math/mat4.c \

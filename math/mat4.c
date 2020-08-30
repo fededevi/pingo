@@ -1,4 +1,5 @@
 #include "mat4.h"
+#include "vec2.h"
 #include "vec3.h"
 #include "vec4.h"
 
@@ -67,6 +68,12 @@ extern Mat4 mat4Scale(Vec3f s) {
                     0,  0,  r, 0,
                     0,  0,  0, 1,
         }};
+}
+
+Vec2f mat4MultiplyVec2(Vec2f *v, Mat4 *t) {
+    F_TYPE a = v->x * t->elements[0] + v->y * t->elements[1] + 1.0 * t->elements[2] + 1.0 * t->elements[3];
+    F_TYPE b = v->x * t->elements[4] + v->y * t->elements[5] + 1.0 * t->elements[6] + 1.0 * t->elements[7];
+    return (Vec2f){a,b};
 }
 
 Vec3f mat4MultiplyVec3(Vec3f *v, Mat4 *t) {
@@ -140,7 +147,7 @@ F_TYPE mat4Determinant(Mat4 * mat)
 Mat4 mat4Inverse(Mat4 * mat)
 {
     F_TYPE * m = mat->elements;
-    double inv[16], det;
+    float inv[16], det;
 
     inv[0] = m[5]  * m[10] * m[15] -
             m[5]  * m[11] * m[14] -

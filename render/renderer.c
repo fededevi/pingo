@@ -8,37 +8,37 @@
 #include "scene.h"
 #include "rasterizer.h"
 
-static int (*renderingFunctions[RENDERABLE_COUNT])(Mat3 transform, Renderer *, Renderable);
+static int (*renderingFunctions[RENDERABLE_COUNT])(Mat4 transform, Renderer *, Renderable);
 
 int renderFrame(Renderer *r, Renderable ren) {
     Texture * f = ren.impl;
     return rasterizer_draw_pixel_perfect((Vec2i){0,0},r,f);
 };
 
-int renderSprite(Mat3 transform, Renderer *r, Renderable ren) {
+int renderSprite(Mat4 transform, Renderer *r, Renderable ren) {
     Sprite * s = ren.impl;
-    Mat3 backUp = s->t;
+    Mat4 backUp = s->t;
 
     //Apply parent transform to the local transform
-    s->t = mat3MultiplyM( &s->t, &transform);
+    s->t = mat4MultiplyM( &s->t, &transform);
 
     //Apply camera translation
-    Mat3 newMat = mat3Translate((Vec2f){-r->camera.x,-r->camera.y});
-    s->t = mat3MultiplyM(&s->t, &newMat);
-
-    if (mat3IsOnlyTranslation(&s->t)) {
+    Mat4 newMat = mat4Translate((Vec3f){-r->camera.x,-r->camera.y,0});
+    s->t = mat4MultiplyM(&s->t, &newMat);
+/*
+    if (mat4IsOnlyTranslation(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
         rasterizer_draw_pixel_perfect(off,r, &s->frame);
         s->t = backUp;
         return 0;
     }
 
-    if (mat3IsOnlyTranslationDoubled(&s->t)) {
+    if (mat4IsOnlyTranslationDoubled(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
         rasterizer_draw_pixel_perfect_doubled(off,r, &s->frame);
         s->t = backUp;
         return 0;
-    }
+    }*/
 
     rasterizer_draw_transformed(s->t,r,&s->frame);
     s->t = backUp;
@@ -47,17 +47,17 @@ int renderSprite(Mat3 transform, Renderer *r, Renderable ren) {
 
 
 
-void renderRenderable(Mat3 transform, Renderer *r, Renderable ren) {
+void renderRenderable(Mat4 transform, Renderer *r, Renderable ren) {
     renderingFunctions[ren.renderableType](transform, r, ren);
 };
 
-int renderScene(Mat3 transform, Renderer *r, Renderable ren) {
+int renderScene(Mat4 transform, Renderer *r, Renderable ren) {
     Scene * s = ren.impl;
     if (!s->visible)
         return 0;
 
     //Apply hierarchy transfom
-    Mat3 newTransform = mat3MultiplyM(&s->transform,&transform);
+    Mat4 newTransform = mat4MultiplyM(&s->transform,&transform);
     for (int i = 0; i < s->numberOfRenderables; i++) {
         renderRenderable(newTransform, r, s->renderables[i]);
     }
@@ -109,7 +109,7 @@ int rendererRender(Renderer * r)
         clearBufferSlowly(r->frameBuffer);
     }
 
-    renderScene(mat3Identity(), r, sceneAsRenderable(r->scene));
+    renderScene(mat4Identity(), r, sceneAsRenderable(r->scene));
 
     r->backEnd->afterRender(r, r->backEnd);
 

@@ -86,10 +86,10 @@ int rasterizer_draw_pixel_perfect_doubled(Vec2i off, Renderer *r, Texture * src)
     return 0;
 }
 
-int rasterizer_draw_transformed(Mat3 t, Renderer *r, Texture * src) {
+int rasterizer_draw_transformed(Mat4 t, Renderer *r, Texture * src) {
     Texture des = r->frameBuffer;
 
-    Mat3 inv = mat3Inverse(&t);
+    Mat4 inv = mat4Inverse(&t);
 
     // Transform 4 points of frame to frame buffer space
     Vec2f a = (Vec2f){0,0};
@@ -97,10 +97,10 @@ int rasterizer_draw_transformed(Mat3 t, Renderer *r, Texture * src) {
     Vec2f c = (Vec2f){0,src->size.y};
     Vec2f d = (Vec2f){src->size.x,src->size.y};
 
-    a = mat3Multiply(&a, &t);
-    b = mat3Multiply(&b, &t);
-    c = mat3Multiply(&c, &t);
-    d = mat3Multiply(&d, &t);
+    a = mat4MultiplyVec2(&a, &t);
+    b = mat4MultiplyVec2(&b, &t);
+    c = mat4MultiplyVec2(&c, &t);
+    d = mat4MultiplyVec2(&d, &t);
 
     // .. To find the axis aligned boundig box
     int minX = MIN(MIN(a.x,b.x),MIN(c.x,d.x));
@@ -123,7 +123,7 @@ int rasterizer_draw_transformed(Mat3 t, Renderer *r, Texture * src) {
             //Transform the coordinate back to sprite space with the inverse tranform
             Vec2i desPos = {x,y};
             Vec2f desPosF = (Vec2f){desPos.x+0.5,desPos.y+0.5};
-            Vec2f srcPosF = mat3Multiply(&desPosF,&inv);
+            Vec2f srcPosF = mat4Multiply(&desPosF,&inv);
             Vec2i srcPosI = vecFtoI(srcPosF);
 
             //TODO: Improve this check by precalculating start/end coord in loop with line intersection
@@ -140,7 +140,7 @@ int rasterizer_draw_transformed(Mat3 t, Renderer *r, Texture * src) {
 #ifdef FILTERING_BILINEAR
             Vec2i desPos = {x,y};
             Vec2f desPosF = (Vec2f){desPos.x+0.5f,desPos.y+0.5f};
-            Vec2f srcPosF = mat3Multiply(&desPosF,&inv);
+            Vec2f srcPosF = mat4Multiply(&desPosF,&inv);
 
             //TODO: Improve this check by precalculating start/end coord in loop with line intersection
             //We need to check if transformed coord are inside the frame
@@ -158,8 +158,8 @@ int rasterizer_draw_transformed(Mat3 t, Renderer *r, Texture * src) {
             Vec2i desPos = {x,y};
             Vec2f desPosF1 = (Vec2f){desPos.x+0.25f,desPos.y+0.25f};
             Vec2f desPosF2 = (Vec2f){desPos.x+0.75f,desPos.y+0.75f};
-            Vec2f srcPosF1 = mat3Multiply(&desPosF1,&inv);
-            Vec2f srcPosF2 = mat3Multiply(&desPosF2,&inv);
+            Vec2f srcPosF1 = mat4Multiply(&desPosF1,&inv);
+            Vec2f srcPosF2 = mat4Multiply(&desPosF2,&inv);
 
             if (srcPosF1.x < 0 && srcPosF2.x < 0) continue;
             if (srcPosF1.y < 0 && srcPosF2.y < 0) continue;
@@ -185,10 +185,10 @@ int rasterizer_draw_transformed(Mat3 t, Renderer *r, Texture * src) {
             Vec2f desPosF3  = (Vec2f){desPos.x+0.625f,desPos.y+0.625f};
             Vec2f desPosF4  = (Vec2f){desPos.x+0.875f,desPos.y+0.875f};
 
-            Vec2f srcPosF1  = mat3Multiply(&desPosF1,&inv);
-            Vec2f srcPosF2  = mat3Multiply(&desPosF2,&inv);
-            Vec2f srcPosF3  = mat3Multiply(&desPosF3,&inv);
-            Vec2f srcPosF4  = mat3Multiply(&desPosF4,&inv);
+            Vec2f srcPosF1  = mat4MultiplyVec2(&desPosF1,&inv);
+            Vec2f srcPosF2  = mat4MultiplyVec2(&desPosF2,&inv);
+            Vec2f srcPosF3  = mat4MultiplyVec2(&desPosF3,&inv);
+            Vec2f srcPosF4  = mat4MultiplyVec2(&desPosF4,&inv);
 
             if (srcPosF1.x < 0 && srcPosF2.x < 0 && srcPosF3.x < 0 && srcPosF4.x < 0) continue;
             if (srcPosF1.y < 0 && srcPosF2.y < 0 && srcPosF3.y < 0 && srcPosF4.y < 0) continue;

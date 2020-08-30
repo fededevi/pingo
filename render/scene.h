@@ -14,7 +14,7 @@
 typedef struct Scene {
     uint8_t numberOfRenderables;
     Renderable renderables[MAX_SCENE_RENDERABLES];
-    Mat3 transform;
+    Mat4 transform;
     uint8_t visible;
 } Scene;
 
