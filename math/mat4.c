@@ -33,8 +33,8 @@ Mat4 mat4RotateX(F_TYPE phi) {
     return (Mat4){{
             1,  0,  0, 0,
             0,  c, -s, 0,
-            0,  s,  c, 0,
-            0,  0,  0, 1,
+                    0,  s,  c, 0,
+                    0,  0,  0, 1,
         }};
 }
 Mat4 mat4RotateY(F_TYPE phi) {
@@ -42,9 +42,9 @@ Mat4 mat4RotateY(F_TYPE phi) {
     F_TYPE c = cos(phi);
     return (Mat4){{
             c,  0,  s, 0,
-            0,  1,  0, 0,
-            -s,  0,  c, 0,
-            0,  0,  0, 1,
+                    0,  1,  0, 0,
+                    -s,  0,  c, 0,
+                    0,  0,  0, 1,
         }};
 }
 Mat4 mat4RotateZ(F_TYPE phi) {
@@ -52,9 +52,9 @@ Mat4 mat4RotateZ(F_TYPE phi) {
     F_TYPE c = cos(phi);
     return (Mat4){{
             c, -s,  0, 0,
-            s,  c,  0, 0,
-            0,  0,  1, 0,
-            0,  0,  0, 1,
+                    s,  c,  0, 0,
+                    0,  0,  1, 0,
+                    0,  0,  0, 1,
         }};
 }
 
@@ -273,19 +273,19 @@ Mat4 mat4Inverse(Mat4 * mat)
     return out;
 }
 
-Mat4 mat4Perspective(Mat4 * mat)
+Mat4 mat4Perspective(float near, float aspect, float far, float fov)
 {
-    F_TYPE * m = mat->elements;
-    float inv[16], det;
+    float D2R = M_PI / 180.0;
+    float yScale = 1.0 / tan(D2R * fov / 2);
+    float xScale = yScale / aspect;
+    float nearmfar = near - far;
 
-    det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-    //assert(det != 0);
+    Mat4 m = {
+        xScale, 0, 0, 0,
+        0, yScale, 0, 0,
+        0, 0, (far + near) / nearmfar, -1,
+        0, 0, 2*far*near / nearmfar, 0
+    };
 
-    Mat4 out;
-    det = 1.0 / det;
-
-    for (int i = 0; i < 16; i++)
-        out.elements[i] = inv[i] * det;
-
-    return out;
+    return m;
 }

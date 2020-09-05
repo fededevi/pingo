@@ -28,6 +28,8 @@ Mat4 mat4MultiplyM( Mat4 * m1, Mat4 * m2);
 Mat4 mat4Inverse(Mat4 * mat);
 Mat4 mat4Scale(Vec3f s);
 
+Mat4 mat4Perspective(float near, float aspect, float far, float fov );
+
 #ifdef __cplusplus
 }
 #endif

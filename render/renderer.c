@@ -25,7 +25,7 @@ int renderSprite(Mat4 transform, Renderer *r, Renderable ren) {
     //Apply camera translation
     Mat4 newMat = mat4Translate((Vec3f){-r->camera.x,-r->camera.y,0});
     s->t = mat4MultiplyM(&s->t, &newMat);
-/*
+    /*
     if (mat4IsOnlyTranslation(&s->t)) {
         Vec2i off = {s->t.elements[2], s->t.elements[5]};
         rasterizer_draw_pixel_perfect(off,r, &s->frame);
@@ -67,31 +67,13 @@ int renderScene(Mat4 transform, Renderer *r, Renderable ren) {
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-float area(int x1, int y1, int x2, int y2, int x3, int y3)
+float edgeFunction(const Vec3f * a, const Vec3f * b, const Vec3f* c)
 {
-   return abs((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0);
+    return (c->x - a->x) * (b->y - a->y) - (c->y - a->y) * (b->x - a->x);
 }
 
-int isInside(int x1, int y1, int x2, int y2, int x3, int y3, int x, int y)
-{
-   /* Calculate area of triangle ABC */
-   float A = area (x1, y1, x2, y2, x3, y3);
-
-   /* Calculate area of triangle PBC */
-   float A1 = area (x, y, x2, y2, x3, y3);
-
-   /* Calculate area of triangle PAC */
-   float A2 = area (x1, y1, x, y, x3, y3);
-
-   /* Calculate area of triangle PAB */
-   float A3 = area (x1, y1, x2, y2, x, y);
-
-   /* Check if sum of A1, A2 and A3 is same as A */
-   return (A == A1 + A2 + A3);
-}
-int isClockWise(int x1, int y1, int x2, int y2, int x3, int y3) {
-    Mat3 m = {x1,y1,1,x2,y2,1,x3,y3,1};
-    return mat3Determinant(&m);
+float isClockWise(float x1, float y1, float x2, float y2, float x3, float y3) {
+    return (y2 - y1)*(x3 - x2) - (y3 - y2)*(x2 - x1);
 }
 
 int renderObject(Mat4 object_transform, Renderer *r, Renderable ren) {
@@ -105,27 +87,46 @@ int renderObject(Mat4 object_transform, Renderer *r, Renderable ren) {
         Vec3f a = mat4MultiplyVec3(&o->mesh.vertices[i+0], &modelview);
         Vec3f b = mat4MultiplyVec3(&o->mesh.vertices[i+1], &modelview);
         Vec3f c = mat4MultiplyVec3(&o->mesh.vertices[i+2], &modelview);
-        if (!isClockWise(a.x,a.y,b.x,b.y,c.x,c.y))
-            continue;
-        //Then clamp max/min values to destination buffer
-        //trans_vert.x = MIN(r->frameBuffer.size.x, MAX(trans_vert.x, 0));
-        //trans_vert.y = MIN(r->frameBuffer.size.y, MAX(trans_vert.y, 0));
 
-        int minX = MIN(MIN(a.x,b.x),c.x);
-        int minY = MIN(MIN(a.y,b.y),c.y);
-        int maxX = MAX(MAX(a.x,b.x),c.x);
-        int maxY = MAX(MAX(a.y,b.y),c.y);
+        if (isClockWise(a.x,a.y,b.x,b.y,c.x,c.y) < 0)
+            continue;
+
+        float minX = MIN(MIN(a.x,b.x),c.x);
+        float minY = MIN(MIN(a.y,b.y),c.y);
+        float maxX = MAX(MAX(a.x,b.x),c.x);
+        float maxY = MAX(MAX(a.y,b.y),c.y);
 
         for (int y = minY; y < maxY; y++) {
             for (int x = minX; x < maxX; x++) {
                 //Transform the coordinate back to sprite space
                 Vec2i desPos = {x,y};
-                if (isInside(a.x,a.y,b.x,b.y,c.x,c.y,x,y))
-                    texture_draw(&r->frameBuffer, desPos, pixelFromUInt8(250));
+                Vec3f desPosF = {x,y,1};
+
+                // area of the triangle multiplied by 2
+                float area = edgeFunction(&a, &b, &c);
+
+                //Area of sub triangles
+                float j0 = edgeFunction(&a, &b, &desPosF) / area;
+                float j1 = edgeFunction(&b, &c, &desPosF) / area;
+                float j2 = 1.0 - j0 - j1;//edgeFunction(&c, &a, &desPosF) / area;
+
+                // If all the areas are positive then pèoint is inside triangle
+                if (j0 < 0 ||j1 < 0 ||j2 < 0)
+                    continue;
+
+                float depth =  1/(j0/a.z  + j1/b.z  + j2/c.z);
+
+                if (zbuffer[x][y] < depth)
+                    continue;
+
+                // barycentric coordinates are the areas of the sub-triangles divided by the area of the main triangle
+                texture_draw(&r->frameBuffer, desPos, pixelFromRGBA(depth,depth,depth,255));
+                //texture_draw(&r->frameBuffer, desPos, pixelFromRGBA(j0*255,j1*255,j2*255,255));
+                zbuffer[x][y] = depth;
             }
         }
 
-        texture_draw(&r->frameBuffer, (Vec2i){a.x,a.y}, pixelFromUInt8(100));
+        // texture_draw(&r->frameBuffer, (Vec2i){a.x,a.y}, pixelFromUInt8(100));
     }
 
     return 0;
@@ -157,16 +158,20 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
  */
 void clearBufferSlowly (Texture f)
 {
-    int length = f.size.x*sizeof (Pixel);
+    int length = f.size.x*1;
+
     for (int y = 0; y < f.size.y; y++) {
-        uint16_t offset = f.size.x*sizeof (Pixel);
-        memset(f.frameBuffer+offset*y,0,length);
+        memset(f.frameBuffer+length*y,0,length*4);
     }
 }
 
 
 int rendererRender(Renderer * r)
 {
+    for (int i = 1366*768; i > 0; --i){
+        zbuffer[0][i] = 200000;
+    }
+
     r->backEnd->beforeRender(r, r->backEnd);
 
     //get current framebuffe from backend
