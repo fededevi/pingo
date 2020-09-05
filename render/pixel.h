@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 //What format to use:
-#define UINT8 // [ RGBA8888 | RGB888 ]
+#define RGBA8888 // [ UINT8 | RGBA8888 | RGB888 ]
 
 //Formats definitions:
 #ifdef UINT8
@@ -47,6 +47,7 @@ extern Pixel pixelRandom();
 extern Pixel pixelFromUInt8( uint8_t);
 extern uint8_t pixelToUInt8( Pixel *);
 extern uint32_t pixelToRGBA( Pixel *);
+extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
 #ifdef __cplusplus
 }
