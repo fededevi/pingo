@@ -34,17 +34,19 @@ int main(){
     Mat4 t;
     while (1) {
         //rotate camera to look "down" by rotating around right axis
-        renderer.camera_transform = mat4RotateX(0.7);
-
+        //renderer.camera_transform = mat4Translate((Vec3f){0,0,0});
+        renderer.camera_transform = mat4PerspectiveGL(  40.0, 1, 5.0, 1000.0);
         //translate camera so that center pixel is 0,0 and 100 units back
-        t = mat4Translate((Vec3f){WIDTH/2,HEIGHT/2,-100});
-        renderer.camera_transform = mat4MultiplyM(&renderer.camera_transform, &t );
+        //t = mat4Perspective(10.0,  10000.0, 16.0/10.0, 90.0);
+        //renderer.camera_transform = mat4MultiplyM(&renderer.camera_transform, &t );
+
+
 
 
         //translate object to its center of mass
-        o.transform =  mat4Translate((Vec3f){-0,0.8,-0});
+        o.transform =  mat4Translate((Vec3f){0,0.8,0});
         //Scale it upp to a size of 300pixels
-        t = mat4Scale((Vec3f){200,200,200});
+        t = mat4Scale((Vec3f){40,-40,40});
         o.transform = mat4MultiplyM(&o.transform, &t );
         //rotate around "up" axis
         t = mat4RotateY(phi += 0.001);

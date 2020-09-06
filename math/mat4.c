@@ -273,18 +273,43 @@ Mat4 mat4Inverse(Mat4 * mat)
     return out;
 }
 
-Mat4 mat4Perspective(float near, float aspect, float far, float fov)
+Mat4 mat4Frustum(float l, float r, float b, float t, float n, float f)
+{
+    Mat4 mat;
+    mat.elements[0]  = 2 * n / (r - l);
+    mat.elements[5]  = 2 * n / (t - b);
+    mat.elements[8]  = (r + l) / (r - l);
+    mat.elements[9]  = (t + b) / (t - b);
+    mat.elements[10] = -(f + n) / (f - n);
+    mat.elements[11] = -1;
+    mat.elements[14] = -(2 * f * n) / (f - n);
+    mat.elements[15] = 0;
+    return mat;
+}
+
+Mat4 mat4PerspectiveGL(float fovY, float aspect, float front, float back)
 {
     float D2R = M_PI / 180.0;
-    float yScale = 1.0 / tan(D2R * fov / 2);
-    float xScale = yScale / aspect;
+    float tangent = tanf(fovY/2 * D2R);     // tangent of half fovY
+    float height = front * tangent;         // half height of near plane
+    float width = height * aspect;          // half width of near plane
+
+    // params: left, right, bottom, top, near, far
+    return mat4Frustum(-width, width, -height, height, front, back);
+}
+
+Mat4 mat4Perspective(float near, float far, float aspect, float fov)
+{
+    float D2R = M_PI / 180.0;
+    float xScale = 1.0 / tan(D2R * fov / 2);
+    float yScale = xScale / aspect;
     float nearmfar = near - far;
 
     Mat4 m = {
-        xScale, 0, 0, 0,
-        0, yScale, 0, 0,
-        0, 0, (far + near) / nearmfar, -1,
-        0, 0, 2*far*near / nearmfar, 0
+        xScale, 0,      0,                        0,
+        0,      yScale, 0,                        0,
+        0,      0,      (far + near) / nearmfar,  1,
+        0,      0,      2*far*near / nearmfar,    0
     };
 
     return m;
