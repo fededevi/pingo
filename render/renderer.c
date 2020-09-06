@@ -119,7 +119,8 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         b.x *= b.w; b.y *= b.w; b.z *= b.w;
         c.x *= c.w; c.y *= c.w; c.z *= c.w;
 
-        if (isClockWise(a.x, a.y, b.x, b.y, c.x, c.y) > 0)
+        float clocking = isClockWise(a.x, a.y, b.x, b.y, c.x, c.y);
+        if (clocking>= 0)
             continue;
 
         //COMPUTE SCREEN COORDS
@@ -161,11 +162,11 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
                 //texture_draw( & r -> frameBuffer, desPos, pixelFromRGBA(depth*255, depth*255, depth*255, 255));
                 texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
+
                 //texture_draw(&r->frameBuffer, desPos, pixelFromRGBA(255,255,255,255));
                 zbuffer[x][y] = depth;
             }
         }
-
     }
 
     return 0;
