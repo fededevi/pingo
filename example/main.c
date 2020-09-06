@@ -36,13 +36,13 @@ int main(){
     while (1) {
         //rotate camera to look "down" by rotating around right axis
         //renderer.camera_transform = mat4Translate((Vec3f){0,0,0});
-        renderer.camera_projection = mat4PerspectiveGL(  60.0, 1366.0/768.0, 2, 2000.0);
+        renderer.camera_projection = mat4Perspective(  10,   100.0,1366.0/768.0, 45.0);
         //translate camera so that center pixel is 0,0 and 100 units back
         //t = mat4Perspective(10.0,  10000.0, 16.0/10.0, 90.0);
         //renderer.camera_transform = mat4MultiplyM(&renderer.camera_transform, &t );
         //VIEW MATRIX
-        Mat4 v = mat4Translate((Vec3f) { 0,0,6});
-        Mat4 rotateDown = mat4RotateX(-0.80); //Rotate around origin/orbit
+        Mat4 v = mat4Translate((Vec3f) { 0,0,-20});
+        Mat4 rotateDown = mat4RotateX(0.80); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
 

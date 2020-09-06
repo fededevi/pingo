@@ -111,7 +111,7 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         b = mat4MultiplyVec4( &b, &mvp);
         c = mat4MultiplyVec4( &c, &mvp);
 
-        // convert to device coordin*tes by perspective division
+        // convert to device coordinates by perspective division
         a.w = 1.0 / a.w;
         b.w = 1.0 / b.w;
         c.w = 1.0 / c.w;

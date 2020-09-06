@@ -22,13 +22,15 @@ Mat4 mat4RotateZ(F_TYPE phi);
 
 Vec2f mat4MultiplyVec2(Vec2f *v, Mat4 *t);
 Vec3f mat4MultiplyVec3(Vec3f *v, Mat4 *t);
+
 Vec4f mat4MultiplyVec4(Vec4f *v, Mat4 *t);
+Vec4f mat4MultiplyVec4in( Vec4f *v, Mat4 *t );
 
 Mat4 mat4MultiplyM( Mat4 * m1, Mat4 * m2);
 Mat4 mat4Inverse(Mat4 * mat);
 Mat4 mat4Scale(Vec3f s);
 
-Mat4 mat4PerspectiveGL(float fovY, float aspect, float front, float back);
+//Mat4 mat4PerspectiveGL(float fovY, float aspect, float front, float back);
 Mat4 mat4Perspective(float near, float far, float aspect, float fov);
 
 Mat4 mat4Perspective(float near,  float far, float aspect, float fov );

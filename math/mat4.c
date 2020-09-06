@@ -91,6 +91,14 @@ Vec4f mat4MultiplyVec4(Vec4f *v, Mat4 *t) {
     return (Vec4f){a,b,c,d};
 }
 
+Vec4f mat4MultiplyVec4in( Vec4f *v, Mat4 *t ) {
+    F_TYPE a = v->x * t->elements[0] + v->y * t->elements[4] + v->z * t->elements[8] + 1.0 * t->elements[12];
+    F_TYPE b = v->x * t->elements[1] + v->y * t->elements[5] + v->z * t->elements[9] + 1.0 * t->elements[13];
+    F_TYPE c = v->x * t->elements[2] + v->y * t->elements[6] + v->z * t->elements[10] + 1.0 * t->elements[14];
+    F_TYPE d = v->x * t->elements[3] + v->y * t->elements[7] + v->z * t->elements[1] + 1.0 * t->elements[15];
+    return (Vec4f){a,b,c,d};
+}
+
 Mat4 mat4MultiplyM( Mat4 * m1, Mat4 * m2) {
     Mat4 out;
     F_TYPE * a = m2->elements;
@@ -272,7 +280,7 @@ Mat4 mat4Inverse(Mat4 * mat)
 
     return out;
 }
-
+/*
 Mat4 mat4Frustum(float l, float r, float b, float t, float n, float f)
 {
     Mat4 mat;
@@ -296,20 +304,20 @@ Mat4 mat4PerspectiveGL(float fovY, float aspect, float front, float back)
 
     // params: left, right, bottom, top, near, far
     return mat4Frustum(-width, width, -height, height, front, back);
-}
+}*/
 
 Mat4 mat4Perspective(float near, float far, float aspect, float fov)
 {
     float D2R = M_PI / 180.0;
     float xScale = 1.0 / tan(D2R * fov / 2);
-    float yScale = xScale / aspect;
+    float yScale = xScale * aspect;
     float nearmfar = near - far;
 
     Mat4 m = {
         xScale, 0,      0,                        0,
         0,      yScale, 0,                        0,
-        0,      0,      (far + near) / nearmfar,  1,
-        0,      0,      2*far*near / nearmfar,    0
+        0,      0,      (far + near) / nearmfar,  2*far*near / nearmfar,
+        0,      0,      1,    0
     };
 
     return m;
