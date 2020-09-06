@@ -18,7 +18,9 @@ typedef struct Renderer{
     Pixel clearColor;
     int clear;
 
-    Mat4 camera_transform;
+    Mat4 camera_projection;
+    Mat4 camera_view;
+
     BackEnd * backEnd;
 
 

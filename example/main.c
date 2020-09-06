@@ -1,5 +1,6 @@
 #include "windowbackend.h"
 #include "teapot.h"
+#include "cube.h"
 #include "../render/renderer.h"
 #include "../render/texture.h"
 #include "../render/sprite.h"
@@ -27,27 +28,29 @@ int main(){
     rendererSetScene(&renderer, &s);
 
     Object o;
-    o.mesh = mesh_teapot();
+    o.mesh = &mesh_cube;
     sceneAddRenderable(&s, object_as_renderable(&o));
 
     float phi = 0;
-    float a = 0;
     Mat4 t;
     while (1) {
         //rotate camera to look "down" by rotating around right axis
         //renderer.camera_transform = mat4Translate((Vec3f){0,0,0});
-        renderer.camera_transform = mat4PerspectiveGL(  80.0, 1, 1.0, 1000.0);
+        renderer.camera_projection = mat4PerspectiveGL(  60.0, 1366.0/768.0, 2, 2000.0);
         //translate camera so that center pixel is 0,0 and 100 units back
         //t = mat4Perspective(10.0,  10000.0, 16.0/10.0, 90.0);
         //renderer.camera_transform = mat4MultiplyM(&renderer.camera_transform, &t );
-
+        //VIEW MATRIX
+        Mat4 v = mat4Translate((Vec3f) { 0,0,6});
+        Mat4 rotateDown = mat4RotateX(-0.80); //Rotate around origin/orbit
+        renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
 
 
         //translate object to its center of mass
-        o.transform =  mat4Translate((Vec3f){0,0.8,0});
+        o.transform =  mat4Translate((Vec3f){0,0.0,0});
         //Scale it upp to a size of 300pixels
-        t = mat4Scale((Vec3f){40,-40,40});
+        t = mat4Scale((Vec3f){1,1,1});
         o.transform = mat4MultiplyM(&o.transform, &t );
         //rotate around "up" axis
         t = mat4RotateY(phi += 0.001);

@@ -1,3 +1,3 @@
 #include "../render/mesh.h"
 
-Mesh mesh_teapot();
+extern Mesh mesh_teapot;

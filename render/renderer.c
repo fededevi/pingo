@@ -91,19 +91,18 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
     Mat4 m = mat4MultiplyM( & o->transform, & object_transform);
 
     //VIEW MATRIX
-    Mat4 v = mat4Translate((Vec3f) { 0,0,70});
-    Mat4 rotateDown = mat4RotateX(-1); //Rotate around origin/orbit
-    v = mat4MultiplyM(&rotateDown, &v );
+    Mat4 v = r->camera_view;
 
-    Mat4 p = r -> camera_transform;
+    Mat4 p = r -> camera_projection;
 
     Mat4 t = mat4MultiplyM( & m, &v);
     Mat4 mvp = mat4MultiplyM( & t, &p);
 
-    for (int i = 0; i < o -> mesh.vertices_count; i += 3) {
-        Vec3f * ver1 = & o -> mesh.vertices[i];
-        Vec3f * ver2 = & o -> mesh.vertices[i+1];
-        Vec3f * ver3 = & o -> mesh.vertices[i+2];
+    for (int i = 0; i < o->mesh->indexes_count; i += 3) {
+        Vec3f * ver1 = &o->mesh->positions[o->mesh->indexes[i+0]];
+        Vec3f * ver2 = &o->mesh-> positions[o->mesh->indexes[i+1]];
+        Vec3f * ver3 = &o->mesh->positions[o->mesh->indexes[i+2]];
+
         Vec4f a =  { ver1->x, ver1->y, ver1->z, 1 };
         Vec4f b =  { ver2->x, ver2->y, ver2->z, 1 };
         Vec4f c =  { ver3->x, ver3->y, ver3->z, 1 };

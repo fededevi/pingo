@@ -7,12 +7,10 @@
 #include "material.h"
 
 typedef struct Mesh {
-    int vertices_count;
-    Vec3f * vertices;
-
-    int triangles_count;
-    uint32_t * triangles;
+    int positions_count;
+    Vec3f * positions;
+    int indexes_count;
+    uint32_t * indexes;
 } Mesh;
 
-Mesh mesh_test();
 

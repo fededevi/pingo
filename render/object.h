@@ -6,7 +6,7 @@
 #include "renderable.h"
 
 typedef struct Object {
-    Mesh mesh;
+    Mesh * mesh;
     Mat4 transform;
     Material * material;
 } Object;
