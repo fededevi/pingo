@@ -100,8 +100,13 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
     for (int i = 0; i < o->mesh->indexes_count; i += 3) {
         Vec3f * ver1 = &o->mesh->positions[o->mesh->indexes[i+0]];
-        Vec3f * ver2 = &o->mesh-> positions[o->mesh->indexes[i+1]];
+        Vec3f * ver2 = &o->mesh->positions[o->mesh->indexes[i+1]];
         Vec3f * ver3 = &o->mesh->positions[o->mesh->indexes[i+2]];
+
+
+        Vec2f * tca = &o->mesh->textCoord[o->mesh->indexes[i+0]];
+        Vec2f * tcb = &o->mesh->textCoord[o->mesh->indexes[i+1]];
+        Vec2f * tcc = &o->mesh->textCoord[o->mesh->indexes[i+2]];
 
         Vec4f a =  { ver1->x, ver1->y, ver1->z, 1 };
         Vec4f b =  { ver2->x, ver2->y, ver2->z, 1 };
@@ -120,7 +125,7 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         c.x *= c.w; c.y *= c.w; c.z *= c.w;
 
         float clocking = isClockWise(a.x, a.y, b.x, b.y, c.x, c.y);
-        if (clocking>= 0)
+        if (clocking >= 0)
             continue;
 
         //COMPUTE SCREEN COORDS
@@ -165,6 +170,15 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
                 //texture_draw(&r->frameBuffer, desPos, pixelFromRGBA(255,255,255,255));
                 zbuffer[x][y] = depth;
+
+                if (o->material != 0) {
+                    //Texture lookup
+                    float textCoordx = ((ba * tca->x * a.w + bb * tcb->x * b.w + bc * tcc->x * c.w) / (ba * a.w + bb * b.w + bc * c.w));
+                    float textCoordy = ((ba * tca->y * a.w + bb * tcb->y * b.w + bc * tcc->y * c.w) / (ba * a.w + bb * b.w + bc * c.w));
+
+                    Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
+                    texture_draw(&r->frameBuffer, vecFtoI(desPosF), text);
+                }
             }
         }
     }

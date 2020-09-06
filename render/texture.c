@@ -25,6 +25,15 @@ Pixel texture_read(Texture *f, Vec2i pos)
     return f->frameBuffer[pos.x + pos.y * f->size.x];
 }
 
+Pixel texture_readF(Texture *f, Vec2f pos)
+{
+    int x = pos.x * f->size.x;
+    int y = pos.y * f->size.y;
+    int index = x + y * f->size.x;
+    Pixel value = f->frameBuffer[index];
+    return value;
+}
+
 Pixel texture_read_bilinear(Texture *f, Vec2f pos)
 {
     float kX = fmodf(pos.x, 1.0f);

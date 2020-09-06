@@ -30,14 +30,28 @@ int main(){
     Object cube1;
     cube1.mesh = &mesh_cube;
     sceneAddRenderable(&s, object_as_renderable(&cube1));
+    cube1.material = 0;
 
     Object cube2;
     cube2.mesh = &mesh_cube;
     sceneAddRenderable(&s, object_as_renderable(&cube2));
 
+    //TEXTURE FOR CUBE 2
+    Texture tex;
+    texture_init(&tex, (Vec2i){8,8}, malloc(8*8*sizeof(Pixel)));
+
+    for (int i = 0; i < 8; i++)
+        for (int y = 0; y < 8; y++)
+            ((uint32_t *)tex.frameBuffer)[i * 8 + y ] = (i + y) % 2 == 0 ? 0xFFFFFFFF : 0x000000FF;
+
+    Material m;
+    m.texture = &tex;
+    cube2.material = &m;
+
     Object tea;
     tea.mesh = &mesh_teapot;
     sceneAddRenderable(&s, object_as_renderable(&tea));
+    tea.material = 0;
 
     float phi = 0;
     float phi2 = 0;
@@ -50,7 +64,7 @@ int main(){
         //t = mat4Perspective(10.0,  10000.0, 16.0/10.0, 90.0);
         //renderer.camera_transform = mat4MultiplyM(&renderer.camera_transform, &t );
         //VIEW MATRIX
-        Mat4 v = mat4Translate((Vec3f) { 0,0,-20});
+        Mat4 v = mat4Translate((Vec3f) { 0,0,-15});
         Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 

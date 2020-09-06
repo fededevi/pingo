@@ -3465,8 +3465,7 @@ uint32_t indexes[teapot_vertices] = {
 };
 
 Mesh mesh_teapot = {
+    .indexes_count = teapot_vertices,
     .positions = &positions[0],
-    .positions_count = teapot_vertices,
-    .indexes = &indexes[0],
-    .indexes_count = teapot_vertices
+    .indexes = &indexes[0]
 };

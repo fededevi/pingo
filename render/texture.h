@@ -21,6 +21,8 @@ extern void  texture_draw(Texture * f, Vec2i pos, Pixel color);
 
 extern Pixel texture_read(Texture * f, Vec2i pos);
 
+extern Pixel texture_readF(Texture * f, Vec2f pos);
+
 extern Pixel texture_read_bilinear(Texture *f, Vec2f pos);
 
 #ifdef __cplusplus
