@@ -88,7 +88,7 @@ float isClockWise(float x1, float y1, float x2, float y2, float x3, float y3) {
 int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
     Object * o = ren.impl;
     //MODEL MATRIX
-    Mat4 m = mat4MultiplyM( & o->transform, & object_transform);
+    Mat4 m = mat4MultiplyM( &o->transform, &object_transform  );
 
     //VIEW MATRIX
     Mat4 v = r->camera_view;

@@ -27,11 +27,20 @@ int main(){
     sceneInit(&s);
     rendererSetScene(&renderer, &s);
 
-    Object o;
-    o.mesh = &mesh_cube;
-    sceneAddRenderable(&s, object_as_renderable(&o));
+    Object cube1;
+    cube1.mesh = &mesh_cube;
+    sceneAddRenderable(&s, object_as_renderable(&cube1));
+
+    Object cube2;
+    cube2.mesh = &mesh_cube;
+    sceneAddRenderable(&s, object_as_renderable(&cube2));
+
+    Object tea;
+    tea.mesh = &mesh_teapot;
+    sceneAddRenderable(&s, object_as_renderable(&tea));
 
     float phi = 0;
+    float phi2 = 0;
     Mat4 t;
     while (1) {
         //rotate camera to look "down" by rotating around right axis
@@ -42,19 +51,33 @@ int main(){
         //renderer.camera_transform = mat4MultiplyM(&renderer.camera_transform, &t );
         //VIEW MATRIX
         Mat4 v = mat4Translate((Vec3f) { 0,0,-20});
-        Mat4 rotateDown = mat4RotateX(0.80); //Rotate around origin/orbit
+        Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
 
-
-        //translate object to its center of mass
-        o.transform =  mat4Translate((Vec3f){0,0.0,0});
-        //Scale it upp to a size of 300pixels
+        //CUBE 1 TRANSFORM
+        cube1.transform =  mat4RotateY(phi2 -= 0.01);
         t = mat4Scale((Vec3f){1,1,1});
-        o.transform = mat4MultiplyM(&o.transform, &t );
-        //rotate around "up" axis
-        t = mat4RotateY(phi += 0.001);
-        o.transform = mat4MultiplyM(&o.transform, &t );
+        cube1.transform = mat4MultiplyM(&cube1.transform, &t );
+        t = mat4Translate((Vec3f){-3,0.0,0});
+        cube1.transform = mat4MultiplyM(&cube1.transform, &t );
+
+        //CUBE 2 TRANSFORM
+        cube2.transform =  mat4Translate((Vec3f){0,0.0,0});
+        t = mat4Scale((Vec3f){1,1,1});
+        cube2.transform = mat4MultiplyM(&cube2.transform, &t );
+
+
+        //TEA TRANSFORM
+        tea.transform = mat4RotateZ(M_PI);
+        t =mat4RotateY(phi2);
+        tea.transform = mat4MultiplyM(&tea.transform, &t );
+        t = mat4Translate((Vec3f){4,-0.5,0});
+        tea.transform = mat4MultiplyM(&tea.transform, &t );
+
+
+        //SCENE
+        s.transform = mat4RotateY(phi += 0.003);
 
 
         rendererSetCamera(&renderer,(Vec4i){0,0,SIZEW,SIZEH});
