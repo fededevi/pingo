@@ -1,4 +1,5 @@
 #include "windowbackend.h"
+#include "teapot.h"
 #include "../render/renderer.h"
 #include "../render/texture.h"
 #include "../render/sprite.h"
@@ -26,7 +27,7 @@ int main(){
     rendererSetScene(&renderer, &s);
 
     Object o;
-    o.mesh = mesh_test();
+    o.mesh = mesh_teapot();
     sceneAddRenderable(&s, object_as_renderable(&o));
 
     float phi = 0;
@@ -35,7 +36,7 @@ int main(){
     while (1) {
         //rotate camera to look "down" by rotating around right axis
         //renderer.camera_transform = mat4Translate((Vec3f){0,0,0});
-        renderer.camera_transform = mat4PerspectiveGL(  40.0, 1, 5.0, 1000.0);
+        renderer.camera_transform = mat4PerspectiveGL(  80.0, 1, 1.0, 1000.0);
         //translate camera so that center pixel is 0,0 and 100 units back
         //t = mat4Perspective(10.0,  10000.0, 16.0/10.0, 90.0);
         //renderer.camera_transform = mat4MultiplyM(&renderer.camera_transform, &t );

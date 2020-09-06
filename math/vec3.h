@@ -18,6 +18,12 @@ typedef struct Vec3f {
     F_TYPE z;
 } Vec3f;
 
+Vec3f vec3f(float,float,float);
+Vec3f vec3fmul(Vec3f,float);
+Vec3f vec3fsumV(Vec3f,Vec3f);
+Vec3f vec3fsum(Vec3f,float);
+float vec3Dot(Vec3f,Vec3f);
+
 #ifdef __cplusplus
 }
 #endif

@@ -112,16 +112,18 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         b = mat4MultiplyVec4( &b, &mvp);
         c = mat4MultiplyVec4( &c, &mvp);
 
-        a.x /= a.w; a.y /= a.w; a.z /= a.w; a.w /= a.w;
-
-        b.x /= b.w; b.y /= b.w; b.z /= b.w; b.w /= b.w;
-
-        c.x /= c.w; c.y /= c.w; c.z /= c.w; c.w /= c.w;
+        // convert to device coordin*tes by perspective division
+        a.w = 1.0 / a.w;
+        b.w = 1.0 / b.w;
+        c.w = 1.0 / c.w;
+        a.x *= a.w; a.y *= a.w; a.z *= a.w;
+        b.x *= b.w; b.y *= b.w; b.z *= b.w;
+        c.x *= c.w; c.y *= c.w; c.z *= c.w;
 
         if (isClockWise(a.x, a.y, b.x, b.y, c.x, c.y) > 0)
             continue;
 
-
+        //COMPUTE SCREEN COORDS
         Vec3f a_s = {(a.x+1.0) * (1366/2),(a.y+1.0) * (768/2),a.z};
         Vec3f b_s = {(b.x+1.0) * (1366/2),(b.y+1.0) * (768/2),b.z};
         Vec3f c_s = {(c.x+1.0) * (1366/2),(c.y+1.0) * (768/2),c.z};
@@ -139,29 +141,27 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         for (int y = minY; y < maxY; y++) {
             for (int x = minX; x < maxX; x++) {
                 //Transform the coordinate back to sprite space
-                Vec2i desPos = { x, y };
-                Vec3f desPosF = { x , y, 1.0 };
+                Vec2f desPosF = { x , y };
 
                 // area of the triangle multiplied by 2
                 float area = edgeFunction( (Vec2f*)&a_s, (Vec2f*)&b_s, (Vec2f*)&c_s);
 
                 //Area of sub triangles
-                float j0 = edgeFunction( (Vec2f*)&a_s, (Vec2f*)&b_s, & desPosF) / area;
-                float j1 = edgeFunction( (Vec2f*)&b_s, (Vec2f*)&c_s, & desPosF) / area;
-                float j2 = 1.0 - j0 - j1; //edgeFunction(&c, &a, &desPosF) / area;
+                float ba = edgeFunction( (Vec2f*)&b_s, (Vec2f*)&c_s, (Vec2f*)&desPosF) / area;
+                float bc = edgeFunction( (Vec2f*)&a_s, (Vec2f*)&b_s, (Vec2f*)&desPosF) / area;
+                float bb = 1.0 - bc - ba; //edgeFunction(&c, &a, &desPosF) / area;
 
-               // If all the areas are positive then pèoint is inside triangle
-                if (j0 < 0 || j1 < 0 || j2 < 0)
+                // If all the areas are positive then point is inside triangle
+                if (ba < 0 || bb < 0 || bc < 0)
                     continue;
 
-                float depth = 1 / (j0 / a.z + j1 / b.z + j2 / c.z);
+                float depth = 10000000 * ((ba * a.z * a.w + bb * b.z * b.w + bc * c.z * c.w) / (ba * a.w + bb * b.w + bc * c.w));
 
                 if (zbuffer[x][y] > depth)
                     continue;
 
-                // barycentric coordinates are the areas of the sub-triangles divided by the area of the main triangle
-                //texture_draw( & r -> frameBuffer, desPos, pixelFromRGBA(depth, depth, depth, 255));
-                texture_draw(&r->frameBuffer, desPos, pixelFromRGBA(j0*255,j1*255,j2*255,255));
+                //texture_draw( & r -> frameBuffer, desPos, pixelFromRGBA(depth*255, depth*255, depth*255, 255));
+                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
                 //texture_draw(&r->frameBuffer, desPos, pixelFromRGBA(255,255,255,255));
                 zbuffer[x][y] = depth;
             }
@@ -210,7 +210,7 @@ void clearBufferSlowly(Texture f) {
 
 int rendererRender(Renderer * r) {
     for (int i = 1366 * 768; i > 0; --i) {
-        zbuffer[0][i] = -200000;
+        zbuffer[0][i] = -2000000000;
     }
 
     r -> backEnd -> beforeRender(r, r -> backEnd);
