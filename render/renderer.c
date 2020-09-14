@@ -103,7 +103,6 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         Vec3f * ver2 = &o->mesh->positions[o->mesh->indexes[i+1]];
         Vec3f * ver3 = &o->mesh->positions[o->mesh->indexes[i+2]];
 
-
         Vec2f * tca = &o->mesh->textCoord[o->mesh->indexes[i+0]];
         Vec2f * tcb = &o->mesh->textCoord[o->mesh->indexes[i+1]];
         Vec2f * tcc = &o->mesh->textCoord[o->mesh->indexes[i+2]];
@@ -166,7 +165,6 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                     continue;
 
                 //texture_draw( & r -> frameBuffer, desPos, pixelFromRGBA(depth*255, depth*255, depth*255, 255));
-                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
 
                 //texture_draw(&r->frameBuffer, desPos, pixelFromRGBA(255,255,255,255));
                 zbuffer[x][y] = depth;
@@ -178,7 +176,9 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
                     texture_draw(&r->frameBuffer, vecFtoI(desPosF), text);
+                    continue;
                 }
+                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
             }
         }
     }
@@ -210,10 +210,6 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     return 0;
 }
 
-/**
- * @brief Clear the whole framebuffer slowly. This prevents underrun in the FPGA draw buffer and prevents desynchronization
- * of the video signal
- */
 void clearBufferSlowly(Texture f) {
     int length = f.size.x * 1;
 
