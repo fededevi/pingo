@@ -28,7 +28,6 @@ typedef struct Pixel Pixel;
 typedef  struct {
     BackEnd backend;
     Vec2i size;
-    Pixel * frameBuffer;
 } WindowBackEnd;
 
 /**
