@@ -8,8 +8,6 @@
 typedef struct Scene Scene;
 typedef struct BackEnd BackEnd;
 
-float zbuffer[1366][768];
-
 typedef struct Renderer{
     Vec4i camera;
     Scene * scene;

@@ -18,6 +18,6 @@ typedef struct Depth {
 #endif
 
 void depth_write(Depth * d, int idx, float value);
-
+void depth_clear(Depth * d, int idx);
 bool depth_check(Depth * d, int idx, float value);
 

@@ -1,28 +1,18 @@
 #include <string.h>
-
 #include <stdio.h>
-
 #include "renderer.h"
-
 #include "sprite.h"
-
 #include "pixel.h"
-
+#include "depth.h"
 #include "backend.h"
-
 #include "scene.h"
-
 #include "rasterizer.h"
-
 #include "object.h"
 
 
 int renderFrame(Renderer * r, Renderable ren) {
     Texture * f = ren.impl;
-    return rasterizer_draw_pixel_perfect((Vec2i) {
-                                             0,
-                                             0
-                                         }, r, f);
+    return rasterizer_draw_pixel_perfect((Vec2i) { 0, 0 }, r, f);
 };
 
 int renderSprite(Mat4 transform, Renderer * r, Renderable ren) {
@@ -33,10 +23,9 @@ int renderSprite(Mat4 transform, Renderer * r, Renderable ren) {
     s -> t = mat4MultiplyM( & s -> t, & transform);
 
     //Apply camera translation
-    Mat4 newMat = mat4Translate((Vec3f) {
-                                    -r -> camera.x, -r -> camera.y, 0
-                                });
+    Mat4 newMat = mat4Translate((Vec3f) { -r -> camera.x, -r -> camera.y, 0 });
     s -> t = mat4MultiplyM( & s -> t, & newMat);
+
     /*
   if (mat4IsOnlyTranslation(&s->t)) {
       Vec2i off = {s->t.elements[2], s->t.elements[5]};
@@ -86,13 +75,14 @@ float isClockWise(float x1, float y1, float x2, float y2, float x3, float y3) {
 }
 
 int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
+    const Vec2i scrSize = r->frameBuffer.size;
     Object * o = ren.impl;
-    //MODEL MATRIX
+
+    // MODEL MATRIX
     Mat4 m = mat4MultiplyM( &o->transform, &object_transform  );
 
-    //VIEW MATRIX
+    // VIEW MATRIX
     Mat4 v = r->camera_view;
-
     Mat4 p = r -> camera_projection;
 
     Mat4 t = mat4MultiplyM( & m, &v);
@@ -102,16 +92,12 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         Vec3f * ver1 = &o->mesh->positions[o->mesh->indexes[i+0]];
         Vec3f * ver2 = &o->mesh->positions[o->mesh->indexes[i+1]];
         Vec3f * ver3 = &o->mesh->positions[o->mesh->indexes[i+2]];
-
-
         Vec2f * tca = &o->mesh->textCoord[o->mesh->indexes[i+0]];
         Vec2f * tcb = &o->mesh->textCoord[o->mesh->indexes[i+1]];
         Vec2f * tcc = &o->mesh->textCoord[o->mesh->indexes[i+2]];
-
         Vec4f a =  { ver1->x, ver1->y, ver1->z, 1 };
         Vec4f b =  { ver2->x, ver2->y, ver2->z, 1 };
         Vec4f c =  { ver3->x, ver3->y, ver3->z, 1 };
-
         a = mat4MultiplyVec4( &a, &mvp);
         b = mat4MultiplyVec4( &b, &mvp);
         c = mat4MultiplyVec4( &c, &mvp);
@@ -129,15 +115,13 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
             continue;
 
         //COMPUTE SCREEN COORDS
-        Vec3f a_s = {(a.x+1.0) * (1366/2),(a.y+1.0) * (768/2),a.z};
-        Vec3f b_s = {(b.x+1.0) * (1366/2),(b.y+1.0) * (768/2),b.z};
-        Vec3f c_s = {(c.x+1.0) * (1366/2),(c.y+1.0) * (768/2),c.z};
-
+        Vec3f a_s = {(a.x+1.0) * (scrSize.x/2),(a.y+1.0) * (scrSize.y/2),a.z};
+        Vec3f b_s = {(b.x+1.0) * (scrSize.x/2),(b.y+1.0) * (scrSize.y/2),b.z};
+        Vec3f c_s = {(c.x+1.0) * (scrSize.x/2),(c.y+1.0) * (scrSize.y/2),c.z};
         float minX = MIN(MIN(a_s.x, b_s.x), c_s.x);
         float minY = MIN(MIN(a_s.y, b_s.y), c_s.y);
         float maxX = MAX(MAX(a_s.x, b_s.x), c_s.x);
         float maxY = MAX(MAX(a_s.y, b_s.y), c_s.y);
-
         minX = MIN(MAX(minX, 0), r -> frameBuffer.size.x);
         maxX = MIN(MAX(maxX, 0), r -> frameBuffer.size.x);
         minY = MIN(MAX(minY, 0), r -> frameBuffer.size.y);
@@ -160,16 +144,15 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                 if (ba < 0 || bb < 0 || bc < 0)
                     continue;
 
-                float depth = 10000000 * ((ba * a.z * a.w + bb * b.z * b.w + bc * c.z * c.w) / (ba * a.w + bb * b.w + bc * c.w));
-
-                if (zbuffer[x][y] > depth)
+                float depth = -(ba * a.z * a.w + bb * b.z * b.w + bc * c.z * c.w) / (ba * a.w + bb * b.w + bc * c.w);
+                if (depth < 0.0 || depth > 1.0)
                     continue;
 
-                //texture_draw( & r -> frameBuffer, desPos, pixelFromRGBA(depth*255, depth*255, depth*255, 255));
-                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
+                if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
+                    continue;
 
-                //texture_draw(&r->frameBuffer, desPos, pixelFromRGBA(255,255,255,255));
-                zbuffer[x][y] = depth;
+                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
+                depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
 
                 if (o->material != 0) {
                     //Texture lookup
@@ -196,12 +179,7 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     r -> clearColor = PIXELBLACK;
     r -> backEnd = backEnd;
 
-    r -> backEnd -> init(r, r -> backEnd, (Vec4i) {
-                             0,
-                             0,
-                             0,
-                             0
-                         });
+    r -> backEnd -> init(r, r -> backEnd, (Vec4i) { 0, 0, 0, 0 });
 
     int e = 0;
     e = texture_init( & (r -> frameBuffer), size, backEnd -> getFrameBuffer(r, backEnd));
@@ -223,8 +201,9 @@ void clearBufferSlowly(Texture f) {
 }
 
 int rendererRender(Renderer * r) {
-    for (int i = 1366 * 768; i > 0; --i) {
-        zbuffer[0][i] = -2000000000;
+    int pixels = r->frameBuffer.size.x * r->frameBuffer.size.y;
+    for (int i = pixels; i > 0; --i) {
+        depth_clear(r->backEnd->getZetaBuffer(r,r->backEnd),i);
     }
 
     r -> backEnd -> beforeRender(r, r -> backEnd);
