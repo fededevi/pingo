@@ -102,7 +102,7 @@ HWND WINAPI winMain(HINSTANCE hInstance,  HINSTANCE hINSTANCE,  LPSTR lPSTR, int
     hwnd = CreateWindowEx(
                 WS_EX_CLIENTEDGE,
                 g_szClassName,
-                L"Overlay Emulator - Alpitronic - FD",
+                L"Pingo renderer - Window backend",
                 WS_OVERLAPPEDWINDOW,
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,

@@ -150,7 +150,7 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
                 if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
                     continue;
-
+              
                 texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
                 depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
 
@@ -161,7 +161,9 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
                     texture_draw(&r->frameBuffer, vecFtoI(desPosF), text);
+                    continue;
                 }
+                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
             }
         }
     }
@@ -187,7 +189,6 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
 
     return 0;
 }
-
 
 void clearBuffer(Texture f) {
     int length = f.size.x * f.size.y;
