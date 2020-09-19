@@ -57,17 +57,13 @@ int main(){
     float phi2 = 0;
     Mat4 t;
     while (1) {
-        //rotate camera to look "down" by rotating around right axis
-        //renderer.camera_transform = mat4Translate((Vec3f){0,0,0});
-        renderer.camera_projection = mat4Perspective(  10,   100.0,1366.0/768.0, 45.0);
-        //translate camera so that center pixel is 0,0 and 100 units back
-        //t = mat4Perspective(10.0,  10000.0, 16.0/10.0, 90.0);
-        //renderer.camera_transform = mat4MultiplyM(&renderer.camera_transform, &t );
+
+        renderer.camera_projection = mat4Perspective( 2, 8.0,1366.0/768.0, 90.0);
+
         //VIEW MATRIX
-        Mat4 v = mat4Translate((Vec3f) { 0,0,-15});
+        Mat4 v = mat4Translate((Vec3f) { 0,0,-5});
         Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
-
 
         //CUBE 1 TRANSFORM
         cube1.transform =  mat4RotateY(phi2 -= 0.01);
@@ -89,10 +85,8 @@ int main(){
         t = mat4Translate((Vec3f){4,-0.5,0});
         tea.transform = mat4MultiplyM(&tea.transform, &t );
 
-
         //SCENE
         s.transform = mat4RotateY(phi += 0.003);
-
 
         rendererSetCamera(&renderer,(Vec4i){0,0,SIZEW,SIZEH});
         rendererRender(&renderer);
@@ -148,6 +142,7 @@ int main_2d_example(){
     return 0;
 }
 
+/*
 int main2(){
     //Test matrix multiplication
     Mat4 m1= {1,2,1,3,
@@ -169,9 +164,9 @@ int main2(){
     //2	54	43	18	40
     //3	108	52	34	57
     //4	50	38	20	55
-}
+}*/
 
-
+/*
 #include <time.h>
 int main3(){
     //Test matrix multiplication speed
@@ -193,4 +188,4 @@ int main3(){
     printf(" time: %f", time_spent);
     return 0;
 }
-
+*/
