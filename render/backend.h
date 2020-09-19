@@ -8,6 +8,7 @@
 
 typedef struct Renderer Renderer;
 typedef struct Pixel Pixel;
+typedef struct Depth Depth;
 
 typedef struct BackEnd {
     //Called on initialization and re-initialization
@@ -21,4 +22,7 @@ typedef struct BackEnd {
 
     //Should return the address of the buffer (height*width*sizeof(Pixel))
     Pixel * (*getFrameBuffer)(Renderer *, struct BackEnd * );
+
+    //Should return the address of the buffer (height*width*sizeof(Pixel))
+    Depth * (*getZetaBuffer)(Renderer *, struct BackEnd * );
 } BackEnd;

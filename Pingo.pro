@@ -19,6 +19,7 @@ HEADERS += \
     math/vec3.h \
     math/vec4.h \
     render/backend.h \
+    render/depth.h \
     render/material.h \
     render/mesh.h \
     render/object.h \
@@ -40,6 +41,7 @@ SOURCES += \
     math/vec2.c \
     math/vec3.c \
     math/vec4.c \
+    render/depth.c \
     render/material.c \
     render/mesh.c \
     render/object.c \

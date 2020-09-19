@@ -9,10 +9,12 @@
 #include "../render/renderer.h"
 #include "../render/texture.h"
 #include "../render/pixel.h"
+#include "../render/depth.h"
 
 LPCWSTR g_szClassName = L"myWindowClass";
 
 Vec4i rect;
+Depth zetaBuffer[1366*768];
 Pixel frameBuffer[1366*768];
 COLORREF copyBuffer[1366*768*4];
 
@@ -137,11 +139,16 @@ Pixel * getFrameBuffer( Renderer * ren,  BackEnd * backEnd) {
     return frameBuffer;
 }
 
+Depth * getZetaBuffer( Renderer * ren,  BackEnd * backEnd) {
+    return zetaBuffer;
+}
+
 void windowBackEndInit( WindowBackEnd *b) {
     b->backend.init = &init;
     b->backend.beforeRender = &beforeRender;
     b->backend.afterRender = &afterRender;
     b->backend.getFrameBuffer = &getFrameBuffer;
+    b->backend.getZetaBuffer = &getZetaBuffer;
 
     windowHandle = winMain(0,0,0, SW_NORMAL );
 }

@@ -231,7 +231,7 @@ int rasterizer_draw_transformed(Mat4 t, Renderer *r, Texture * src) {
             float p15 = src->frameBuffer[(int)(srcPosI15.x + srcPosI15.y * src->size.x)].g;
             float p16 = src->frameBuffer[(int)(srcPosI16.x + srcPosI16.y * src->size.x)].g;
 
-            Pixel color = {(p1+p2+p3+p4+p5+p6+p7+p8+p9+p0+p11+p12+p13+p14+p15+p16) / 16};
+            Pixel color = pixelFromUInt8((p1+p2+p3+p4+p5+p6+p7+p8+p9+p0+p11+p12+p13+p14+p15+p16) / 16);
 #endif
             texture_draw(&des, desPos, color);
         }
