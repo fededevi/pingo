@@ -21,7 +21,6 @@ typedef struct Renderer{
 
     BackEnd * backEnd;
 
-
 } Renderer;
 
 extern int rendererRender(Renderer *);

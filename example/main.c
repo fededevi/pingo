@@ -56,8 +56,8 @@ int main(){
     float phi = 0;
     float phi2 = 0;
     Mat4 t;
-    while (1) {
 
+    while (1) {
         renderer.camera_projection = mat4Perspective( 2, 8.0,1366.0/768.0, 90.0);
 
         //VIEW MATRIX

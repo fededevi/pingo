@@ -188,23 +188,15 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     return 0;
 }
 
-/**
- * @brief Clear the whole framebuffer slowly. This prevents underrun in the FPGA draw buffer and prevents desynchronization
- * of the video signal
- */
-void clearBufferSlowly(Texture f) {
-    int length = f.size.x * 1;
 
-    for (int y = 0; y < f.size.y; y++) {
-        memset(f.frameBuffer + length * y, 0, length * 4);
-    }
+void clearBuffer(Texture f) {
+    int length = f.size.x * f.size.y;
+    memset(f.frameBuffer, 0, length * sizeof (Pixel));
 }
 
 int rendererRender(Renderer * r) {
     int pixels = r->frameBuffer.size.x * r->frameBuffer.size.y;
-    for (int i = pixels; i > 0; --i) {
-        depth_clear(r->backEnd->getZetaBuffer(r,r->backEnd),i);
-    }
+    memset(r->backEnd->getZetaBuffer(r,r->backEnd), 0, pixels * sizeof (Depth));
 
     r -> backEnd -> beforeRender(r, r -> backEnd);
 
@@ -213,7 +205,7 @@ int rendererRender(Renderer * r) {
 
     //Clear draw buffer before rendering
     if (r -> clear) {
-        clearBufferSlowly(r -> frameBuffer);
+        clearBuffer(r -> frameBuffer);
     }
 
     renderScene(mat4Identity(), r, sceneAsRenderable(r -> scene));

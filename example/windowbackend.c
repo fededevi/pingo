@@ -14,8 +14,8 @@
 LPCWSTR g_szClassName = L"myWindowClass";
 
 Vec4i rect;
-Pixel frameBuffer[1366*768];
 Depth zetaBuffer[1366*768];
+Pixel frameBuffer[1366*768];
 COLORREF copyBuffer[1366*768*4];
 
 HWND windowHandle;
