@@ -280,31 +280,6 @@ Mat4 mat4Inverse(Mat4 * mat)
 
     return out;
 }
-/*
-Mat4 mat4Frustum(float l, float r, float b, float t, float n, float f)
-{
-    Mat4 mat;
-    mat.elements[0]  = 2 * n / (r - l);
-    mat.elements[5]  = 2 * n / (t - b);
-    mat.elements[8]  = (r + l) / (r - l);
-    mat.elements[9]  = (t + b) / (t - b);
-    mat.elements[10] = -(f + n) / (f - n);
-    mat.elements[11] = -1;
-    mat.elements[14] = -(2 * f * n) / (f - n);
-    mat.elements[15] = 0;
-    return mat;
-}
-
-Mat4 mat4PerspectiveGL(float fovY, float aspect, float front, float back)
-{
-    float D2R = M_PI / 180.0;
-    float tangent = tanf(fovY/2 * D2R);     // tangent of half fovY
-    float height = front * tangent;         // half height of near plane
-    float width = height * aspect;          // half width of near plane
-
-    // params: left, right, bottom, top, near, far
-    return mat4Frustum(-width, width, -height, height, front, back);
-}*/
 
 Mat4 mat4Perspective(float near, float far, float aspect, float fov)
 {
@@ -322,3 +297,22 @@ Mat4 mat4Perspective(float near, float far, float aspect, float fov)
 
     return m;
 }
+
+float mat4NearFromProjection(Mat4 mat)
+{
+    float C = mat.elements[10]; // 2 2
+    float D = mat.elements[11]; // 2 3
+
+    return D / (C - 1.0);
+}
+
+float mat4FarFromProjection(Mat4 mat)
+{
+    float C = mat.elements[10]; // 2 2
+    float D = mat.elements[11]; // 2 3
+
+    return D / (C + 1.0);
+}
+
+
+
