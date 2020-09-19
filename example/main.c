@@ -15,6 +15,11 @@
 #define SIZEH 768
 
 int main(){
+    main_3d_example();
+    //main_2d_example();
+}
+
+int main_3d_example(){
     Vec2i size = {SIZEW, SIZEH};
 
     WindowBackEnd backend;
@@ -110,10 +115,12 @@ int main_2d_example(){
 
     for (int i = 0; i < 16; i++)
         for (int y = 0; y < 16; y++)
-            ((uint8_t *)frame.frameBuffer)[i * 16+ y ] = (i + y) % 2 == 0 ? 0x22 : 0xBB;
+            ((Pixel *)frame.frameBuffer)[i * 16 + y ] = (i + y) % 2 == 0
+                ? pixelFromUInt8(0x22)
+                : pixelFromUInt8(0xBB);
 
     Sprite sprite;
-    spriteInit(&sprite,frame,mat4RotateX(45));
+    spriteInit(&sprite,frame,mat4RotateX(0));
 
     Scene s;
     sceneInit(&s);
@@ -129,10 +136,10 @@ int main_2d_example(){
         t = mat4RotateZ(phi += 0.01);
         sprite.t = mat4MultiplyM(&sprite.t, &t );
 
-        t = mat4Scale((Vec3f){20,20,1});
+        t = mat4Scale((Vec3f){15,15,1});
         sprite.t = mat4MultiplyM(&sprite.t,&t);
 
-        t = mat4Translate((Vec3f){400,300,0});
+        t = mat4Translate((Vec3f){300,300,0});
         sprite.t = mat4MultiplyM(&sprite.t,&t);
 
         rendererSetCamera(&renderer,(Vec4i){0,0,SIZEW,SIZEH});
