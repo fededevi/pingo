@@ -36,3 +36,9 @@ Vec3f vec3f(float x, float y, float z)
 {
     return (Vec3f){x,y,z};
 }
+
+Vec3f vec3Cross(Vec3f a, Vec3f b)
+{
+
+    return (Vec3f) {a.y*b.z- b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y};
+}
