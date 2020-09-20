@@ -157,7 +157,6 @@ void windowBackEndInit( WindowBackEnd * this, Vec2i size) {
     frameBuffer = malloc(size.x*size.y*sizeof (Pixel));
     copyBuffer = malloc(size.x*size.y*sizeof (COLORREF) * 4);
 
-
     windowHandle = winMain(0,0,0, SW_NORMAL );
 }
 

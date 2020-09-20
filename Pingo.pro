@@ -1,3 +1,4 @@
+CONFIG  += console
 CONFIG += c++11
 
 DEFINES += QT_DEPRECATED_WARNINGS
@@ -9,6 +10,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    example/consolebackend.h \
     example/cube.h \
     example/teapot.h \
     example/windowbackend.h \
@@ -32,6 +34,7 @@ HEADERS += \
     render/texture.h
 
 SOURCES += \
+    example/consolebackend.c \
     example/cube.cpp \
     example/main.c \
     example/teapot.c \

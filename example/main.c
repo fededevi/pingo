@@ -1,4 +1,5 @@
 #include "windowbackend.h"
+#include "consolebackend.h"
 #include "teapot.h"
 #include "cube.h"
 #include "../render/renderer.h"
@@ -11,8 +12,8 @@
 #include <math.h>
 #include <string.h>
 
-#define SIZEW 640
-#define SIZEH 480
+#define SIZEW 160
+#define SIZEH 60
 
 int main(){
     main_3d_example();
@@ -22,8 +23,11 @@ int main(){
 int main_3d_example(){
     Vec2i size = {SIZEW, SIZEH};
 
-    WindowBackEnd backend;
-    windowBackEndInit(&backend, size);
+    //WindowBackEnd backend;
+    //windowBackEndInit(&backend, size);
+
+    ConsoleBackend backend;
+    console_backend_init(&backend, size);
 
     Renderer renderer;
     rendererInit(&renderer, size,(BackEnd*) &backend );
@@ -63,7 +67,7 @@ int main_3d_example(){
     Mat4 t;
 
     while (1) {
-        renderer.camera_projection = mat4Perspective( 2, 16.0,(float)SIZEW / (float)SIZEH, 70.0);
+        renderer.camera_projection = mat4Perspective( 2, 16.0,(float)SIZEW / (float)SIZEH, 60.0);
 
         //VIEW MATRIX
         Mat4 v = mat4Translate((Vec3f) { 0,0,-8});
