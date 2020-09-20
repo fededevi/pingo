@@ -67,34 +67,11 @@ extern uint32_t pixelToRGBA( Pixel * p){
 extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a){
     return (Pixel){r,g,b,a};
 }
+
+extern Pixel pixelMul(Pixel p, float f)
+{
+    return (Pixel){p.r*f,p.g*f,p.b*f,p.a*f};
+}
+
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

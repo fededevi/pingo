@@ -48,6 +48,7 @@ extern Pixel pixelFromUInt8( uint8_t);
 extern uint8_t pixelToUInt8( Pixel *);
 extern uint32_t pixelToRGBA( Pixel *);
 extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+extern Pixel pixelMul( Pixel p, float f);
 
 #ifdef __cplusplus
 }

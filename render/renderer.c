@@ -98,9 +98,28 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         Vec4f a =  { ver1->x, ver1->y, ver1->z, 1 };
         Vec4f b =  { ver2->x, ver2->y, ver2->z, 1 };
         Vec4f c =  { ver3->x, ver3->y, ver3->z, 1 };
-        a = mat4MultiplyVec4( &a, &mvp);
-        b = mat4MultiplyVec4( &b, &mvp);
-        c = mat4MultiplyVec4( &c, &mvp);
+
+        a = mat4MultiplyVec4( &a, &m);
+        b = mat4MultiplyVec4( &b, &m);
+        c = mat4MultiplyVec4( &c, &m);
+
+        //Calc Face Normal
+        Vec3f na = vec3fsubV(*((Vec3f*)(&a)), *((Vec3f*)(&b)));
+        Vec3f nb = vec3fsubV(*((Vec3f*)(&a)), *((Vec3f*)(&c)));
+        Vec3f normal = vec3Normalize(vec3Cross(na, nb));
+        Vec3f light = vec3Normalize((Vec3f){-8,5,5});
+        float diffuseLight = (1.0 + vec3Dot(normal, light)) *0.5;
+        diffuseLight = MIN(1.0, MAX(diffuseLight, 0));
+
+        a = mat4MultiplyVec4( &a, &v);
+        b = mat4MultiplyVec4( &b, &v);
+        c = mat4MultiplyVec4( &c, &v);
+
+
+        a = mat4MultiplyVec4( &a, &p);
+        b = mat4MultiplyVec4( &b, &p);
+        c = mat4MultiplyVec4( &c, &p);
+
 
         //Triangle is completely behind camera
         if (a.z < 0 && b.z < 0 && c.z < 0)
@@ -164,10 +183,11 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                     float textCoordy = ((ba * tca->y * a.w + bb * tcb->y * b.w + bc * tcc->y * c.w) / (ba * a.w + bb * b.w + bc * c.w));
 
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
-                    texture_draw(&r->frameBuffer, vecFtoI(desPosF), text);
+                    texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelMul(text,diffuseLight));
                     continue;
                 }
-                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
+
+                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*diffuseLight*255,bb*diffuseLight*255,bc*diffuseLight*255,255));
             }
         }
     }

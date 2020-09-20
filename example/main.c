@@ -67,10 +67,10 @@ int main_3d_example(){
     Mat4 t;
 
     while (1) {
-        renderer.camera_projection = mat4Perspective( 2, 16.0,(float)SIZEW / (float)SIZEH, 60.0);
+        renderer.camera_projection = mat4Perspective( 2, 16.0,(float)SIZEW / (float)SIZEH, 25.0);
 
         //VIEW MATRIX
-        Mat4 v = mat4Translate((Vec3f) { 0,1,-9});
+        Mat4 v = mat4Translate((Vec3f) { 0,0,-9});
         Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
