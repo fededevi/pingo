@@ -74,13 +74,4 @@ void console_backend_init(ConsoleBackend *this, Vec2i size)
 
     zetaBuffer = malloc(size.x*size.y*sizeof (Depth));
     frameBuffer = malloc(size.x*size.y*sizeof (Pixel));
-
-    //hConsole_c = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    //AllocConsole();
-
-    //hConsole_c = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    //cls(hConsole_c);
-
 }
