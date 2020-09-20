@@ -102,6 +102,10 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         b = mat4MultiplyVec4( &b, &mvp);
         c = mat4MultiplyVec4( &c, &mvp);
 
+        //Triangle is completely behind camera
+        if (a.z < 0 && b.z < 0 && c.z < 0)
+            continue;
+
         // convert to device coordinates by perspective division
         a.w = 1.0 / a.w;
         b.w = 1.0 / b.w;
@@ -150,7 +154,7 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
                 if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
                     continue;
-              
+
                 texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
                 depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
 
