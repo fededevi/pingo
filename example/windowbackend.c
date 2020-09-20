@@ -14,9 +14,11 @@
 LPCWSTR g_szClassName = L"myWindowClass";
 
 Vec4i rect;
-Depth zetaBuffer[1366*768];
-Pixel frameBuffer[1366*768];
-COLORREF copyBuffer[1366*768*4];
+Vec2i totalSize;
+
+Depth * zetaBuffer;
+Pixel * frameBuffer;
+COLORREF * copyBuffer;
 
 HWND windowHandle;
 HDC windowsHDC;
@@ -57,7 +59,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                0,   // x source
                0,   // y source
                SRCCOPY); // Defined DWORD to juct copy pixels.
-        ps.rcPaint = (RECT){0,0, 1366,768};
+        ps.rcPaint = (RECT){0,0, totalSize.x, totalSize.y};
         //EndPaint(windowHandle, &ps);
         DeleteDC(bitmapHDC);
         DeleteObject(map);
@@ -106,8 +108,8 @@ HWND WINAPI winMain(HINSTANCE hInstance,  HINSTANCE hINSTANCE,  LPSTR lPSTR, int
                 WS_OVERLAPPEDWINDOW,
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,
-                WIDTH+20, //Adjusted for borders
-                HEIGHT+41, //Adjusted for borders
+                totalSize.x+20, //Adjusted for borders
+                totalSize.y+41, //Adjusted for borders
                 NULL, NULL, hInstance, NULL);
 
     ShowWindow(hwnd, nCmdShow);
@@ -143,12 +145,18 @@ Depth * getZetaBuffer( Renderer * ren,  BackEnd * backEnd) {
     return zetaBuffer;
 }
 
-void windowBackEndInit( WindowBackEnd *b) {
-    b->backend.init = &init;
-    b->backend.beforeRender = &beforeRender;
-    b->backend.afterRender = &afterRender;
-    b->backend.getFrameBuffer = &getFrameBuffer;
-    b->backend.getZetaBuffer = &getZetaBuffer;
+void windowBackEndInit( WindowBackEnd * this, Vec2i size) {
+    totalSize = size;
+    this->backend.init = &init;
+    this->backend.beforeRender = &beforeRender;
+    this->backend.afterRender = &afterRender;
+    this->backend.getFrameBuffer = &getFrameBuffer;
+    this->backend.getZetaBuffer = &getZetaBuffer;
+
+    zetaBuffer = malloc(size.x*size.y*sizeof (Depth));
+    frameBuffer = malloc(size.x*size.y*sizeof (Pixel));
+    copyBuffer = malloc(size.x*size.y*sizeof (COLORREF) * 4);
+
 
     windowHandle = winMain(0,0,0, SW_NORMAL );
 }

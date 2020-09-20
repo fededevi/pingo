@@ -11,8 +11,8 @@
 #include <math.h>
 #include <string.h>
 
-#define SIZEW 1366
-#define SIZEH 768
+#define SIZEW 640
+#define SIZEH 480
 
 int main(){
     main_3d_example();
@@ -23,7 +23,7 @@ int main_3d_example(){
     Vec2i size = {SIZEW, SIZEH};
 
     WindowBackEnd backend;
-    windowBackEndInit(&backend);
+    windowBackEndInit(&backend, size);
 
     Renderer renderer;
     rendererInit(&renderer, size,(BackEnd*) &backend );
@@ -63,10 +63,10 @@ int main_3d_example(){
     Mat4 t;
 
     while (1) {
-        renderer.camera_projection = mat4Perspective( 2, 8.0,1366.0/768.0, 90.0);
+        renderer.camera_projection = mat4Perspective( 2, 16.0,(float)SIZEW / (float)SIZEH, 70.0);
 
         //VIEW MATRIX
-        Mat4 v = mat4Translate((Vec3f) { 0,0,-5});
+        Mat4 v = mat4Translate((Vec3f) { 0,0,-8});
         Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
@@ -74,7 +74,7 @@ int main_3d_example(){
         cube1.transform =  mat4RotateY(phi2 -= 0.01);
         t = mat4Scale((Vec3f){1,1,1});
         cube1.transform = mat4MultiplyM(&cube1.transform, &t );
-        t = mat4Translate((Vec3f){-3,0.0,0});
+        t = mat4Translate((Vec3f){-5,0.0,0});
         cube1.transform = mat4MultiplyM(&cube1.transform, &t );
 
         //CUBE 2 TRANSFORM
@@ -105,7 +105,7 @@ int main_2d_example(){
     Vec2i size = {SIZEW,SIZEH};
 
     WindowBackEnd backend;
-    windowBackEndInit(&backend);
+    windowBackEndInit(&backend, size);
 
     Renderer renderer;
     rendererInit(&renderer, size,(BackEnd*) &backend );

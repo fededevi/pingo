@@ -17,9 +17,6 @@ struct Renderer;
 #include "../render/backend.h"
 #include "../math/vec2.h"
 
-#define WIDTH 1366
-#define HEIGHT 768
-
 typedef struct Pixel Pixel;
 
 /**
@@ -36,6 +33,6 @@ typedef  struct {
  * @param Position of the overlay
  * @param Size of the overlay
  */
-void windowBackEndInit(WindowBackEnd * this);
+void windowBackEndInit(WindowBackEnd * thiss, Vec2i size);
 
 #endif
