@@ -40,12 +40,12 @@ void console_backend_afterRender( Renderer * ren,  BackEnd * backEnd) {
         return;
     }
 
-    #define charSize 10
-    const char scale[charSize] = " .:-=+*#%@";
+    #define charSize 13
+    const char scale[charSize] = " .:-i|=+*%#O@";
     for (int y = 0; y < totalSize.y; y++ ) {
         char chars[totalSize.x];
         for (int x = 0; x < totalSize.x; x++ ) {
-            int index = charSize * (pixelToUInt8(&frameBuffer[x + y * totalSize.x]) / 255.0);
+            int index = charSize * (pixelToUInt8(&frameBuffer[x + y * totalSize.x]) / 256.0);
             chars[x] = scale[index];
         }
         DWORD written;

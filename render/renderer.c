@@ -185,9 +185,9 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
                     texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelMul(text,diffuseLight));
                     continue;
+                } else {
+                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(diffuseLight*255,diffuseLight*255,diffuseLight*255,255));
                 }
-
-                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*diffuseLight*255,bb*diffuseLight*255,bc*diffuseLight*255,255));
             }
         }
     }
