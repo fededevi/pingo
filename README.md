@@ -6,4 +6,9 @@ The library itself provides an interface to add your own primitives, by default 
 
 Example/main.c contains a couple of examples with 2D and 3D content. 
 
-![Example](/example/pingo0.png)
+Shading and texturing:
+![Example](/example/shading.png)
+
+
+Rendering on console:
+![Example](/example/console.png)
