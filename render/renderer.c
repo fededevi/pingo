@@ -120,7 +120,6 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         b = mat4MultiplyVec4( &b, &p);
         c = mat4MultiplyVec4( &c, &p);
 
-
         //Triangle is completely behind camera
         if (a.z < 0 && b.z < 0 && c.z < 0)
             continue;
