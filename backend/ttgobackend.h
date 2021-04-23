@@ -13,5 +13,5 @@ typedef  struct {
     Vec2i size;
 } TTGOBackend;
 
-void ttgoBackendInit(TTGOBackend * ths, Pixel * buf, Vec2i size);
+void ttgoBackendInit(TTGOBackend * ths, Vec2i size);
 
