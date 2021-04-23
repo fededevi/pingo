@@ -15,7 +15,7 @@
 spi_lobo_device_handle_t spi;
 
 uint16_t copyBuffer[2][DEFAULT_TFT_DISPLAY_HEIGHT][DEFAULT_TFT_DISPLAY_WIDTH];
-uint8_t ping = 0;
+uint32_t ping = 0;
 
 uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
 {
@@ -38,11 +38,13 @@ void _ttgoBackendAfterRender( Renderer * ren,  BackEnd * backEnd) {
     int ySize = 240;
 
     disp_select();
+    wait_trans_finish(1);
     send_data2(xOff, yOff, xSize+xOff-1, yOff+ySize, xSize*ySize-1, &copyBuffer[ping++%2][0][0]);
     disp_deselect();
 
     //Clear manually because the fb is double the size of the real one
     memset(copyBuffer[ping%2], 0, sizeof (copyBuffer[ping%2]));
+    //printf("Frame: %d\n", ping);
 
 }
 
@@ -54,10 +56,12 @@ Depth * _ttgoBackendGetZetaBuffer( Renderer * ren,  BackEnd * backEnd) {
     return ((TTGOBackend *) backEnd) -> zetaBuffer;
 }
 
-void backend_draw(Texture *f, Vec2i pos, Pixel color)
+#ifdef WIN32s
+/*void texture_draw(Texture *f, Vec2i pos, Pixel color)
 {
    copyBuffer[ping%2][pos.x][ pos.y ] = color565(color.g,color.g,color.g);
-}
+}*/
+#endif
 
 void ttgoBackendInit( TTGOBackend * this,  Vec2i size) {
     // Initialize backend callbacks

@@ -126,6 +126,7 @@ void init( Renderer * ren, BackEnd * backEnd, Vec4i _rect) {
 
 void beforeRender( Renderer * ren, BackEnd * backEnd) {
     WindowBackEnd * this = (WindowBackEnd *) backEnd;
+     MSG msg;
 }
 
 void afterRender( Renderer * ren,  BackEnd * backEnd) {

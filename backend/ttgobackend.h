@@ -15,4 +15,4 @@ typedef  struct {
 
 void ttgoBackendInit(TTGOBackend * ths, Vec2i size);
 
-void backend_draw(Texture *f, Vec2i pos, Pixel color);
+void texture_draw(Texture *f, Vec2i pos, Pixel color);

@@ -177,12 +177,13 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
             int w0 = w0_row;
             int w1 = w1_row;
             int w2 = w2_row;
+            float depthDivisor = (w0 * a.w + w1 * b.w + w2 * c.w);
 
             for (int x = minX; x < maxX; x++, w0 += A12, w1 += A20, w2 += A01) {
-                if ((w0 | w1 | w2) < 0)
+                if ((w0 | w1 | w2) <= 0)
                     continue;
 
-                float depth = -(w0 * a.z * a.w + w1 * b.z * b.w + w2 * c.z * c.w) / (w0 * a.w + w1 * b.w + w2 * c.w);
+                float depth = (w0 * a.z * a.w + w1 * b.z * b.w + w2 * c.z * c.w) / -depthDivisor;
                 if (depth < 0.0 || depth > 1.0)
                     continue;
 
@@ -193,17 +194,14 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
                 if (o->material != 0) {
                     //Texture lookup
-                    float textCoordx = ((w0 * tca->x * a.w + w1 * tcb->x * b.w + w2 * tcc->x * c.w) / (w0 * a.w + w1 * b.w + w2 * c.w));
-                    float textCoordy = ((w0 * tca->y * a.w + w1 * tcb->y * b.w + w2 * tcc->y * c.w) / (w0 * a.w + w1 * b.w + w2 * c.w));
+                    float textCoordx = (w0 * tca->x * a.w + w1 * tcb->x * b.w + w2 * tcc->x * c.w) / depthDivisor;
+                    float textCoordy = (w0 * tca->y * a.w + w1 * tcb->y * b.w + w2 * tcc->y * c.w) / depthDivisor;
 
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
-                    //texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelMul(text,diffuseLight));
-                    backend_draw(&r->frameBuffer, (Vec2i){x,y}, pixelMul(text,diffuseLight));
+                    texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelMul(text,diffuseLight));
                 } else {
-                    //texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
-                    backend_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
+                    texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
                 }
-                //backend_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
 
             }
             w0_row += B12;
