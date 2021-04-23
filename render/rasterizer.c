@@ -1,6 +1,7 @@
 #include "rasterizer.h"
 #include "renderer.h"
 #include "../math/mat3.h"
+#include "../math/mat4.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -123,7 +124,7 @@ int rasterizer_draw_transformed(Mat4 t, Renderer *r, Texture * src) {
             //Transform the coordinate back to sprite space with the inverse tranform
             Vec2i desPos = {x,y};
             Vec2f desPosF = (Vec2f){desPos.x+0.5,desPos.y+0.5};
-            Vec2f srcPosF = mat4Multiply(&desPosF,&inv);
+            Vec2f srcPosF = mat4MultiplyVec2(&desPosF,&inv);
             Vec2i srcPosI = vecFtoI(srcPosF);
 
             //TODO: Improve this check by precalculating start/end coord in loop with line intersection
@@ -135,7 +136,7 @@ int rasterizer_draw_transformed(Mat4 t, Renderer *r, Texture * src) {
             if (srcPosF.y < 0) continue;
             if (srcPosF.x >= src->size.x) continue;
             if (srcPosF.y >= src->size.y) continue;
-            Pixel color = frameRead(src, srcPosI);
+            Pixel color = texture_read(src, srcPosI);
 #endif
 #ifdef FILTERING_BILINEAR
             Vec2i desPos = {x,y};

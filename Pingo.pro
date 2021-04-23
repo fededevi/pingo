@@ -35,7 +35,7 @@ HEADERS += \
 
 SOURCES += \
     example/consolebackend.c \
-    example/cube.cpp \
+    example/cube.c \
     example/main.c \
     example/teapot.c \
     example/windowbackend.c \

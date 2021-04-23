@@ -9,13 +9,11 @@
 #include "../render/object.h"
 #include "../render/mesh.h"
 #include "../math/mat3.h"
-#include <math.h>
-#include <string.h>
 
 int main(){
     //Enable an example:
-    console_3D_example();
-    //scene_3D_example();
+    //console_3D_example();
+    scene_3D_example();
     //scene_2D_example();
 }
 
@@ -50,7 +48,7 @@ int scene_3D_example(){
 
     for (int i = 0; i < 8; i++)
         for (int y = 0; y < 8; y++)
-            ((uint32_t *)tex.frameBuffer)[i * 8 + y ] = (i + y) % 2 == 0 ? 0xFFFFFFFF : 0x000000FF;
+            ((uint32_t *)tex.frameBuffer)[i * 8 + y ] = (i + y) % 2 == 0 ? 0xFF00FFFF : 0x000000FF;
 
     Material m;
     m.texture = &tex;
@@ -87,7 +85,7 @@ int scene_3D_example(){
 
 
         //TEA TRANSFORM
-        tea.transform = mat4RotateZ(M_PI);
+        tea.transform = mat4RotateZ(3.142128);
         t =mat4RotateY(phi2);
         tea.transform = mat4MultiplyM(&tea.transform, &t );
         t = mat4Translate((Vec3f){0,-0.5,0});
@@ -132,7 +130,7 @@ int console_3D_example(){
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
         //TEA TRANSFORM
-        tea.transform = mat4RotateZ(M_PI);
+        tea.transform = mat4RotateZ(3.142128);
         t = mat4Translate((Vec3f){0,-0.5,0});
         tea.transform = mat4MultiplyM(&tea.transform, &t );
 

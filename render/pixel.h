@@ -8,8 +8,12 @@ extern "C" {
 #endif
 
 //What format to use:
-#define UINT8 // [ UINT8 | RGB565 | RGBA8888 | RGB888 ]
-
+  // [ UINT8 | RGB565 | RGBA8888 | RGB888 ]
+#ifdef WIN32
+#define RGBA8888
+#else
+#define UINT8
+#endif
 //Formats definitions:
 #ifdef UINT8
 typedef struct Pixel {

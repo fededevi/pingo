@@ -67,7 +67,7 @@ int renderScene(Mat4 transform, Renderer * r, Renderable ren) {
 #define MIN(a, b)(((a) < (b)) ? (a) : (b))
 #define MAX(a, b)(((a) > (b)) ? (a) : (b))
 
-float edgeFunction(const Vec2f * a, const Vec2f * b, const Vec2f * c) {
+int edgeFunction(const Vec2f * a, const Vec2f * b, const Vec2f * c) {
     return (c -> x - a -> x) * (b -> y - a -> y) - (c -> y - a -> y) * (b -> x - a -> x);
 }
 
@@ -75,8 +75,13 @@ float isClockWise(float x1, float y1, float x2, float y2, float x3, float y3) {
     return (y2 - y1) * (x3 - x2) - (y3 - y2) * (x2 - x1);
 }
 
-#pragma GCC optimize "tree-vectorize"
+int orient2d( Vec2i a,  Vec2i b,  Vec2i c)
+{
+    return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
+}
+
 int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
+
     const Vec2i scrSize = r->frameBuffer.size;
     Object * o = ren.impl;
 
@@ -88,7 +93,7 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
     Mat4 p = r -> camera_projection;
 
     Mat4 t = mat4MultiplyM( & m, &v);
-    Mat4 mvp = mat4MultiplyM( & t, &p);
+    //Mat4 mvp = mat4MultiplyM( & t, &p);
 
     for (int i = 0; i < o->mesh->indexes_count; i += 3) {
         Vec3f * ver1 = &o->mesh->positions[o->mesh->indexes[i+0]];
@@ -117,7 +122,6 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         b = mat4MultiplyVec4( &b, &v);
         c = mat4MultiplyVec4( &c, &v);
 
-
         a = mat4MultiplyVec4( &a, &p);
         b = mat4MultiplyVec4( &b, &p);
         c = mat4MultiplyVec4( &c, &p);
@@ -138,59 +142,107 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         if (clocking >= 0)
             continue;
 
-        //COMPUTE SCREEN COORDS
-        Vec3f a_s = {(a.x+1.0) * (scrSize.x/2),(a.y+1.0) * (scrSize.y/2),a.z};
-        Vec3f b_s = {(b.x+1.0) * (scrSize.x/2),(b.y+1.0) * (scrSize.y/2),b.z};
-        Vec3f c_s = {(c.x+1.0) * (scrSize.x/2),(c.y+1.0) * (scrSize.y/2),c.z};
-        float minX = MIN(MIN(a_s.x, b_s.x), c_s.x);
-        float minY = MIN(MIN(a_s.y, b_s.y), c_s.y);
-        float maxX = MAX(MAX(a_s.x, b_s.x), c_s.x);
-        float maxY = MAX(MAX(a_s.y, b_s.y), c_s.y);
+        float halfX = scrSize.x/2;
+        float halfY = scrSize.y/2;
+        Vec2i a_s = {a.x * halfX + halfX,  a.y * halfY + halfY};
+        Vec2i b_s = {b.x * halfX + halfX,  b.y * halfY + halfY};
+        Vec2i c_s = {c.x * halfX + halfX,  c.y * halfY + halfY};
+        int minX = MIN(MIN(a_s.x, b_s.x), c_s.x);
+        int minY = MIN(MIN(a_s.y, b_s.y), c_s.y);
+        int maxX = MAX(MAX(a_s.x, b_s.x), c_s.x);
+        int maxY = MAX(MAX(a_s.y, b_s.y), c_s.y);
+
         minX = MIN(MAX(minX, 0), r -> frameBuffer.size.x);
-        maxX = MIN(MAX(maxX, 0), r -> frameBuffer.size.x);
         minY = MIN(MAX(minY, 0), r -> frameBuffer.size.y);
+
+        maxX = MIN(MAX(maxX, 0), r -> frameBuffer.size.x);
         maxY = MIN(MAX(maxY, 0), r -> frameBuffer.size.y);
 
+        int A01 = a_s.y - b_s.y;
+        int B01 = b_s.x - a_s.x;
+        int A12 = b_s.y - c_s.y;
+        int B12 = c_s.x - b_s.x;
+        int A20 = c_s.y - a_s.y;
+        int B20 = a_s.x - c_s.x;
+
+        // Barycentric coordinates at minX/minY corner
+        Vec2i p = { minX, minY };
+
+        int w0_row = orient2d( b_s, c_s, p);
+        int w1_row = orient2d( c_s, a_s, p);
+        int w2_row = orient2d( a_s, b_s, p);
+
         for (int y = minY; y < maxY; y++) {
-            for (int x = minX; x < maxX; x++) {
-                //Transform the coordinate back to sprite space
-                Vec2f desPosF = { x , y };
 
-                // area of the triangle multiplied by 2
-                float area = edgeFunction( (Vec2f*)&a_s, (Vec2f*)&b_s, (Vec2f*)&c_s);
+            int w0 = w0_row;
+            int w1 = w1_row;
+            int w2 = w2_row;
 
-                //Area of sub triangles
-                float ba = edgeFunction( (Vec2f*)&b_s, (Vec2f*)&c_s, (Vec2f*)&desPosF) / area;
-                float bc = edgeFunction( (Vec2f*)&a_s, (Vec2f*)&b_s, (Vec2f*)&desPosF) / area;
-                float bb = 1.0 - bc - ba; //edgeFunction(&c, &a, &desPosF) / area;
-
-                // If all the areas are positive then point is inside triangle
-                if (ba < 0 || bb < 0 || bc < 0)
+            for (int x = minX; x < maxX; x++, w0 += A12, w1 += A20, w2 += A01) {
+                if ((w0 | w1 | w2) < 0)
                     continue;
 
-                float depth = -(ba * a.z * a.w + bb * b.z * b.w + bc * c.z * c.w) / (ba * a.w + bb * b.w + bc * c.w);
+                float depth = -(w0 * a.z * a.w + w1 * b.z * b.w + w2 * c.z * c.w) / (w0 * a.w + w1 * b.w + w2 * c.w);
                 if (depth < 0.0 || depth > 1.0)
                     continue;
 
                 if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
                     continue;
 
-                //texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
                 depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
 
                 if (o->material != 0) {
                     //Texture lookup
-                    float textCoordx = ((ba * tca->x * a.w + bb * tcb->x * b.w + bc * tcc->x * c.w) / (ba * a.w + bb * b.w + bc * c.w));
-                    float textCoordy = ((ba * tca->y * a.w + bb * tcb->y * b.w + bc * tcc->y * c.w) / (ba * a.w + bb * b.w + bc * c.w));
+                    float textCoordx = ((w0 * tca->x * a.w + w1 * tcb->x * b.w + w2 * tcc->x * c.w) / (w0 * a.w + w1 * b.w + w2 * c.w));
+                    float textCoordy = ((w0 * tca->y * a.w + w1 * tcb->y * b.w + w2 * tcc->y * c.w) / (w0 * a.w + w1 * b.w + w2 * c.w));
 
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
-                    backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelMul(text,diffuseLight));
+                    //texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelMul(text,diffuseLight));
+                    backend_draw(&r->frameBuffer, (Vec2i){x,y}, pixelMul(text,diffuseLight));
                 } else {
-                    backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromUInt8(diffuseLight*255));
+                    //texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
+                    backend_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
                 }
+                //backend_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
+
             }
+            w0_row += B12;
+            w1_row += B20;
+            w2_row += B01;
         }
     }
+    //backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromUInt8(diffuseLight*255));
+    /*//Transform the coordinate back to sprite space
+    Vec2f desPosF = { x , y };
+
+    //Area of sub triangles
+    float ba = edgeFunction( (Vec2f*)&b_s, (Vec2f*)&c_s, (Vec2f*)&desPosF) / area;
+    float bc = edgeFunction( (Vec2f*)&a_s, (Vec2f*)&b_s, (Vec2f*)&desPosF) / area;
+    float bb = 1.0 - bc - ba; //edgeFunction(&c, &a, &desPosF) / area;
+
+    // If all the areas are positive then point is inside triangle
+    if (ba < 0 || bb < 0 || bc < 0)
+        continue;
+
+    float depth = -(ba * a.z * a.w + bb * b.z * b.w + bc * c.z * c.w) / (ba * a.w + bb * b.w + bc * c.w);
+    if (depth < 0.0 || depth > 1.0)
+        continue;
+
+    if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
+        continue;
+
+    depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
+
+    if (o->material != 0) {
+        //Texture lookup
+        float textCoordx = ((ba * tca->x * a.w + bb * tcb->x * b.w + bc * tcc->x * c.w) / (ba * a.w + bb * b.w + bc * c.w));
+        float textCoordy = ((ba * tca->y * a.w + bb * tcb->y * b.w + bc * tcc->y * c.w) / (ba * a.w + bb * b.w + bc * c.w));
+
+        Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
+        backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelMul(text,diffuseLight));
+    } else {
+        backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromUInt8(diffuseLight*255));
+    }*/
 
     return 0;
 };
@@ -217,6 +269,7 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
 
 
 int rendererRender(Renderer * r) {
+
     int pixels = r->frameBuffer.size.x * r->frameBuffer.size.y;
     memset(r->backEnd->getZetaBuffer(r,r->backEnd), 0, pixels * sizeof (Depth));
 
