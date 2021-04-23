@@ -186,7 +186,7 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                     texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelMul(text,diffuseLight));
                     continue;
                 } else {
-                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(diffuseLight*255,diffuseLight*255,diffuseLight*255,255));
+                    texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(diffuseLight*255,diffuseLight*255,diffuseLight*255,255));
                 }
             }
         }
@@ -214,10 +214,7 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     return 0;
 }
 
-void clearBuffer(Texture f) {
-    int length = f.size.x * f.size.y;
-    memset(f.frameBuffer, 0, length * sizeof (Pixel));
-}
+
 
 int rendererRender(Renderer * r) {
     int pixels = r->frameBuffer.size.x * r->frameBuffer.size.y;
@@ -230,7 +227,7 @@ int rendererRender(Renderer * r) {
 
     //Clear draw buffer before rendering
     if (r -> clear) {
-        clearBuffer(r -> frameBuffer);
+        memset(r->backEnd->getFrameBuffer(r,r->backEnd), 0, pixels * sizeof (Pixel));
     }
 
     renderScene(mat4Identity(), r, sceneAsRenderable(r -> scene));
