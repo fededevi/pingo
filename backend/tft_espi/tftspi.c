@@ -59,6 +59,7 @@ esp_err_t IRAM_ATTR wait_trans_finish(uint8_t free_line)
         free(trans_cline);
         trans_cline = NULL;
     }
+
     if (_dma_sending) {
         //Tell common code DMA workaround that our DMA channel is idle. If needed, the code will do a DMA reset.
         if (disp_spi->host->dma_chan) spi_lobo_dmaworkaround_idle(disp_spi->host->dma_chan);

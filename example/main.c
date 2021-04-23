@@ -18,7 +18,7 @@ int main(){
 }
 
 int scene_3D_example(){
-    Vec2i size = {640, 480};
+    Vec2i size = {1800, 1000};
 
     WindowBackEnd backend;
     windowBackEndInit(&backend, size);

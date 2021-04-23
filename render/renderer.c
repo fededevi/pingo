@@ -147,10 +147,10 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         Vec2i a_s = {a.x * halfX + halfX,  a.y * halfY + halfY};
         Vec2i b_s = {b.x * halfX + halfX,  b.y * halfY + halfY};
         Vec2i c_s = {c.x * halfX + halfX,  c.y * halfY + halfY};
-        int minX = MIN(MIN(a_s.x, b_s.x), c_s.x);
-        int minY = MIN(MIN(a_s.y, b_s.y), c_s.y);
-        int maxX = MAX(MAX(a_s.x, b_s.x), c_s.x);
-        int maxY = MAX(MAX(a_s.y, b_s.y), c_s.y);
+        uint16_t minX = MIN(MIN(a_s.x, b_s.x), c_s.x);
+        uint16_t minY = MIN(MIN(a_s.y, b_s.y), c_s.y);
+        uint16_t maxX = MAX(MAX(a_s.x, b_s.x), c_s.x);
+        uint16_t maxY = MAX(MAX(a_s.y, b_s.y), c_s.y);
 
         minX = MIN(MAX(minX, 0), r -> frameBuffer.size.x);
         minY = MIN(MAX(minY, 0), r -> frameBuffer.size.y);
@@ -158,44 +158,49 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         maxX = MIN(MAX(maxX, 0), r -> frameBuffer.size.x);
         maxY = MIN(MAX(maxY, 0), r -> frameBuffer.size.y);
 
-        int A01 = a_s.y - b_s.y;
-        int B01 = b_s.x - a_s.x;
-        int A12 = b_s.y - c_s.y;
-        int B12 = c_s.x - b_s.x;
-        int A20 = c_s.y - a_s.y;
-        int B20 = a_s.x - c_s.x;
+        int32_t A01 = a_s.y - b_s.y;
+        int32_t B01 = b_s.x - a_s.x;
+        int32_t A12 = b_s.y - c_s.y;
+        int32_t B12 = c_s.x - b_s.x;
+        int32_t A20 = c_s.y - a_s.y;
+        int32_t B20 = a_s.x - c_s.x;
 
         // Barycentric coordinates at minX/minY corner
         Vec2i p = { minX, minY };
 
-        int w0_row = orient2d( b_s, c_s, p);
-        int w1_row = orient2d( c_s, a_s, p);
-        int w2_row = orient2d( a_s, b_s, p);
+        int32_t w0_row = orient2d( b_s, c_s, p);
+        int32_t w1_row = orient2d( c_s, a_s, p);
+        int32_t w2_row = orient2d( a_s, b_s, p);
 
-        for (int y = minY; y < maxY; y++) {
+        float depthDivisor = w0_row * a.w + w1_row * b.w + w2_row * c.w;
+        if (depthDivisor == 0)
+            continue;
+        float depthDivisorInverse = 1.0 / depthDivisor;
 
-            int w0 = w0_row;
-            int w1 = w1_row;
-            int w2 = w2_row;
-            float depthDivisor = (w0 * a.w + w1 * b.w + w2 * c.w);
+        for (int16_t y = minY; y < maxY; y++) {
 
-            for (int x = minX; x < maxX; x++, w0 += A12, w1 += A20, w2 += A01) {
+            int32_t w0 = w0_row;
+            int32_t w1 = w1_row;
+            int32_t w2 = w2_row;
+
+            for (int32_t x = minX; x < maxX; x++, w0 += A12, w1 += A20, w2 += A01) {
                 if ((w0 | w1 | w2) <= 0)
                     continue;
 
-                float depth = (w0 * a.z * a.w + w1 * b.z * b.w + w2 * c.z * c.w) / -depthDivisor;
+                float depth = (w0 * a.z * a.w + w1 * b.z * b.w + w2 * c.z * c.w) * -depthDivisorInverse;
                 if (depth < 0.0 || depth > 1.0)
                     continue;
-
+/*
                 if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
                     continue;
 
                 depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
-
+*/
                 if (o->material != 0) {
                     //Texture lookup
-                    float textCoordx = (w0 * tca->x * a.w + w1 * tcb->x * b.w + w2 * tcc->x * c.w) / depthDivisor;
-                    float textCoordy = (w0 * tca->y * a.w + w1 * tcb->y * b.w + w2 * tcc->y * c.w) / depthDivisor;
+
+                    float textCoordx = (w0 * tca->x * a.w + w1 * tcb->x * b.w + w2 * tcc->x * c.w) * depthDivisorInverse;
+                    float textCoordy = (w0 * tca->y * a.w + w1 * tcb->y * b.w + w2 * tcc->y * c.w) * depthDivisorInverse;
 
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
                     texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelMul(text,diffuseLight));
@@ -209,38 +214,6 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
             w2_row += B01;
         }
     }
-    //backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromUInt8(diffuseLight*255));
-    /*//Transform the coordinate back to sprite space
-    Vec2f desPosF = { x , y };
-
-    //Area of sub triangles
-    float ba = edgeFunction( (Vec2f*)&b_s, (Vec2f*)&c_s, (Vec2f*)&desPosF) / area;
-    float bc = edgeFunction( (Vec2f*)&a_s, (Vec2f*)&b_s, (Vec2f*)&desPosF) / area;
-    float bb = 1.0 - bc - ba; //edgeFunction(&c, &a, &desPosF) / area;
-
-    // If all the areas are positive then point is inside triangle
-    if (ba < 0 || bb < 0 || bc < 0)
-        continue;
-
-    float depth = -(ba * a.z * a.w + bb * b.z * b.w + bc * c.z * c.w) / (ba * a.w + bb * b.w + bc * c.w);
-    if (depth < 0.0 || depth > 1.0)
-        continue;
-
-    if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
-        continue;
-
-    depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
-
-    if (o->material != 0) {
-        //Texture lookup
-        float textCoordx = ((ba * tca->x * a.w + bb * tcb->x * b.w + bc * tcc->x * c.w) / (ba * a.w + bb * b.w + bc * c.w));
-        float textCoordy = ((ba * tca->y * a.w + bb * tcb->y * b.w + bc * tcc->y * c.w) / (ba * a.w + bb * b.w + bc * c.w));
-
-        Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
-        backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelMul(text,diffuseLight));
-    } else {
-        backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromUInt8(diffuseLight*255));
-    }*/
 
     return 0;
 };
