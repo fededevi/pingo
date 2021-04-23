@@ -15,6 +15,7 @@ int texture_init( Texture *f, Vec2i size, Pixel *buf )
     return 0;
 }
 
+
 void texture_draw(Texture *f, Vec2i pos, Pixel color)
 {
     f->frameBuffer[pos.x + pos.y * f->size.x] = color;

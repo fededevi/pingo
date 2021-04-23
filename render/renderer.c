@@ -8,6 +8,7 @@
 #include "scene.h"
 #include "rasterizer.h"
 #include "object.h"
+#include "../backend/ttgobackend.h"
 
 
 int renderFrame(Renderer * r, Renderable ren) {
@@ -74,6 +75,7 @@ float isClockWise(float x1, float y1, float x2, float y2, float x3, float y3) {
     return (y2 - y1) * (x3 - x2) - (y3 - y2) * (x2 - x1);
 }
 
+#pragma GCC optimize "tree-vectorize"
 int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
     const Vec2i scrSize = r->frameBuffer.size;
     Object * o = ren.impl;
@@ -173,7 +175,7 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                 if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
                     continue;
 
-                texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
+                //texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(ba*255,bb*255,bc*255,255));
                 depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
 
                 if (o->material != 0) {
@@ -182,10 +184,9 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                     float textCoordy = ((ba * tca->y * a.w + bb * tcb->y * b.w + bc * tcc->y * c.w) / (ba * a.w + bb * b.w + bc * c.w));
 
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
-                    texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelMul(text,diffuseLight));
-                    continue;
+                    backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelMul(text,diffuseLight));
                 } else {
-                    texture_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromRGBA(diffuseLight*255,diffuseLight*255,diffuseLight*255,255));
+                    backend_draw(&r->frameBuffer, vecFtoI(desPosF), pixelFromUInt8(diffuseLight*255));
                 }
             }
         }

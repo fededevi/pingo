@@ -1,3 +1,4 @@
+#include <string.h>
 
 #include "ttgobackend.h"
 
@@ -13,8 +14,8 @@
 #define SPI_BUS TFT_VSPI_HOST
 spi_lobo_device_handle_t spi;
 
-Pixel frameBuffer[DEFAULT_TFT_DISPLAY_WIDTH][DEFAULT_TFT_DISPLAY_HEIGHT];
-uint16_t copyBuffer[DEFAULT_TFT_DISPLAY_HEIGHT][DEFAULT_TFT_DISPLAY_WIDTH];
+uint16_t copyBuffer[2][DEFAULT_TFT_DISPLAY_HEIGHT][DEFAULT_TFT_DISPLAY_WIDTH];
+uint8_t ping = 0;
 
 uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
 {
@@ -36,24 +37,26 @@ void _ttgoBackendAfterRender( Renderer * ren,  BackEnd * backEnd) {
     int xSize = 135;
     int ySize = 240;
 
-    for (int i = 0; i < DEFAULT_TFT_DISPLAY_HEIGHT; i++) {
-        for (int j = 0; j < DEFAULT_TFT_DISPLAY_WIDTH; j++) {
-            uint16_t v = (frameBuffer[j][i].g) ;
-            copyBuffer[i][j] = color565(v,v,v);
-        }
-    }
-
     disp_select();
-    send_data2(xOff, yOff, xSize+xOff-1, yOff+ySize, xSize*ySize-1, &copyBuffer[0][0]);
+    send_data2(xOff, yOff, xSize+xOff-1, yOff+ySize, xSize*ySize-1, &copyBuffer[ping++%2][0][0]);
     disp_deselect();
+
+    //Clear manually because the fb is double the size of the real one
+    memset(copyBuffer[ping%2], 0, sizeof (copyBuffer[ping%2]));
+
 }
 
 Pixel * _ttgoBackendGetFrameBuffer( Renderer * ren,  BackEnd * backEnd) {
-    return ((TTGOBackend *) backEnd) -> frameBuffer;
+    return copyBuffer[ping%2];
 }
 
 Depth * _ttgoBackendGetZetaBuffer( Renderer * ren,  BackEnd * backEnd) {
     return ((TTGOBackend *) backEnd) -> zetaBuffer;
+}
+
+void backend_draw(Texture *f, Vec2i pos, Pixel color)
+{
+   copyBuffer[ping%2][pos.x][ pos.y ] = color565(color.g,color.g,color.g);
 }
 
 void ttgoBackendInit( TTGOBackend * this,  Vec2i size) {
@@ -65,7 +68,6 @@ void ttgoBackendInit( TTGOBackend * this,  Vec2i size) {
     this->backend.getZetaBuffer = &_ttgoBackendGetZetaBuffer;
 
     this -> zetaBuffer = malloc(size.x*size.y*sizeof (Depth));
-    this -> frameBuffer = frameBuffer;
 
     //Initialize spi-screen-dma communication
     tft_disp_type = DISP_TYPE_ST7789V;

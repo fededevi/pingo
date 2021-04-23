@@ -5,13 +5,14 @@
 
 typedef struct Pixel Pixel;
 typedef struct Depth Depth;
+typedef struct Texture Texture;
 
 typedef  struct {
     BackEnd backend;
     Depth * zetaBuffer;
-    Pixel * frameBuffer;
     Vec2i size;
 } TTGOBackend;
 
 void ttgoBackendInit(TTGOBackend * ths, Vec2i size);
 
+void backend_draw(Texture *f, Vec2i pos, Pixel color);
