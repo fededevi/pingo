@@ -37,11 +37,15 @@ void _ttgoBackendAfterRender( Renderer * ren,  BackEnd * backEnd) {
     int xSize = 135;
     int ySize = 240;
 
-    disp_select();
-    //wait_trans_finish(1);
+    //WAIT FOR DMA FINISH IF THE PREVIOUS ONE STILL ISNT
+    wait_trans_finish(1);
+    spi_lobo_device_deselect(disp_spi);
+    spi_lobo_device_select(disp_spi, 0);
+    //STart DMA transfer of frame from current buffer
     send_data2(xOff, yOff, xSize+xOff-1, yOff+ySize, xSize*ySize-1, &copyBuffer[ping%2][0][0]);
+
+    //Swap render buffer
     ping++;
-    disp_deselect();
 
     //Clear manually because the fb is double the size of the real one
     memset(copyBuffer[ping%2], 0, sizeof (copyBuffer[ping%2]));

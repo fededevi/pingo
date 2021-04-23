@@ -190,12 +190,12 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                 float depth = (w0 * a.z * a.w + w1 * b.z * b.w + w2 * c.z * c.w) * -depthDivisorInverse;
                 if (depth < 0.0 || depth > 1.0)
                     continue;
-/*
+
                 if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
                     continue;
 
                 depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
-*/
+
                 if (o->material != 0) {
                     //Texture lookup
 
@@ -256,7 +256,7 @@ int rendererRender(Renderer * r) {
 
     renderScene(mat4Identity(), r, sceneAsRenderable(r -> scene));
 
-    r -> backEnd -> afterRender(r, r -> backEnd);
+    //r -> backEnd -> afterRender(r, r -> backEnd);
 
     return 0;
 }
