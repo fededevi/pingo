@@ -1,7 +1,5 @@
 #pragma once
 
-#define PI 3.14
-
 /**
  * @brief I_TYPE is the integer type used in the math libraries, change to the desired size
  */

@@ -288,12 +288,12 @@ Mat4 mat4Perspective(float near, float far, float aspect, float fov)
     float yScale = xScale * aspect;
     float nearmfar = near - far;
 
-    Mat4 m = {
+    Mat4 m = {{
         xScale, 0,      0,                        0,
         0,      yScale, 0,                        0,
         0,      0,      (far + near) / nearmfar,  2*far*near / nearmfar,
         0,      0,      1,    0
-    };
+    }};
 
     return m;
 }
