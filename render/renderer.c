@@ -18,14 +18,14 @@ int renderFrame(Renderer * r, Renderable ren) {
 
 int renderSprite(Mat4 transform, Renderer * r, Renderable ren) {
     Sprite * s = ren.impl;
-    Mat4 backUp = s -> t;
+    Mat4 backUp = s->t;
 
     //Apply parent transform to the local transform
-    s -> t = mat4MultiplyM( & s -> t, & transform);
+    s->t = mat4MultiplyM( & s->t, & transform);
 
     //Apply camera translation
-    Mat4 newMat = mat4Translate((Vec3f) { -r -> camera.x, -r -> camera.y, 0 });
-    s -> t = mat4MultiplyM( & s -> t, & newMat);
+    Mat4 newMat = mat4Translate((Vec3f) { -r->camera.x, -r->camera.y, 0 });
+    s->t = mat4MultiplyM( & s->t, & newMat);
 
     /*
   if (mat4IsOnlyTranslation(&s->t)) {
@@ -42,8 +42,8 @@ int renderSprite(Mat4 transform, Renderer * r, Renderable ren) {
       return 0;
   }*/
 
-    rasterizer_draw_transformed(s -> t, r, & s -> frame);
-    s -> t = backUp;
+    rasterizer_draw_transformed(s->t, r, & s->frame);
+    s->t = backUp;
     return 0;
 };
 
@@ -53,13 +53,13 @@ void renderRenderable(Mat4 transform, Renderer * r, Renderable ren) {
 
 int renderScene(Mat4 transform, Renderer * r, Renderable ren) {
     Scene * s = ren.impl;
-    if (!s -> visible)
+    if (!s->visible)
         return 0;
 
     //Apply hierarchy transfom
-    Mat4 newTransform = mat4MultiplyM( & s -> transform, & transform);
-    for (int i = 0; i < s -> numberOfRenderables; i++) {
-        renderRenderable(newTransform, r, s -> renderables[i]);
+    Mat4 newTransform = mat4MultiplyM( & s->transform, & transform);
+    for (int i = 0; i < s->numberOfRenderables; i++) {
+        renderRenderable(newTransform, r, s->renderables[i]);
     }
     return 0;
 };
@@ -68,7 +68,7 @@ int renderScene(Mat4 transform, Renderer * r, Renderable ren) {
 #define MAX(a, b)(((a) > (b)) ? (a) : (b))
 
 int edgeFunction(const Vec2f * a, const Vec2f * b, const Vec2f * c) {
-    return (c -> x - a -> x) * (b -> y - a -> y) - (c -> y - a -> y) * (b -> x - a -> x);
+    return (c->x - a->x) * (b->y - a->y) - (c->y - a->y) * (b->x - a->x);
 }
 
 float isClockWise(float x1, float y1, float x2, float y2, float x3, float y3) {
@@ -90,18 +90,21 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
     // VIEW MATRIX
     Mat4 v = r->camera_view;
-    Mat4 p = r -> camera_projection;
-
-    Mat4 t = mat4MultiplyM( & m, &v);
-    //Mat4 mvp = mat4MultiplyM( & t, &p);
+    Mat4 p = r->camera_projection;
 
     for (int i = 0; i < o->mesh->indexes_count; i += 3) {
         Vec3f * ver1 = &o->mesh->positions[o->mesh->indexes[i+0]];
         Vec3f * ver2 = &o->mesh->positions[o->mesh->indexes[i+1]];
         Vec3f * ver3 = &o->mesh->positions[o->mesh->indexes[i+2]];
-        Vec2f * tca = &o->mesh->textCoord[o->mesh->indexes[i+0]];
-        Vec2f * tcb = &o->mesh->textCoord[o->mesh->indexes[i+1]];
-        Vec2f * tcc = &o->mesh->textCoord[o->mesh->indexes[i+2]];
+
+        Vec2f tca;
+        Vec2f tcb;
+        Vec2f tcc;
+        if (o->material != 0) {
+            tca = o->mesh->textCoord[o->mesh->indexes[i+0]];
+            tcb = o->mesh->textCoord[o->mesh->indexes[i+1]];
+            tcc = o->mesh->textCoord[o->mesh->indexes[i+2]];
+        }
         Vec4f a =  { ver1->x, ver1->y, ver1->z, 1 };
         Vec4f b =  { ver2->x, ver2->y, ver2->z, 1 };
         Vec4f c =  { ver3->x, ver3->y, ver3->z, 1 };
@@ -126,6 +129,7 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         b = mat4MultiplyVec4( &b, &p);
         c = mat4MultiplyVec4( &c, &p);
 
+
         //Triangle is completely behind camera
         if (a.z < 0 && b.z < 0 && c.z < 0)
             continue;
@@ -142,76 +146,82 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         if (clocking >= 0)
             continue;
 
+        //Compute Screen coordinates
         float halfX = scrSize.x/2;
         float halfY = scrSize.y/2;
         Vec2i a_s = {a.x * halfX + halfX,  a.y * halfY + halfY};
         Vec2i b_s = {b.x * halfX + halfX,  b.y * halfY + halfY};
         Vec2i c_s = {c.x * halfX + halfX,  c.y * halfY + halfY};
-        uint16_t minX = MIN(MIN(a_s.x, b_s.x), c_s.x);
-        uint16_t minY = MIN(MIN(a_s.y, b_s.y), c_s.y);
-        uint16_t maxX = MAX(MAX(a_s.x, b_s.x), c_s.x);
-        uint16_t maxY = MAX(MAX(a_s.y, b_s.y), c_s.y);
 
-        minX = MIN(MAX(minX, 0), r -> frameBuffer.size.x);
-        minY = MIN(MAX(minY, 0), r -> frameBuffer.size.y);
+        int32_t minX = MIN(MIN(a_s.x, b_s.x), c_s.x);
+        int32_t minY = MIN(MIN(a_s.y, b_s.y), c_s.y);
+        int32_t maxX = MAX(MAX(a_s.x, b_s.x), c_s.x);
+        int32_t maxY = MAX(MAX(a_s.y, b_s.y), c_s.y);
 
-        maxX = MIN(MAX(maxX, 0), r -> frameBuffer.size.x);
-        maxY = MIN(MAX(maxY, 0), r -> frameBuffer.size.y);
-
-        int32_t A01 = a_s.y - b_s.y;
-        int32_t B01 = b_s.x - a_s.x;
-        int32_t A12 = b_s.y - c_s.y;
-        int32_t B12 = c_s.x - b_s.x;
-        int32_t A20 = c_s.y - a_s.y;
-        int32_t B20 = a_s.x - c_s.x;
+        minX = MIN(MAX(minX, 0), r->frameBuffer.size.x);
+        minY = MIN(MAX(minY, 0), r->frameBuffer.size.y);
+        maxX = MIN(MAX(maxX, 0), r->frameBuffer.size.x);
+        maxY = MIN(MAX(maxY, 0), r->frameBuffer.size.y);
 
         // Barycentric coordinates at minX/minY corner
-        Vec2i p = { minX, minY };
+        Vec2i minTriangle = { minX, minY };
 
-        int32_t w0_row = orient2d( b_s, c_s, p);
-        int32_t w1_row = orient2d( c_s, a_s, p);
-        int32_t w2_row = orient2d( a_s, b_s, p);
+        int32_t area =  orient2d( a_s, b_s, c_s);
+        float areaInverse = 1.0/area;
 
-        float depthDivisor = w0_row * a.w + w1_row * b.w + w2_row * c.w;
-        if (depthDivisor == 0)
-            continue;
-        float depthDivisorInverse = 1.0 / depthDivisor;
+        int32_t A01 = ( a_s.y - b_s.y); //Barycentric coordinates steps
+        int32_t B01 = ( b_s.x - a_s.x); //Barycentric coordinates steps
+        int32_t A12 = ( b_s.y - c_s.y); //Barycentric coordinates steps
+        int32_t B12 = ( c_s.x - b_s.x); //Barycentric coordinates steps
+        int32_t A20 = ( c_s.y - a_s.y); //Barycentric coordinates steps
+        int32_t B20 = ( a_s.x - c_s.x); //Barycentric coordinates steps
 
-        for (int16_t y = minY; y < maxY; y++) {
+        int32_t w0_row = orient2d( b_s, c_s, minTriangle);
+        int32_t w1_row = orient2d( c_s, a_s, minTriangle);
+        int32_t w2_row = orient2d( a_s, b_s, minTriangle);
 
+        if (o->material != 0) {
+            tca.x /= a.z;
+            tca.y /= a.z;
+            tcb.x /= b.z;
+            tcb.y /= b.z;
+            tcc.x /= c.z;
+            tcc.y /= c.z;
+        }
+
+        for (int16_t y = minY; y < maxY; y++, w0_row += B12,w1_row += B20,w2_row += B01) {
             int32_t w0 = w0_row;
             int32_t w1 = w1_row;
             int32_t w2 = w2_row;
 
             for (int32_t x = minX; x < maxX; x++, w0 += A12, w1 += A20, w2 += A01) {
-                if ((w0 | w1 | w2) <= 0)
+
+                if ((w0 | w1 | w2) < 0)
                     continue;
 
-                float depth = (w0 * a.z * a.w + w1 * b.z * b.w + w2 * c.z * c.w) * -depthDivisorInverse;
+                float depth =  -( w0 * a.z + w1 * b.z + w2 * c.z ) * areaInverse;
                 if (depth < 0.0 || depth > 1.0)
                     continue;
 
-                if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth ))
+                if (depth_check(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, 1-depth ))
                     continue;
 
-                depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, -depth );
+                depth_write(r->backEnd->getZetaBuffer(r,r->backEnd), x + y * scrSize.x, 1- depth );
 
                 if (o->material != 0) {
                     //Texture lookup
 
-                    float textCoordx = (w0 * tca->x * a.w + w1 * tcb->x * b.w + w2 * tcc->x * c.w) * depthDivisorInverse;
-                    float textCoordy = (w0 * tca->y * a.w + w1 * tcb->y * b.w + w2 * tcc->y * c.w) * depthDivisorInverse;
+                    float textCoordx = -(w0 * tca.x + w1 * tcb.x + w2 * tcc.x)* areaInverse * depth;
+                    float textCoordy = -(w0 * tca.y + w1 * tcb.y + w2 * tcc.y)* areaInverse * depth;
 
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
                     texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelMul(text,diffuseLight));
                 } else {
-                    texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
+                    texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(depth*255));
                 }
 
             }
-            w0_row += B12;
-            w1_row += B20;
-            w2_row += B01;
+
         }
     }
 
@@ -223,15 +233,15 @@ int rendererInit(Renderer * r, Vec2i size, BackEnd * backEnd) {
     renderingFunctions[RENDERABLE_SCENE] = & renderScene;
     renderingFunctions[RENDERABLE_OBJECT] = & renderObject;
 
-    r -> scene = 0;
-    r -> clear = 1;
-    r -> clearColor = PIXELBLACK;
-    r -> backEnd = backEnd;
+    r->scene = 0;
+    r->clear = 1;
+    r->clearColor = PIXELBLACK;
+    r->backEnd = backEnd;
 
-    r -> backEnd -> init(r, r -> backEnd, (Vec4i) { 0, 0, 0, 0 });
+    r->backEnd->init(r, r->backEnd, (Vec4i) { 0, 0, 0, 0 });
 
     int e = 0;
-    e = texture_init( & (r -> frameBuffer), size, backEnd -> getFrameBuffer(r, backEnd));
+    e = texture_init( & (r->frameBuffer), size, backEnd->getFrameBuffer(r, backEnd));
     if (e) return e;
 
     return 0;
@@ -244,19 +254,19 @@ int rendererRender(Renderer * r) {
     int pixels = r->frameBuffer.size.x * r->frameBuffer.size.y;
     memset(r->backEnd->getZetaBuffer(r,r->backEnd), 0, pixels * sizeof (Depth));
 
-    r -> backEnd -> beforeRender(r, r -> backEnd);
+    r->backEnd->beforeRender(r, r->backEnd);
 
     //get current framebuffe from backend
-    r -> frameBuffer.frameBuffer = r -> backEnd -> getFrameBuffer(r, r -> backEnd);
+    r->frameBuffer.frameBuffer = r->backEnd->getFrameBuffer(r, r->backEnd);
 
     //Clear draw buffer before rendering
-    if (r -> clear) {
+    if (r->clear) {
         memset(r->backEnd->getFrameBuffer(r,r->backEnd), 0, pixels * sizeof (Pixel));
     }
 
-    renderScene(mat4Identity(), r, sceneAsRenderable(r -> scene));
+    renderScene(mat4Identity(), r, sceneAsRenderable(r->scene));
 
-    //r -> backEnd -> afterRender(r, r -> backEnd);
+    r->backEnd->afterRender(r, r->backEnd);
 
     return 0;
 }
@@ -265,14 +275,14 @@ int rendererSetScene(Renderer * r, Scene * s) {
     if (s == 0)
         return 1; //nullptr scene
 
-    r -> scene = s;
+    r->scene = s;
     return 0;
 }
 
 int rendererSetCamera(Renderer * r, Vec4i rect) {
-    r -> camera = rect;
-    r -> backEnd -> init(r, r -> backEnd, rect);
-    r -> frameBuffer.size = (Vec2i) {
+    r->camera = rect;
+    r->backEnd->init(r, r->backEnd, rect);
+    r->frameBuffer.size = (Vec2i) {
             rect.z, rect.w
 };
     return 0;

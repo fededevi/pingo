@@ -3,7 +3,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define ZBUFFER16 // [ZBUFFER16 | ZBUFFER8]
+#define ZBUFFER32 // [ZBUFFER32 | ZBUFFER16 | ZBUFFER8]
+
+#ifdef ZBUFFER32
+typedef struct Depth {
+    uint32_t d;
+} Depth;
+#endif
 
 #ifdef ZBUFFER16
 typedef struct Depth {

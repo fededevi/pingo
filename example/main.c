@@ -18,7 +18,7 @@ int main(){
 }
 
 int scene_3D_example(){
-    Vec2i size = {1800, 1000};
+    Vec2i size = {1280, 800};
 
     WindowBackEnd backend;
     windowBackEndInit(&backend, size);
@@ -53,6 +53,7 @@ int scene_3D_example(){
     Material m;
     m.texture = &tex;
     cube2.material = &m;
+    cube1.material = &m;
 
     Object tea;
     tea.mesh = &mesh_teapot;
@@ -67,22 +68,22 @@ int scene_3D_example(){
 
 
         // PROJECTION MATRIX - Defines the type of projection used
-        renderer.camera_projection = mat4Perspective( 2, 16.0,(float)size.x / (float)size.y, 50.0);
+        renderer.camera_projection = mat4Perspective( 3, 25.0,(float)size.x / (float)size.y, 70.0);
 
         //VIEW MATRIX - Defines position and orientation of the "camera"
-        Mat4 v = mat4Translate((Vec3f) { 0,0,-9});
+        Mat4 v = mat4Translate((Vec3f) { 0,0,-10});
         Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
         //CUBE 1 TRANSFORM - Defines position and orientation of the object
-        cube1.transform =  mat4RotateY(phi2 -= 0.08);
+        cube1.transform =  mat4RotateY(phi2 -= 0.01);
         t = mat4Scale((Vec3f){1,1,1});
         cube1.transform = mat4MultiplyM(&cube1.transform, &t );
         t = mat4Translate((Vec3f){-3,0.0,0});
         cube1.transform = mat4MultiplyM(&cube1.transform, &t );
 
         //CUBE 2 TRANSFORM - Defines position and orientation of the object
-        cube2.transform =  mat4Translate((Vec3f){3,0.0,0});
+        cube2.transform =  mat4Translate((Vec3f){15,0.0,0});
         t = mat4Scale((Vec3f){1,1,1});
         cube2.transform = mat4MultiplyM(&cube2.transform, &t );
 
@@ -95,10 +96,11 @@ int scene_3D_example(){
         tea.transform = mat4MultiplyM(&tea.transform, &t );
 
         //SCENE
-        s.transform = mat4RotateY(phi += 0.001);
+        s.transform = mat4RotateY(phi -= 0.005);
 
         rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
         rendererRender(&renderer);
+
     }
 
     return 0;

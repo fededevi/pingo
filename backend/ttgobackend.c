@@ -114,6 +114,7 @@ void ttgoBackendInit( TTGOBackend * this,  Vec2i size) {
 
     TFT_display_init();
     max_rdclock = find_rd_speed();
+    printf( "Max SPI read clock speed: %dMHz\n", max_rdclock/1000000 );
     spi_lobo_set_speed(spi, DEFAULT_SPI_CLOCK);
     TFT_setGammaCurve(DEFAULT_GAMMA_CURVE);
     TFT_setRotation(PORTRAIT_FLIP);
