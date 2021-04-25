@@ -153,6 +153,7 @@ void windowBackEndInit( WindowBackEnd * this, Vec2i size) {
     this->backend.afterRender = &afterRender;
     this->backend.getFrameBuffer = &getFrameBuffer;
     this->backend.getZetaBuffer = &getZetaBuffer;
+    this->backend.drawPixel = 0;
 
     zetaBuffer = malloc(size.x*size.y*sizeof (Depth));
     frameBuffer = malloc(size.x*size.y*sizeof (Pixel));

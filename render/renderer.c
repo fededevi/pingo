@@ -80,6 +80,15 @@ int orient2d( Vec2i a,  Vec2i b,  Vec2i c)
     return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
 }
 
+void backendDrawPixel (Renderer * r, Texture * f, Vec2i pos, Pixel color, float illumination) {
+    //If backend spcifies something..
+    if (r->backEnd->drawPixel != 0)
+        r->backEnd->drawPixel(f, pos, color, illumination);
+
+    //By default call this
+    texture_draw(f, pos, pixelMul(color,illumination));
+}
+
 int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
     const Vec2i scrSize = r->frameBuffer.size;
@@ -167,6 +176,8 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         Vec2i minTriangle = { minX, minY };
 
         int32_t area =  orient2d( a_s, b_s, c_s);
+        if (area == 0)
+            continue;
         float areaInverse = 1.0/area;
 
         int32_t A01 = ( a_s.y - b_s.y); //Barycentric coordinates steps
@@ -215,9 +226,9 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                     float textCoordy = -(w0 * tca.y + w1 * tcb.y + w2 * tcc.y)* areaInverse * depth;
 
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
-                    texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelMul(text,diffuseLight));
+                    backendDrawPixel(r, &r->frameBuffer, (Vec2i){x,y}, text, diffuseLight);
                 } else {
-                    texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
+                    backendDrawPixel(r, &r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(255), diffuseLight);
                 }
 
             }

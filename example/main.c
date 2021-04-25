@@ -2,6 +2,7 @@
 #include "consolebackend.h"
 #include "teapot.h"
 #include "cube.h"
+#include "pingo_mesh.h"
 #include "../render/renderer.h"
 #include "../render/texture.h"
 #include "../render/sprite.h"
@@ -56,7 +57,7 @@ int scene_3D_example(){
     cube1.material = &m;
 
     Object tea;
-    tea.mesh = &mesh_teapot;
+    tea.mesh = &pingo_mesh;
     sceneAddRenderable(&s, object_as_renderable(&tea));
     tea.material = 0;
 
@@ -92,7 +93,11 @@ int scene_3D_example(){
         tea.transform = mat4RotateZ(3.142128);
         t =mat4RotateY(phi2);
         tea.transform = mat4MultiplyM(&tea.transform, &t );
-        t = mat4Translate((Vec3f){0,-0.5,0});
+        t = mat4Scale((Vec3f){0.02,0.02,0.02});
+        tea.transform = mat4MultiplyM(&tea.transform, &t );
+        t = mat4Translate((Vec3f){0,1,0});
+        tea.transform = mat4MultiplyM(&tea.transform, &t );
+        t = mat4RotateZ(3.1421);
         tea.transform = mat4MultiplyM(&tea.transform, &t );
 
         //SCENE

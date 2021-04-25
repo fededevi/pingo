@@ -71,6 +71,7 @@ void console_backend_init(ConsoleBackend *this, Vec2i size)
     this->backend.afterRender = &console_backend_afterRender;
     this->backend.getFrameBuffer = &console_backend_getFrameBuffer;
     this->backend.getZetaBuffer = &console_backend_getZetaBuffer;
+    this->backend.drawPixel = 0;
 
     zetaBuffer = malloc(size.x*size.y*sizeof (Depth));
     frameBuffer = malloc(size.x*size.y*sizeof (Pixel));
