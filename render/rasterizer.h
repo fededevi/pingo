@@ -16,10 +16,10 @@
   * the source image and makes an average of those values.
   */
 
-//#define FILTERING_NEAREST
+#define FILTERING_NEAREST
 //#define FILTERING_BILINEAR
 //#define FILTERING_ANISOTROPIC
-#define FILTERING_ANISOTROPICX2
+//#define FILTERING_ANISOTROPICX2
 
 int rasterizer_draw_pixel_perfect(Vec2i off, Renderer *r, Texture * src);
 

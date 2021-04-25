@@ -2,6 +2,7 @@
 #include "consolebackend.h"
 #include "teapot.h"
 #include "cube.h"
+#include "pingo_mesh.h"
 #include "../render/renderer.h"
 #include "../render/texture.h"
 #include "../render/sprite.h"
@@ -9,18 +10,16 @@
 #include "../render/object.h"
 #include "../render/mesh.h"
 #include "../math/mat3.h"
-#include <math.h>
-#include <string.h>
 
 int main(){
     //Enable an example:
-    console_3D_example();
-    //scene_3D_example();
+    //console_3D_example();
+    scene_3D_example();
     //scene_2D_example();
 }
 
 int scene_3D_example(){
-    Vec2i size = {640, 480};
+    Vec2i size = {1280, 800};
 
     WindowBackEnd backend;
     windowBackEndInit(&backend, size);
@@ -50,14 +49,15 @@ int scene_3D_example(){
 
     for (int i = 0; i < 8; i++)
         for (int y = 0; y < 8; y++)
-            ((uint32_t *)tex.frameBuffer)[i * 8 + y ] = (i + y) % 2 == 0 ? 0xFFFFFFFF : 0x000000FF;
+            ((uint32_t *)tex.frameBuffer)[i * 8 + y ] = (i + y) % 2 == 0 ? 0xFF00FFFF : 0x000000FF;
 
     Material m;
     m.texture = &tex;
     cube2.material = &m;
+    cube1.material = &m;
 
     Object tea;
-    tea.mesh = &mesh_teapot;
+    tea.mesh = &pingo_mesh;
     sceneAddRenderable(&s, object_as_renderable(&tea));
     tea.material = 0;
 
@@ -66,38 +66,46 @@ int scene_3D_example(){
     Mat4 t;
 
     while (1) {
-        renderer.camera_projection = mat4Perspective( 2, 16.0,(float)size.x / (float)size.y, 50.0);
 
-        //VIEW MATRIX
-        Mat4 v = mat4Translate((Vec3f) { 0,0,-9});
+
+        // PROJECTION MATRIX - Defines the type of projection used
+        renderer.camera_projection = mat4Perspective( 1, 25.0,(float)size.x / (float)size.y, 70.0);
+
+        //VIEW MATRIX - Defines position and orientation of the "camera"
+        Mat4 v = mat4Translate((Vec3f) { 0,0,-10});
         Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
-        //CUBE 1 TRANSFORM
+        //CUBE 1 TRANSFORM - Defines position and orientation of the object
         cube1.transform =  mat4RotateY(phi2 -= 0.01);
         t = mat4Scale((Vec3f){1,1,1});
         cube1.transform = mat4MultiplyM(&cube1.transform, &t );
-        t = mat4Translate((Vec3f){-5,0.0,0});
+        t = mat4Translate((Vec3f){-3,0.0,0});
         cube1.transform = mat4MultiplyM(&cube1.transform, &t );
 
-        //CUBE 2 TRANSFORM
-        cube2.transform =  mat4Translate((Vec3f){5,0.0,0});
+        //CUBE 2 TRANSFORM - Defines position and orientation of the object
+        cube2.transform =  mat4Translate((Vec3f){3,0.0,0});
         t = mat4Scale((Vec3f){1,1,1});
         cube2.transform = mat4MultiplyM(&cube2.transform, &t );
 
 
-        //TEA TRANSFORM
-        tea.transform = mat4RotateZ(M_PI);
+        //TEA TRANSFORM - Defines position and orientation of the object
+        tea.transform = mat4RotateZ(3.142128);
         t =mat4RotateY(phi2);
         tea.transform = mat4MultiplyM(&tea.transform, &t );
-        t = mat4Translate((Vec3f){0,-0.5,0});
+        t = mat4Scale((Vec3f){0.02,0.02,0.02});
+        tea.transform = mat4MultiplyM(&tea.transform, &t );
+        t = mat4Translate((Vec3f){0,1,0});
+        tea.transform = mat4MultiplyM(&tea.transform, &t );
+        t = mat4RotateZ(3.1421);
         tea.transform = mat4MultiplyM(&tea.transform, &t );
 
         //SCENE
-        s.transform = mat4RotateY(phi += 0.003);
+        s.transform = mat4RotateY(phi -= 0.005);
 
         rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
         rendererRender(&renderer);
+
     }
 
     return 0;
@@ -132,7 +140,7 @@ int console_3D_example(){
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
         //TEA TRANSFORM
-        tea.transform = mat4RotateZ(M_PI);
+        tea.transform = mat4RotateZ(3.142128);
         t = mat4Translate((Vec3f){0,-0.5,0});
         tea.transform = mat4MultiplyM(&tea.transform, &t );
 

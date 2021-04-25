@@ -12,6 +12,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 HEADERS += \
     example/consolebackend.h \
     example/cube.h \
+    example/pingo_mesh.h \
     example/teapot.h \
     example/windowbackend.h \
     math/mat3.h \
@@ -35,8 +36,9 @@ HEADERS += \
 
 SOURCES += \
     example/consolebackend.c \
-    example/cube.cpp \
+    example/cube.c \
     example/main.c \
+    example/pingo_mesh.c \
     example/teapot.c \
     example/windowbackend.c \
     math/mat3.c \

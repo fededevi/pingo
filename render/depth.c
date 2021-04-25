@@ -1,13 +1,18 @@
 #include "depth.h"
 
+#ifdef ZBUFFER32
+void depth_write (Depth * d, int idx, float value) {
+    d[idx].d = (uint32_t)(value * UINT32_MAX);
+}
+
+bool depth_check(Depth * d, int idx, float value){
+    return (uint32_t)(value * UINT32_MAX) < d[idx].d;
+}
+#endif
 
 #ifdef ZBUFFER16
 void depth_write (Depth * d, int idx, float value) {
     d[idx].d = (uint16_t)(value * UINT16_MAX);
-}
-
-void depth_clear(Depth * d, int idx) {
-    d[idx].d = (uint16_t)(0);
 }
 
 bool depth_check(Depth * d, int idx, float value){

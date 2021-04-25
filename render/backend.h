@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../math/vec2.h"
 #include "../math/vec4.h"
 
 /**
@@ -9,6 +10,7 @@
 typedef struct Renderer Renderer;
 typedef struct Pixel Pixel;
 typedef struct Depth Depth;
+typedef struct Texture Texture;
 
 typedef struct BackEnd {
     //Called on initialization and re-initialization
@@ -22,6 +24,9 @@ typedef struct BackEnd {
 
     //Should return the address of the buffer (height*width*sizeof(Pixel))
     Pixel * (*getFrameBuffer)(Renderer *, struct BackEnd * );
+
+    //Handle backend specific final framebuffer draw (can apply lighting in a different way if needed)
+    void (*drawPixel)(Texture * f, Vec2i pos, Pixel color, float illumination);
 
     //Should return the address of the buffer (height*width*sizeof(Pixel))
     Depth * (*getZetaBuffer)(Renderer *, struct BackEnd * );
