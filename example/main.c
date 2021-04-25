@@ -68,7 +68,7 @@ int scene_3D_example(){
 
 
         // PROJECTION MATRIX - Defines the type of projection used
-        renderer.camera_projection = mat4Perspective( 3, 25.0,(float)size.x / (float)size.y, 70.0);
+        renderer.camera_projection = mat4Perspective( 1, 25.0,(float)size.x / (float)size.y, 70.0);
 
         //VIEW MATRIX - Defines position and orientation of the "camera"
         Mat4 v = mat4Translate((Vec3f) { 0,0,-10});
@@ -83,7 +83,7 @@ int scene_3D_example(){
         cube1.transform = mat4MultiplyM(&cube1.transform, &t );
 
         //CUBE 2 TRANSFORM - Defines position and orientation of the object
-        cube2.transform =  mat4Translate((Vec3f){15,0.0,0});
+        cube2.transform =  mat4Translate((Vec3f){3,0.0,0});
         t = mat4Scale((Vec3f){1,1,1});
         cube2.transform = mat4MultiplyM(&cube2.transform, &t );
 

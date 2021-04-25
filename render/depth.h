@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define ZBUFFER32 // [ZBUFFER32 | ZBUFFER16 | ZBUFFER8]
+#define ZBUFFER16 // [ZBUFFER32 | ZBUFFER16 | ZBUFFER8]
 
 #ifdef ZBUFFER32
 typedef struct Depth {

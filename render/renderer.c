@@ -97,9 +97,9 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
         Vec3f * ver2 = &o->mesh->positions[o->mesh->indexes[i+1]];
         Vec3f * ver3 = &o->mesh->positions[o->mesh->indexes[i+2]];
 
-        Vec2f tca;
-        Vec2f tcb;
-        Vec2f tcc;
+        Vec2f tca = {0,0};
+        Vec2f tcb = {0,0};
+        Vec2f tcc = {0,0};
         if (o->material != 0) {
             tca = o->mesh->textCoord[o->mesh->indexes[i+0]];
             tcb = o->mesh->textCoord[o->mesh->indexes[i+1]];
@@ -217,7 +217,7 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
                     Pixel text = texture_readF(o->material->texture, (Vec2f){textCoordx,textCoordy});
                     texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelMul(text,diffuseLight));
                 } else {
-                    texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(depth*255));
+                    texture_draw(&r->frameBuffer, (Vec2i){x,y}, pixelFromUInt8(diffuseLight*255));
                 }
 
             }

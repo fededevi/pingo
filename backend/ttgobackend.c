@@ -40,7 +40,9 @@ void _ttgoBackendAfterRender( Renderer * ren,  BackEnd * backEnd) {
     //WAIT FOR DMA FINISH IF THE PREVIOUS ONE STILL ISNT
     wait_trans_finish(1);
     spi_lobo_device_deselect(disp_spi);
+    wait_trans_finish(1);
     spi_lobo_device_select(disp_spi, 0);
+    wait_trans_finish(1);
     //STart DMA transfer of frame from current buffer
     send_data2(xOff, yOff, xSize+xOff-1, yOff+ySize, xSize*ySize-1, &copyBuffer[ping%2][0][0]);
 
