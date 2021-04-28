@@ -1733,7 +1733,7 @@ Vec3f positions[teapot_vertices] = {
     {0.458200f, -1.255600f, 0.269100f}
 };
 
-uint32_t indexes[teapot_vertices] = {
+uint16_t indexes[teapot_vertices] = {
     0,
     1,
     2,
@@ -3467,5 +3467,5 @@ uint32_t indexes[teapot_vertices] = {
 Mesh mesh_teapot = {
     .indexes_count = teapot_vertices,
     .positions = &positions[0],
-    .indexes = &indexes[0]
+    .pos_indices = &indexes[0]
 };

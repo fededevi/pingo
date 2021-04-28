@@ -8,8 +8,11 @@
 
 typedef struct Mesh {
     int indexes_count;
-    uint32_t * indexes;
+    uint16_t * pos_indices;
+    uint16_t * tex_indices;
+    uint16_t * nor_indices;
     Vec3f * positions;
+    Vec3f * normals;
     Vec2f * textCoord;
 } Mesh;
 

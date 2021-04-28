@@ -4,6 +4,7 @@
 
 #include "mesh.h"
 #include "renderable.h"
+#include "scene.h"
 
 typedef struct Object {
     Mesh * mesh;
@@ -12,3 +13,4 @@ typedef struct Object {
 } Object;
 
 Renderable object_as_renderable(Object * object);
+

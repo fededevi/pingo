@@ -63,8 +63,9 @@ extern Pixel pixelFromUInt8( uint8_t g){
 extern uint8_t pixelToUInt8( Pixel * p){
     return (p->r + p->g + p->b) / 3;
 }
+
 extern uint32_t pixelToRGBA( Pixel * p){
-    return intFromRGBA(p->r,p->g,p->b,p->a);
+    return intFromRGBA(p->b,p->g,p->r,p->a);
 }
 
 extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a){
@@ -73,7 +74,7 @@ extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a){
 
 extern Pixel pixelMul(Pixel p, float f)
 {
-    return (Pixel){p.r*f,p.g*f,p.b*f,p.a*f};
+    return (Pixel){p.r*f,p.g*f,p.b*f,p.a};
 }
 
 #endif

@@ -102,18 +102,20 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
     Mat4 p = r->camera_projection;
 
     for (int i = 0; i < o->mesh->indexes_count; i += 3) {
-        Vec3f * ver1 = &o->mesh->positions[o->mesh->indexes[i+0]];
-        Vec3f * ver2 = &o->mesh->positions[o->mesh->indexes[i+1]];
-        Vec3f * ver3 = &o->mesh->positions[o->mesh->indexes[i+2]];
+        Vec3f * ver1 = &o->mesh->positions[o->mesh->pos_indices[i+0]];
+        Vec3f * ver2 = &o->mesh->positions[o->mesh->pos_indices[i+1]];
+        Vec3f * ver3 = &o->mesh->positions[o->mesh->pos_indices[i+2]];
 
         Vec2f tca = {0,0};
         Vec2f tcb = {0,0};
         Vec2f tcc = {0,0};
+
         if (o->material != 0) {
-            tca = o->mesh->textCoord[o->mesh->indexes[i+0]];
-            tcb = o->mesh->textCoord[o->mesh->indexes[i+1]];
-            tcc = o->mesh->textCoord[o->mesh->indexes[i+2]];
+            tca = o->mesh->textCoord[o->mesh->tex_indices[i+0]];
+            tcb = o->mesh->textCoord[o->mesh->tex_indices[i+1]];
+            tcc = o->mesh->textCoord[o->mesh->tex_indices[i+2]];
         }
+
         Vec4f a =  { ver1->x, ver1->y, ver1->z, 1 };
         Vec4f b =  { ver2->x, ver2->y, ver2->z, 1 };
         Vec4f c =  { ver3->x, ver3->y, ver3->z, 1 };

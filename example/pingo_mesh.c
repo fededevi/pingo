@@ -17,6 +17,6 @@ uint32_t indices[3000] = {
 
 Mesh pingo_mesh = {
 .indexes_count = 3000,
-.indexes = &indices[0],
+.pos_indices = &indices[0],
 .positions = &vertices[0],
 };

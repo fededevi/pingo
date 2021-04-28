@@ -1,6 +1,8 @@
 CONFIG  += console
 CONFIG += c++11
 
+QT += gui
+
 DEFINES += QT_DEPRECATED_WARNINGS
 
 LIBS += -lgdi32
@@ -14,6 +16,7 @@ HEADERS += \
     example/cube.h \
     example/pingo_mesh.h \
     example/teapot.h \
+    example/viking.h \
     example/windowbackend.h \
     math/mat3.h \
     math/mat4.h \
@@ -40,6 +43,7 @@ SOURCES += \
     example/main.c \
     example/pingo_mesh.c \
     example/teapot.c \
+    example/viking.c \
     example/windowbackend.c \
     math/mat3.c \
     math/mat4.c \
