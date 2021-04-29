@@ -2,11 +2,11 @@
 
 #ifdef ZBUFFER32
 void depth_write (Depth * d, int idx, float value) {
-    d[idx].d = (uint32_t)(value * UINT32_MAX);
+    d[idx].d = (uint32_t)(value * (float)UINT32_MAX);
 }
 
 bool depth_check(Depth * d, int idx, float value){
-    return (uint32_t)(value * UINT32_MAX) < d[idx].d;
+    return (uint32_t)(value * (float)UINT32_MAX) < d[idx].d;
 }
 #endif
 

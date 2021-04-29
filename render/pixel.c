@@ -78,4 +78,3 @@ extern Pixel pixelMul(Pixel p, float f)
 }
 
 #endif
-
