@@ -283,17 +283,17 @@ Mat4 mat4Inverse(Mat4 * mat)
 
 Mat4 mat4Perspective(float near, float far, float aspect, float fov)
 {
-    float D2R = M_PI / 180.0;
-    float xScale = 1.0 / tan(D2R * fov / 2);
-    float yScale = xScale * aspect;
-    float nearmfar = near - far;
+    float h = cos(fov/2.0) / sin(fov/2.0);
+    float w = h / aspect;
+    float nearFar = near * far;
+    float farNear = far - near;
 
     Mat4 m = {{
-        xScale, 0,      0,                        0,
-        0,     yScale, 0,                        0,
-        0,      0,      (far + near) / nearmfar,  2*far*near / nearmfar,
-        0,      0,      1,    -1
-    }};
+                  w,          0,          0,                  0,
+                  0,          h,          0,                  0,
+                  0,          0,          far/(farNear),      1,
+                  0,          0,          -nearFar/farNear,   0
+              }};
 
     return m;
 }

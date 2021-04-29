@@ -64,24 +64,24 @@ int main(){
 
     while (1) {
         // PROJECTION MATRIX - Defines the type of projection used
-        renderer.camera_projection = mat4Perspective( 1, 25.0,(float)size.x / (float)size.y, 70.0);
+        renderer.camera_projection = mat4Perspective( 1, 250.0,(float)size.x / (float)size.y, 70.0);
 
         //VIEW MATRIX - Defines position and orientation of the "camera"
-        Mat4 v = mat4Translate((Vec3f) { 0,0,-7});
-        Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
+        Mat4 v = mat4Translate((Vec3f) { 0,0.7,-7});
+        Mat4 rotateDown = mat4RotateX(-0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
         //TEA TRANSFORM - Defines position and orientation of the object
         viking_room.transform = mat4RotateZ(3.142128);
         t = mat4Scale((Vec3f){0.2,0.2,0.2});
         viking_room.transform = mat4MultiplyM(&viking_room.transform, &t );
-        t = mat4Translate((Vec3f){0,1,0});
+        t = mat4Translate((Vec3f){0,0,0});
         viking_room.transform = mat4MultiplyM(&viking_room.transform, &t );
-        t = mat4RotateZ(3.1421);
+        t = mat4RotateZ(0);
         viking_room.transform = mat4MultiplyM(&viking_room.transform, &t );
 
         //SCENE
-        s.transform = mat4RotateY(sin(phi -= 0.005));
+        s.transform = mat4RotateY(cos(phi -= 0.05)+0.64);
 
         rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
         rendererRender(&renderer);

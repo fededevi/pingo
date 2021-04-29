@@ -142,8 +142,8 @@ int renderObject(Mat4 object_transform, Renderer * r, Renderable ren) {
 
 
         //Triangle is completely behind camera
-        if (a.z < 0 && b.z < 0 && c.z < 0)
-            continue;
+        if (a.z > 0 && b.z > 0 && c.z > 0)
+           continue;
 
         // convert to device coordinates by perspective division
         a.w = 1.0 / a.w;
