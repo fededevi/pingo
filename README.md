@@ -1,14 +1,9 @@
 # pingo
 
-Pingo is a low level 2D/3D graphics library. It uses no dynamic memory and provides a simple backend interface to implement. The graphical backend should just provide a memory buffer on which to draw on. The example uses a Windows window as the target framebuffer.
+Pingo is a low level 2D/3D graphics library. It uses no dynamic memory and provides a simple backend interface to implement for your ebedded platform. The graphical backend can just provide a framebuffer on whch to write on but can also intercept the draw calls and customize the rendering. 
 
-The library itself provides an interface to add your own primitives, by default it supports redering of 2D sprites and textured meshes.
+The example can be compiled and run on Windows with MinGW 8.
 
-Example/main.c contains a couple of examples with 2D and 3D content. 
-
-Shading and texturing:
-![Example](/example/shading.png)
-
-
-Rendering on console:
-![Example](/example/console.png)
+#### An example with texture and per-triangle shading
+![Example](/example/viking.png)
+#### The beautiful low poly model has been gently provided by [Nigel Goh](https://www.artstation.com/artwork/9OzxO)
