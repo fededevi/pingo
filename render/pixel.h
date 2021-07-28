@@ -9,7 +9,7 @@ extern "C" {
 
 //What format to use:
   // [ UINT8 | RGB565 | RGBA8888 | RGB888 ]
-#ifdef WIN32
+#if defined(WIN32) || defined(__linux__)
 #define RGBA8888
 #else
 #define UINT8
