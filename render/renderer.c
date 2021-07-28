@@ -8,7 +8,7 @@
 #include "scene.h"
 #include "rasterizer.h"
 #include "object.h"
-#include "../backend/ttgobackend.h"
+/*#include "../backend/ttgobackend.h"*/
 
 
 int renderFrame(Renderer * r, Renderable ren) {

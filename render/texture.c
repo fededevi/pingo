@@ -15,7 +15,7 @@ int texture_init( Texture *f, Vec2i size, Pixel *buf )
     return 0;
 }
 
-#ifdef WIN32
+#if defined(WIN32) || defined(__linux__)
 void texture_draw(Texture *f, Vec2i pos, Pixel color)
 {
     f->frameBuffer[pos.x + pos.y * f->size.x] = color;
