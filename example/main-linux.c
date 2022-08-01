@@ -1,4 +1,3 @@
-/*#include "windowbackend.h"*/
 #include "linuxtermbackend.h"
 #include "teapot.h"
 #include "cube.h"
@@ -23,6 +22,10 @@ Pixel * loadTexture(char * filename, Vec2i size) {
     //Load from filesystem from a RAW RGBA file
     Pixel * image = malloc(size.x*size.y*4);
     FILE * file   = fopen(filename, "rb");
+    if (file == 0) {
+        printf("Error: Could not open file %s\n", filename);
+        exit(-1);
+    }
     for (int i = 1023; i > 0; i--) {
     for (int j = 0; j < 1024; j++) {
             fread(&image[i*1024 + j].r, 1, 1, file);
@@ -36,7 +39,7 @@ Pixel * loadTexture(char * filename, Vec2i size) {
 }
 
 int main(){
-	Vec2i size = {128, 80};
+	Vec2i size = {120, 60};
 
 	LinuxTermBackend backend;
 	linuxterm_backend_init(&backend, size);
@@ -53,7 +56,7 @@ int main(){
     sceneAddRenderable(&s, object_as_renderable(&viking_room));
     viking_room.material = 0;
 
-	Pixel * image = loadTexture("example/texture.data", (Vec2i){1024,1024});
+	Pixel * image = loadTexture("../example/texture.data", (Vec2i){1024,1024});
 
 	Texture tex;
 	texture_init(&tex, (Vec2i){1024, 1024},image);
