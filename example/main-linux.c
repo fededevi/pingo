@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 Pixel * loadTexture(char * filename, Vec2i size) {
     //Load from filesystem from a RAW RGBA file
