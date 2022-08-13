@@ -21,14 +21,18 @@ void terminal_backend_beforeRender( Renderer * ren, BackEnd * backEnd) {
 }
 
 void terminal_backend_afterRender( Renderer * ren,  BackEnd * backEnd) {
-    const char scale[] = " .,:c!|+*#@";
+    const char scale[] = "      ...,,,:::;;cc!!+*C##@";
     int charSize = sizeof(scale);
-    for (int y = 0; y < totalSize.y; y++ ) {
+    for (int y = totalSize.y -1; y > 0; y-- ) {
         char chars[totalSize.x];
         for (int x = 0; x < totalSize.x; x++ ) {
-            int index = (charSize-2) * (pixelToUInt8(&frameBuffer[x + y * totalSize.x]) / 256.0);
-            int rnd = (rand() % 3) - 1;
-            chars[x] = scale[index - rnd + 1];
+            double normalValue = pixelToUInt8(&frameBuffer[x + y * totalSize.x]) / 255.0;
+            normalValue += (rand() % 1000) * 0.0001;
+            normalValue = (normalValue + 0.1) * (1.0/1.2);
+            int index = 0.99 + charSize * normalValue;
+            index = index + ((rand() % 3) - 1);
+            index = index < 0 ? 0 : index >= charSize-1 ? charSize - 2: index;
+            chars[x] = scale[index];
 			printf("%c", chars[x]);
         }
 		printf("\n");
