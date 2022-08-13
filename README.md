@@ -4,10 +4,15 @@ Pingo is a low level 2D/3D graphics library. It uses no dynamically allocated me
 
 
 to build (render directly on linux console) : 
+
+```
+git clone git@github.com:fededevi/pingo.git
+cd pingo
 mkdir build && cd build
-cmake ../ && make
+cmake .. && make
 ./pingo_example
+```
+
 
 #### An example with texture and per-triangle shading
 ![Example](/example/viking.png)
-#### The beautiful low poly model has been gently provided by [Nigel Goh](https://www.artstation.com/artwork/9OzxO)
