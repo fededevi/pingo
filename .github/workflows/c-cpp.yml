@@ -7,11 +7,14 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  example:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Custom make script
-      run: ./manualmake.sh
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.12
+      with:
+        cmake-version: '3.16.x'
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: Use cmake
+      run: mkdir build && cd build && cmake ../ && make
