@@ -1,9 +1,8 @@
-set ( FILES 
+project( pingo )
+set ( SRC
     ./example/teapot.c
     ./example/teapot.h
     ./example/memorybackend.c
-    ./example/linuxtermbackend.h 
-    ./example/linuxtermbackend.c 
     ./example/pingo_mesh.c
     ./example/viking.h 
     ./example/viking.c
@@ -47,6 +46,20 @@ set ( FILES
     ./math/mat4.c
 )
 
+if (WIN32)
+    set ( SRC ${SRC}
+        ./example/windowbackend.h
+        ./example/windowbackend.c
+    )
+    add_executable(pingo_example ./example/main-win.c ${SRC})
+endif (WIN32)
 
-add_executable(pingo_example ./example/main-linux.c ${FILES})
-target_link_libraries(pingo_example m)
+if (UNIX)
+    set ( SRC ${SRC}
+        ./example/terminalbackend.h
+        ./example/terminalbackend.c
+    )
+    add_executable(pingo_example ./example/main-linux.c ${SRC})
+endif (UNIX)
+
+target_link_libraries(pingo_example m) # C math lib

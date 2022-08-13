@@ -1,22 +1,16 @@
-#include "linuxtermbackend.h"
-#include "teapot.h"
-#include "cube.h"
-#include "pingo_mesh.h"
-#include "viking.h"
-#include "../render/renderer.h"
-#include "../render/texture.h"
-#include "../render/sprite.h"
-#include "../render/scene.h"
-#include "../render/object.h"
+#include "terminalbackend.h"
 #include "../render/mesh.h"
-#include "../math/mat3.h"
-
+#include "../render/object.h"
 #include "../render/pixel.h"
-#include "../render/depth.h"
-
+#include "../render/renderer.h"
+#include "../render/scene.h"
+#include "../render/texture.h"
+#include "pingo_mesh.h"
+#include "teapot.h"
+#include "viking.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 Pixel * loadTexture(char * filename, Vec2i size) {
     //Load from filesystem from a RAW RGBA file
@@ -41,8 +35,8 @@ Pixel * loadTexture(char * filename, Vec2i size) {
 int main(){
 	Vec2i size = {120, 60};
 
-	LinuxTermBackend backend;
-	linuxterm_backend_init(&backend, size);
+    TerminalBackend backend;
+    terminal_backend_init(&backend, size);
 
     Renderer renderer;
     rendererInit(&renderer, size,(BackEnd*) &backend );
