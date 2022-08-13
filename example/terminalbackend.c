@@ -13,22 +13,22 @@ Depth * zetaBuffer;
 Pixel * frameBuffer;
 
 void terminal_backend_init_backend( Renderer * ren, BackEnd * backEnd, Vec4i _rect) {
-    //Save the rect so the windows drawing code knows whhere and how to copy the rendered buffer on the window
 }
 
 void terminal_backend_beforeRender( Renderer * ren, BackEnd * backEnd) {
-	// clear and move cursor to start point
-	printf("\033[2J");
+    // clear and move cursor to start point
+    printf("\033[2J");
 }
 
 void terminal_backend_afterRender( Renderer * ren,  BackEnd * backEnd) {
-    #define charSize 13
-    const char scale[charSize] = " .:-i|=+*%#O@";
+    const char scale[] = " .,:c!|+*#@";
+    int charSize = sizeof(scale);
     for (int y = 0; y < totalSize.y; y++ ) {
         char chars[totalSize.x];
         for (int x = 0; x < totalSize.x; x++ ) {
-			int index = charSize * (pixelToUInt8(&frameBuffer[x + y * totalSize.x]) / 256.0);
-			chars[x] = scale[index];
+            int index = (charSize-2) * (pixelToUInt8(&frameBuffer[x + y * totalSize.x]) / 256.0);
+            int rnd = (rand() % 3) - 1;
+            chars[x] = scale[index - rnd + 1];
 			printf("%c", chars[x]);
         }
 		printf("\n");

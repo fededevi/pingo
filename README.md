@@ -17,6 +17,12 @@ cmake .. && make
 
 ```
 
+Change these lines to change output resolution in linux terminal example:
+
+```
+int main(){
+    Vec2i size = {300, 150};
+```
 
 #### An example with texture and per-triangle shading
 ![Example](/example/viking.png)
