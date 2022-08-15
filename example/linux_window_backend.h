@@ -1,8 +1,6 @@
 
 #pragma once
 
-//struct Renderer;
-
 #include "../render/backend.h"
 #include "../math/vec2.h"
 

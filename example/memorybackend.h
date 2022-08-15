@@ -4,11 +4,11 @@
 #include "../math/vec2.h"
 
 typedef struct Pixel Pixel;
-typedef struct Depth Depth;
+typedef struct PingoDepth PingoDepth;
 
 typedef  struct {
     BackEnd backend;
-    Depth * zetaBuffer;
+    PingoDepth * zetaBuffer;
     Pixel * frameBuffer;
     Vec2i size;
 } MemoryBackend;

@@ -9,7 +9,7 @@
 
 
 Vec2i totalSize;
-Depth * zetaBuffer;
+PingoDepth * zetaBuffer;
 Pixel * frameBuffer;
 
 void terminal_backend_init_backend( Renderer * ren, BackEnd * backEnd, Vec4i _rect) {
@@ -43,7 +43,7 @@ Pixel * terminal_backend_getFrameBuffer( Renderer * ren,  BackEnd * backEnd) {
     return frameBuffer;
 }
 
-Depth * terminal_backend_getZetaBuffer( Renderer * ren,  BackEnd * backEnd) {
+PingoDepth * terminal_backend_getZetaBuffer( Renderer * ren,  BackEnd * backEnd) {
     return zetaBuffer;
 }
 
@@ -57,6 +57,6 @@ void terminal_backend_init(TerminalBackend *this, Vec2i size)
     this->backend.getZetaBuffer = &terminal_backend_getZetaBuffer;
     this->backend.drawPixel = 0;
 
-	zetaBuffer = malloc(size.x*size.y*sizeof (Depth));
+    zetaBuffer = malloc(size.x*size.y*sizeof (PingoDepth));
 	frameBuffer = malloc(size.x*size.y*sizeof (Pixel));
 }

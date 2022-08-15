@@ -5,6 +5,7 @@
 #include "../render/renderer.h"
 #include "../render/scene.h"
 #include "../render/texture.h"
+#include "linux_window_backend.h"
 #include "pingo_mesh.h"
 #include "teapot.h"
 #include "viking.h"
@@ -34,13 +35,14 @@ Pixel * loadTexture(char * filename, Vec2i size) {
 }
 
 int main(){
-    Vec2i size = {160, 40};
+    Vec2i size = {640, 480};
 
-    TerminalBackend backend;
-    terminal_backend_init(&backend, size);
+    LinuxWindowBackEnd backend;
+    linuxWindowBackEndInit(&backend, size);
 
     Renderer renderer;
     rendererInit(&renderer, size,(BackEnd*) &backend );
+    rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
 
     Scene s;
     sceneInit(&s);
@@ -78,7 +80,6 @@ int main(){
         s.transform = mat4RotateY(phi);
         phi += 0.01;
 
-        rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
         rendererRender(&renderer);
         usleep(40000);
 	}

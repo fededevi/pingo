@@ -9,7 +9,7 @@
 
 typedef struct Renderer Renderer;
 typedef struct Pixel Pixel;
-typedef struct Depth Depth;
+typedef struct PingoDepth PingoDepth;
 typedef struct Texture Texture;
 
 typedef struct BackEnd {
@@ -29,5 +29,5 @@ typedef struct BackEnd {
     void (*drawPixel)(Texture * f, Vec2i pos, Pixel color, float illumination);
 
     //Should return the address of the buffer (height*width*sizeof(Pixel))
-    Depth * (*getZetaBuffer)(Renderer *, struct BackEnd * );
+    PingoDepth * (*getZetaBuffer)(Renderer *, struct BackEnd * );
 } BackEnd;

@@ -2,13 +2,12 @@ project( pingo )
 set ( SRC
     ./example/teapot.c
     ./example/teapot.h
-    ./example/memorybackend.c
+    ./example/linux_window_backend.c
     ./example/pingo_mesh.c
     ./example/viking.h 
     ./example/viking.c
     ./example/cube.h 
     ./example/cube.c
-    ./example/memorybackend.h
     ./example/pingo_mesh.h
     ./render/texture.c
     ./render/rasterizer.h
@@ -55,11 +54,8 @@ if (WIN32)
 endif (WIN32)
 
 if (UNIX)
-    set ( SRC ${SRC}
-        ./example/terminalbackend.h
-        ./example/terminalbackend.c
-    )
+    set ( SRC ${SRC} )
     add_executable(pingo_example ./example/main-linux.c ${SRC})
 endif (UNIX)
 
-target_link_libraries(pingo_example m) # C math lib
+target_link_libraries(pingo_example m X11) # C math lib

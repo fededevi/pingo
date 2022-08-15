@@ -6,9 +6,9 @@
 #define ZBUFFER32 // [ZBUFFER32 | ZBUFFER16 | ZBUFFER8]
 
 #ifdef ZBUFFER32
-typedef struct Depth {
+typedef struct PingoDepth {
     uint32_t d;
-} Depth;
+} PingoDepth;
 #endif
 
 #ifdef ZBUFFER16
@@ -23,6 +23,6 @@ typedef struct Depth {
 } Depth;
 #endif
 
-void depth_write(Depth * d, int idx, float value);
-bool depth_check(Depth * d, int idx, float value);
+void depth_write(PingoDepth * d, int idx, float value);
+bool depth_check(PingoDepth * d, int idx, float value);
 
