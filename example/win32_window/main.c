@@ -4,13 +4,13 @@
 #include "cube.h"
 #include "pingo_mesh.h"
 #include "viking.h"
-#include "../render/renderer.h"
-#include "../render/texture.h"
-#include "../render/sprite.h"
-#include "../render/scene.h"
-#include "../render/object.h"
-#include "../render/mesh.h"
-#include "../math/mat3.h"
+#include "render/renderer.h"
+#include "render/texture.h"
+#include "render/sprite.h"
+#include "render/scene.h"
+#include "render/object.h"
+#include "render/mesh.h"
+#include "math/mat3.h"
 
 #include <stdio.h>
 #include <stdlib.h>

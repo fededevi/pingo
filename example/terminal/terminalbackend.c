@@ -1,9 +1,9 @@
 #include "terminalbackend.h"
 
-#include "../render/depth.h"
-#include "../render/pixel.h"
-#include "../render/renderer.h"
-#include "../render/texture.h"
+#include "render/depth.h"
+#include "render/pixel.h"
+#include "render/renderer.h"
+#include "render/texture.h"
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -3,7 +3,7 @@
 #include "texture.h"
 #include "renderable.h"
 #include "pixel.h"
-#include "../math/vec4.h"
+#include "math/vec4.h"
 
 typedef struct Scene Scene;
 typedef struct BackEnd BackEnd;

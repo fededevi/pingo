@@ -1,9 +1,9 @@
 #include "linux_window_backend.h"
 
-#include "../render/renderer.h"
-#include "../render/texture.h"
-#include "../render/pixel.h"
-#include "../render/depth.h"
+#include "render/renderer.h"
+#include "render/texture.h"
+#include "render/pixel.h"
+#include "render/depth.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -104,9 +104,7 @@ void draw(char *rgb_out, int w, int h)
 
 XImage *create_ximage(Display *display, Visual *visual, int width, int height)
 {
-    //char *image32 = (char *)malloc(width * height * 4);
-    //draw(image32, width, height);
-    return XCreateImage(display, visual, 24, ZPixmap, 0, &frameBuffer[0], width, height, 32, 0);
+    return XCreateImage(display, visual, 24, ZPixmap, 0, (char*)&frameBuffer[0], width, height, 32, 0);
 }
 
 void afterRender( Renderer * ren,  BackEnd * backEnd) {

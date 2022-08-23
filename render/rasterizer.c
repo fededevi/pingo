@@ -1,7 +1,7 @@
 #include "rasterizer.h"
 #include "renderer.h"
-#include "../math/mat3.h"
-#include "../math/mat4.h"
+#include "math/mat3.h"
+#include "math/mat4.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))

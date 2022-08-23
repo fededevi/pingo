@@ -1,9 +1,9 @@
 #include "linux_framebuffer_backend.h"
 
-#include "../render/depth.h"
-#include "../render/pixel.h"
-#include "../render/renderer.h"
-#include "../render/texture.h"
+#include "render/depth.h"
+#include "render/pixel.h"
+#include "render/renderer.h"
+#include "render/texture.h"
 
 #include <sys/types.h> 
 #include <sys/stat.h> 
@@ -56,6 +56,6 @@ void linuxFramebufferBackEndInit( LinuxFramebufferBackEnd * this, Vec2i size) {
 
     zetaBuffer = malloc(size.x*size.y*sizeof (PingoDepth));
     int fdScreen = open( "/dev/fb0", O_RDWR );
-    frameBuffer = mmap( 0, 1376*768*4, PROT_READ | PROT_WRITE, MAP_SHARED, fdScreen, 0 );    
+    frameBuffer = mmap( 0, 1376*768*4*1, PROT_READ | PROT_WRITE, MAP_SHARED, fdScreen, 0 );    
 }
 

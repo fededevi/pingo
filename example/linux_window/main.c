@@ -1,18 +1,19 @@
-#include "terminalbackend.h"
-#include "../render/mesh.h"
-#include "../render/object.h"
-#include "../render/pixel.h"
-#include "../render/renderer.h"
-#include "../render/scene.h"
-#include "../render/texture.h"
-#include "linux_window_backend.h"
-#include "pingo_mesh.h"
-#include "teapot.h"
-#include "viking.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/pixel.h"
+#include "render/renderer.h"
+#include "render/scene.h"
+
+#include "linux_window_backend.h"
+
+#include "assets/teapot.h"
+
 
 Pixel * loadTexture(char * filename, Vec2i size) {
     //Load from filesystem from a RAW RGBA file

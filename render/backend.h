@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../math/vec2.h"
-#include "../math/vec4.h"
+#include "math/vec2.h"
+#include "math/vec4.h"
 
 /**
   * Privdes a common interface to multiple graphical backends

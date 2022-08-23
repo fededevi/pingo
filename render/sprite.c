@@ -1,5 +1,5 @@
 #include "sprite.h"
-#include "../math/mat3.h"
+#include "math/mat3.h"
 
 int spriteInit(Sprite *s, Texture f, Mat4 t)
 {

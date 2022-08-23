@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../math/mat4.h"
+#include "math/mat4.h"
 
 #include "mesh.h"
 #include "renderable.h"
-#include "scene.h"
+#include "material.h"
 
 typedef struct Object {
     Mesh * mesh;

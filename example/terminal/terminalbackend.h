@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../render/backend.h"
-#include "../math/vec2.h"
+#include "render/backend.h"
+#include "math/vec2.h"
 
 typedef  struct TerminalBackend {
     BackEnd backend;

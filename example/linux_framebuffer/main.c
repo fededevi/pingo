@@ -1,3 +1,4 @@
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,7 @@
 #include "render/renderer.h"
 #include "render/scene.h"
 
-#include "terminalbackend.h"
+#include "linux_framebuffer_backend.h"
 
 #include "assets/teapot.h"
 
@@ -35,10 +36,10 @@ Pixel * loadTexture(char * filename, Vec2i size) {
 }
 
 int main(){
-    Vec2i size = {120, 60};
+    Vec2i size = {640, 480};
 
-    TerminalBackend backend;
-    terminal_backend_init(&backend, size);
+    LinuxFramebufferBackEnd backend;
+    linuxFramebufferBackEndInit(&backend, size);
 
     Renderer renderer;
     rendererInit(&renderer, size,(BackEnd*) &backend );
