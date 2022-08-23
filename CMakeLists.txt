@@ -16,13 +16,13 @@ target_link_libraries(assets pingo m)
 file( GLOB_RECURSE linux_window_src example/linux_window/*.h example/linux_window/*.c )
 file( GLOB_RECURSE linux_framebuffer_src example/linux_framebuffer/*.h example/linux_framebuffer/*.c )
 file( GLOB_RECURSE terminal_src example/terminal/*.h example/terminal/*.c )
-file( GLOB_RECURSE win32_window_src example/win32_window/*.h example/win32_window/*.c )
+file( GLOB_RECURSE win32_window_src example/win32_window/*.h example/win32_window/*.c example/win32_window/*.cpp )
 
 include_directories( ./ )
 
 if (WIN32)
   add_executable( win_window ${win32_window_src} )
-  target_link_libraries(win32_window pingo assets gdi32)
+  target_link_libraries(win_window pingo assets gdi32)
 
   add_executable( win_terminal ${terminal_src} )
   target_link_libraries(win_terminal pingo assets)

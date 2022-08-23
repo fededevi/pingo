@@ -13,29 +13,6 @@
 
 #include "assets/teapot.h"
 
-
-Pixel * loadTexture(char * filename, Vec2i size) {
-    //Load from filesystem from a RAW RGBA file
-    Pixel * image = malloc(size.x*size.y*4);
-    FILE * file   = fopen(filename, "rb");
-    if (file == 0) {
-        printf("Error: Could not open file %s\n", filename);
-        exit(-1);
-    }
-    for (int i = 1023; i > 0; i--) {
-    for (int j = 0; j < 1024; j++) {
-            char r, g, b, a;
-            fread(&r, 1, 1, file);
-            fread(&g, 1, 1, file);
-            fread(&b, 1, 1, file);
-            fread(&a, 1, 1, file);
-            image[i*1024 + j] = pixelFromRGBA(r, g, b, a);
-        }
-    }
-    fclose(file);
-    return image;
-}
-
 int main(){
     Vec2i size = {200, 60};
 

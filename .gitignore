@@ -3,3 +3,6 @@ Pingo.pro.user
 build
 .vscode
 .cache
+.vs/
+
+CMakeSettings.json
