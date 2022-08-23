@@ -1,5 +1,5 @@
 #pragma once
 
-#include "../render/mesh.h"
+#include "render/mesh.h"
 
 extern Mesh mesh_cube;

@@ -1,4 +1,4 @@
-#include "../render/mesh.h"
+#include "render/mesh.h"
 
 #define teapot_vertices 1728
 
