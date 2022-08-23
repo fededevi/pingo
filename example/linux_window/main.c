@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "render/material.h"
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/pixel.h"
@@ -12,7 +13,7 @@
 
 #include "linux_window_backend.h"
 
-#include "assets/teapot.h"
+#include "assets/viking.h"
 
 
 Pixel * loadTexture(char * filename, Vec2i size) {
@@ -50,30 +51,27 @@ int main(){
     rendererSetScene(&renderer, &s);
 
     Object object;
-    object.mesh = &mesh_teapot;
+    object.mesh = &viking_mesh;
     object.material = 0;
+
+    Material
     sceneAddRenderable(&s, object_as_renderable(&object));
 
     float phi = 0;
     Mat4 t;
 
-	// optional hide cursor
-	/*printf("\033[?25l");*/
 	while (1) {
         // PROJECTION MATRIX - Defines the type of projection used
         renderer.camera_projection = mat4Perspective( 1, 2500.0,(float)size.x / (float)size.y, 0.6);
 
         //VIEW MATRIX - Defines position and orientation of the "camera"
-        Mat4 v = mat4Translate((Vec3f) { 0,0.7,-3});
-        Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
+        Mat4 v = mat4Translate((Vec3f) { 0,2,-35});
+
+        Mat4 rotateDown = mat4RotateX(-0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
         //TEA TRANSFORM - Defines position and orientation of the object
         object.transform = mat4RotateZ(3.142128);
-        t = mat4Scale((Vec3f){1,1,1});
-        object.transform = mat4MultiplyM(&object.transform, &t );
-        t = mat4Translate((Vec3f){0,-1.4,0});
-        object.transform = mat4MultiplyM(&object.transform, &t );
         t = mat4RotateZ(0);
         object.transform = mat4MultiplyM(&object.transform, &t );
 

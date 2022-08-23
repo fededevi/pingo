@@ -35,7 +35,7 @@ Pixel * loadTexture(char * filename, Vec2i size) {
 }
 
 int main(){
-    Vec2i size = {120, 60};
+    Vec2i size = {200, 60};
 
     TerminalBackend backend;
     terminal_backend_init(&backend, size);

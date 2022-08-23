@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.0)
 project( pingo)
 
-# Source for rendering library
+# Pingo rendering library
 file( GLOB_RECURSE render_src render/*.h render/*.c )
 file( GLOB_RECURSE math_src math/*.h math/*.c )
 add_library( pingo ${render_src}  ${math_src} )
 target_link_libraries(pingo m)
 
-# Source for assets
+# Assets library 
 file( GLOB_RECURSE assets_src assets/*.h assets/*.c )
 add_library( assets ${assets_src})
 target_link_libraries(assets pingo m)
