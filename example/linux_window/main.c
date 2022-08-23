@@ -17,7 +17,6 @@
 
 
 Pixel * loadTexture(char * filename, Vec2i size) {
-    //Load from filesystem from a RAW RGBA file
     Pixel * image = malloc(size.x*size.y*4);
     FILE * file   = fopen(filename, "rb");
     if (file == 0) {
@@ -26,10 +25,12 @@ Pixel * loadTexture(char * filename, Vec2i size) {
     }
     for (int i = 1023; i > 0; i--) {
     for (int j = 0; j < 1024; j++) {
-            fread(&image[i*1024 + j].r, 1, 1, file);
-            fread(&image[i*1024 + j].g, 1, 1, file);
-            fread(&image[i*1024 + j].b, 1, 1, file);
-            fread(&image[i*1024 + j].a, 1, 1, file);
+            char r, g, b, a;
+            fread(&r, 1, 1, file);
+            fread(&g, 1, 1, file);
+            fread(&b, 1, 1, file);
+            fread(&a, 1, 1, file);
+            image[i*1024 + j] = pixelFromRGBA(r, g, b, a);
         }
     }
     fclose(file);
@@ -52,9 +53,14 @@ int main(){
 
     Object object;
     object.mesh = &viking_mesh;
-    object.material = 0;
 
-    Material
+    Pixel * image = loadTexture("../assets/viking.rgba", (Vec2i){1024,1024});
+	Texture tex;
+	texture_init(&tex, (Vec2i){1024, 1024},image);
+	Material m;
+	m.texture = &tex;
+	object.material = &m;
+
     sceneAddRenderable(&s, object_as_renderable(&object));
 
     float phi = 0;

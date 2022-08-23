@@ -16,11 +16,8 @@
 
 Vec4i rect;
 Vec2i totalSize;
-
 PingoDepth * zetaBuffer;
 Pixel * frameBuffer;
-
-bool initFlag = false;
 
 void init( Renderer * ren, BackEnd * backEnd, Vec4i _rect) {
     rect = _rect;
@@ -43,9 +40,7 @@ PingoDepth * getZetaBuffer( Renderer * ren,  BackEnd * backEnd) {
     return zetaBuffer;
 }
 
-
-
-void linuxFramebufferBackEndInit( LinuxFramebufferBackEnd * this, Vec2i size) {
+void linuxFramebufferBackEndInit( LinuxFramebufferBackEnd * this, Vec2i size, const char * framebufferDevice) {
     totalSize = size;
     this->backend.init = &init;
     this->backend.beforeRender = &beforeRender;
@@ -55,7 +50,7 @@ void linuxFramebufferBackEndInit( LinuxFramebufferBackEnd * this, Vec2i size) {
     this->backend.drawPixel = 0;
 
     zetaBuffer = malloc(size.x*size.y*sizeof (PingoDepth));
-    int fdScreen = open( "/dev/fb0", O_RDWR );
-    frameBuffer = mmap( 0, 1376*768*4*1, PROT_READ | PROT_WRITE, MAP_SHARED, fdScreen, 0 );    
+    int fdScreen = open( framebufferDevice, O_RDWR );
+    frameBuffer = mmap( 0, size.x*size.y*4, PROT_READ | PROT_WRITE, MAP_SHARED, fdScreen, 0 );    
 }
 

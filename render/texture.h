@@ -4,10 +4,6 @@
 #include "renderable.h"
 #include "math/vec2.h"
 
-#ifdef __cplusplus
-    extern "C" {
-#endif
-
 typedef struct  Texture {
    Vec2i size;
    Pixel * frameBuffer;
@@ -23,8 +19,3 @@ extern Pixel texture_read(Texture * f, Vec2i pos);
 
 extern Pixel texture_readF(Texture * f, Vec2f pos);
 
-extern Pixel texture_read_bilinear(Texture *f, Vec2f pos);
-
-#ifdef __cplusplus
-    }
-#endif

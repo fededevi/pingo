@@ -12,5 +12,5 @@ typedef  struct {
 } LinuxFramebufferBackEnd;
 
 
-void linuxFramebufferBackEndInit(LinuxFramebufferBackEnd * this, Vec2i size);
+void linuxFramebufferBackEndInit(LinuxFramebufferBackEnd * this, Vec2i size, const char *);
 

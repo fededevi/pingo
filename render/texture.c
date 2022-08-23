@@ -36,30 +36,6 @@ Pixel texture_readF(Texture *f, Vec2f pos)
     return value;
 }
 
-Pixel texture_read_bilinear(Texture *f, Vec2f pos)
-{
-    float kX = fmodf(pos.x, 1.0f);
-    int lowX = floorf(pos.x);
-    int higX = lowX + 1;
-
-    float kY = fmodf(pos.y, 1.0f);
-    int lowY = floorf(pos.y);
-    int higY = lowY + 1;
-
-    float p1 = f->frameBuffer[lowX + lowY * f->size.x].g;
-    float p2 = f->frameBuffer[higX + lowY * f->size.x].g;
-    float p3 = f->frameBuffer[lowX + higY * f->size.x].g;
-    float p4 = f->frameBuffer[higX + higY * f->size.x].g;
-
-    Pixel out ={
-        ((p1 * (1.0f - kX) + p2 * (kX)) * (1.0 - kY))
-        +
-        ((p3 * (1.0f - kX) + p4 * (kX)) * (kY))
-    };
-    return out;
-}
-
-
 
 
 

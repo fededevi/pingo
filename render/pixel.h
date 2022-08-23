@@ -3,17 +3,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+//What format to use [ UINT8 | RGB565 | RGBA8888 | BGRA8888 | RGB888 ]
+#define BGRA8888
 
-//What format to use:
-  // [ UINT8 | RGB565 | RGBA8888 | RGB888 ]
-#if defined(WIN32) || defined(__linux__)
-#define RGBA8888
-#else
-#define UINT8
-#endif
 //Formats definitions:
 #ifdef UINT8
 typedef struct Pixel {
@@ -56,14 +48,23 @@ typedef struct Pixel {
 #define PIXELWHITE (Pixel){255,255,255,255}
 #endif
 
-//Interface
+#ifdef BGRA8888
+typedef struct Pixel {
+    uint8_t b;
+    uint8_t g;
+    uint8_t r;
+    uint8_t a;
+} Pixel;
+
+#define PIXELBLACK (Pixel){0,0,0,255}
+#define PIXELWHITE (Pixel){255,255,255,255}
+#endif
+
+
+
+//Interface 
 extern Pixel pixelRandom();
 extern Pixel pixelFromUInt8( uint8_t);
 extern uint8_t pixelToUInt8( Pixel *);
-extern uint32_t pixelToRGBA( Pixel *);
 extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 extern Pixel pixelMul( Pixel p, float f);
-
-#ifdef __cplusplus
-}
-#endif

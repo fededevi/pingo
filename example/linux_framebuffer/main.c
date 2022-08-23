@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "render/material.h"
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/pixel.h"
@@ -12,11 +13,10 @@
 
 #include "linux_framebuffer_backend.h"
 
-#include "assets/teapot.h"
+#include "assets/viking.h"
 
 
 Pixel * loadTexture(char * filename, Vec2i size) {
-    //Load from filesystem from a RAW RGBA file
     Pixel * image = malloc(size.x*size.y*4);
     FILE * file   = fopen(filename, "rb");
     if (file == 0) {
@@ -25,10 +25,12 @@ Pixel * loadTexture(char * filename, Vec2i size) {
     }
     for (int i = 1023; i > 0; i--) {
     for (int j = 0; j < 1024; j++) {
-            fread(&image[i*1024 + j].r, 1, 1, file);
-            fread(&image[i*1024 + j].g, 1, 1, file);
-            fread(&image[i*1024 + j].b, 1, 1, file);
-            fread(&image[i*1024 + j].a, 1, 1, file);
+            char r, g, b, a;
+            fread(&r, 1, 1, file);
+            fread(&g, 1, 1, file);
+            fread(&b, 1, 1, file);
+            fread(&a, 1, 1, file);
+            image[i*1024 + j] = pixelFromRGBA(r, g, b, a);
         }
     }
     fclose(file);
@@ -36,10 +38,9 @@ Pixel * loadTexture(char * filename, Vec2i size) {
 }
 
 int main(){
-    Vec2i size = {640, 480};
-
+    Vec2i size = {1376, 768};
     LinuxFramebufferBackEnd backend;
-    linuxFramebufferBackEndInit(&backend, size);
+    linuxFramebufferBackEndInit(&backend, size, "/dev/fb0");
 
     Renderer renderer;
     rendererInit(&renderer, size,(BackEnd*) &backend );
@@ -50,30 +51,32 @@ int main(){
     rendererSetScene(&renderer, &s);
 
     Object object;
-    object.mesh = &mesh_teapot;
-    object.material = 0;
+    object.mesh = &viking_mesh;
+
+    Pixel * image = loadTexture("../assets/viking.rgba", (Vec2i){1024,1024});
+	Texture tex;
+	texture_init(&tex, (Vec2i){1024, 1024},image);
+	Material m;
+	m.texture = &tex;
+	object.material = &m;
+
     sceneAddRenderable(&s, object_as_renderable(&object));
 
     float phi = 0;
     Mat4 t;
 
-	// optional hide cursor
-	/*printf("\033[?25l");*/
 	while (1) {
         // PROJECTION MATRIX - Defines the type of projection used
         renderer.camera_projection = mat4Perspective( 1, 2500.0,(float)size.x / (float)size.y, 0.6);
 
         //VIEW MATRIX - Defines position and orientation of the "camera"
-        Mat4 v = mat4Translate((Vec3f) { 0,0.7,-3});
-        Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
+        Mat4 v = mat4Translate((Vec3f) { 0,2,-35});
+
+        Mat4 rotateDown = mat4RotateX(-0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
         //TEA TRANSFORM - Defines position and orientation of the object
         object.transform = mat4RotateZ(3.142128);
-        t = mat4Scale((Vec3f){1,1,1});
-        object.transform = mat4MultiplyM(&object.transform, &t );
-        t = mat4Translate((Vec3f){0,-1.4,0});
-        object.transform = mat4MultiplyM(&object.transform, &t );
         t = mat4RotateZ(0);
         object.transform = mat4MultiplyM(&object.transform, &t );
 
@@ -87,4 +90,3 @@ int main(){
 
     return 0;
 }
-

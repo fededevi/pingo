@@ -24,10 +24,12 @@ Pixel * loadTexture(char * filename, Vec2i size) {
     }
     for (int i = 1023; i > 0; i--) {
     for (int j = 0; j < 1024; j++) {
-            fread(&image[i*1024 + j].r, 1, 1, file);
-            fread(&image[i*1024 + j].g, 1, 1, file);
-            fread(&image[i*1024 + j].b, 1, 1, file);
-            fread(&image[i*1024 + j].a, 1, 1, file);
+            char r, g, b, a;
+            fread(&r, 1, 1, file);
+            fread(&g, 1, 1, file);
+            fread(&b, 1, 1, file);
+            fread(&a, 1, 1, file);
+            image[i*1024 + j] = pixelFromRGBA(r, g, b, a);
         }
     }
     fclose(file);
