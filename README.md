@@ -25,4 +25,4 @@ int main(){
 ```
 
 #### An example with texture and per-triangle shading
-![Example](/example/viking.png)
+![Example](/public/viking.png)
