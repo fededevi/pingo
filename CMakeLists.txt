@@ -4,12 +4,12 @@ project( pingo)
 # Pingo rendering library
 file( GLOB_RECURSE render_src render/*.h render/*.c )
 file( GLOB_RECURSE math_src math/*.h math/*.c )
-add_library( pingo ${render_src}  ${math_src} )
+add_library( pingo SHARED ${render_src}  ${math_src} )
 target_link_libraries(pingo m)
 
 # Assets library 
 file( GLOB_RECURSE assets_src assets/*.h assets/*.c )
-add_library( assets ${assets_src})
+add_library( assets SHARED ${assets_src})
 target_link_libraries(assets pingo m)
 
 #examples sources

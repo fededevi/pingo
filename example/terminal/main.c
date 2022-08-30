@@ -12,6 +12,7 @@
 #include "terminalbackend.h"
 
 #include "assets/teapot.h"
+#include "assets/pingo.h"
 
 
 Pixel * loadTexture(char * filename, Vec2i size) {
@@ -51,7 +52,7 @@ int main(){
     rendererSetScene(&renderer, &s);
 
     Object object;
-    object.mesh = &mesh_teapot;
+    object.mesh = &pingo_mesh;
     object.material = 0;
     sceneAddRenderable(&s, object_as_renderable(&object));
 
@@ -65,7 +66,7 @@ int main(){
         renderer.camera_projection = mat4Perspective( 1, 2500.0,(float)size.x / (float)size.y, 0.6);
 
         //VIEW MATRIX - Defines position and orientation of the "camera"
-        Mat4 v = mat4Translate((Vec3f) { 0,0.7,-3});
+        Mat4 v = mat4Translate((Vec3f) { 0,50,-250});
         Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
@@ -73,9 +74,9 @@ int main(){
         object.transform = mat4RotateZ(3.142128);
         t = mat4Scale((Vec3f){1,1,1});
         object.transform = mat4MultiplyM(&object.transform, &t );
-        t = mat4Translate((Vec3f){0,-1.4,0});
+        t = mat4Translate((Vec3f){0,70,0});
         object.transform = mat4MultiplyM(&object.transform, &t );
-        t = mat4RotateZ(0);
+        t = mat4RotateX(3.14);
         object.transform = mat4MultiplyM(&object.transform, &t );
 
         //SCENE
