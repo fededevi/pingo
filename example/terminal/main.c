@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "math/mat4.h"
 #include "render/mesh.h"
 #include "render/object.h"
-#include "render/pixel.h"
 #include "render/renderer.h"
-#include "render/scene.h"
+#include "render/entity.h"
 
 #include "terminalbackend.h"
 
@@ -15,23 +15,23 @@
 #include "assets/pingo.h"
 
 int main(){
+
+    Object object;
+    object_init(&object, &pingo_mesh, 0);
+
+    Entity root;
+    entity_init(&root, &object, mat4Identity());
+
     Vec2i size = {200, 60};
 
     TerminalBackend backend;
     terminal_backend_init(&backend, size);
 
     Renderer renderer;
-    rendererInit(&renderer, size,(BackEnd*) &backend );
+    renderer_init(&renderer, size,(Backend*) &backend );
     rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
 
-    Scene s;
-    sceneInit(&s);
-    rendererSetScene(&renderer, &s);
-
-    Object object;
-    object.mesh = &pingo_mesh;
-    object.material = 0;
-    sceneAddRenderable(&s, object_as_renderable(&object));
+    renderer_set_root_renderable(&renderer, &root);
 
     float phi = 0;
     Mat4 t;
@@ -48,19 +48,19 @@ int main(){
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
         //TEA TRANSFORM - Defines position and orientation of the object
-        object.transform = mat4RotateZ(3.142128);
+        root.transform = mat4RotateZ(3.142128);
         t = mat4Scale((Vec3f){1,1,1});
-        object.transform = mat4MultiplyM(&object.transform, &t );
+        root.transform = mat4MultiplyM(&root.transform, &t );
         t = mat4Translate((Vec3f){0,70,0});
-        object.transform = mat4MultiplyM(&object.transform, &t );
+        root.transform = mat4MultiplyM(&root.transform, &t );
         t = mat4RotateX(3.14);
-        object.transform = mat4MultiplyM(&object.transform, &t );
+        root.transform = mat4MultiplyM(&root.transform, &t );
 
         //SCENE
-        s.transform = mat4RotateY(phi);
+        root.transform = mat4RotateY(phi);
         phi += 0.01;
 
-        rendererRender(&renderer);
+        renderer_render(&renderer);
         usleep(40000);
 	}
 

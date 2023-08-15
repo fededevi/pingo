@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "math/mat4.h"
+#include "render/entity.h"
 #include "render/material.h"
 #include "render/mesh.h"
 #include "render/object.h"
@@ -37,29 +39,29 @@ Pixel * loadTexture(char * filename, Vec2i size) {
 }
 
 int main(){
+
+    Pixel * image = loadTexture("./viking.rgba", (Vec2i){1024,1024});
+    Texture texture;
+    texture_init(&texture, (Vec2i){1024, 1024}, image);
+
+    Material material;
+    material_init(&material, &texture);
+
+    Object viking_object;
+    object_init(&viking_object, &viking_mesh, &material);
+
+    Entity root_entity;
+    entity_init(&root_entity, &viking_object, mat4Identity());
+
+
     Vec2i size = {1376, 768};
     LinuxFramebufferBackEnd backend;
     linuxFramebufferBackEndInit(&backend, size, "/dev/fb0");
 
     Renderer renderer;
-    rendererInit(&renderer, size,(BackEnd*) &backend );
+    renderer_init(&renderer, size,(Backend*) &backend );
     rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
-
-    Entity s;
-    ent(&s);
-    rendererSetScene(&renderer, &s);
-
-    Object object;
-    object.mesh = &viking_mesh;
-
-    Pixel * image = loadTexture("./viking.rgba", (Vec2i){1024,1024});
-	Texture tex;
-	texture_init(&tex, (Vec2i){1024, 1024},image);
-	Material m;
-	m.texture = &tex;
-	object.material = &m;
-
-    sceneAddRenderable(&s, object_as_renderable(&object));
+    renderer_set_root_renderable(&renderer, &root_entity);
 
     float phi = 0;
     Mat4 t;
@@ -75,15 +77,15 @@ int main(){
         renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
         //TEA TRANSFORM - Defines position and orientation of the object
-        object.transform = mat4RotateZ(3.142128);
+        root_entity.transform = mat4RotateZ(3.142128);
         t = mat4RotateZ(0);
-        object.transform = mat4MultiplyM(&object.transform, &t );
+        root_entity.transform = mat4MultiplyM(&root_entity.transform, &t );
 
         //SCENE
-        s.transform = mat4RotateY(phi);
+        root_entity.transform = mat4RotateY(phi);
         phi += 0.01;
 
-        rendererRender(&renderer);
+        renderer_render(&renderer);
         usleep(40000);
 	}
 

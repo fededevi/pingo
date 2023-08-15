@@ -56,37 +56,29 @@ int main(){
 
 
     Vec2i size = {640, 480};
-    LinuxWindowBackEnd backend;
-    linuxWindowBackEndInit(&backend, size);
+    LinuxWindowBackend backend;
+    linuxWindowBackendInit(&backend, size);
 
     Renderer renderer;
-    rendererInit(&renderer, size,(BackEnd*) &backend );
-    rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
+    renderer_init(&renderer, size, &backend );
     renderer_set_root_renderable(&renderer, (Renderable*)&root_entity);
 
     float phi = 0;
     Mat4 t;
 
-	while (1) {
-        // PROJECTION MATRIX - Defines the type of projection used
-        renderer.camera_projection = mat4Perspective( 1, 2500.0,(float)size.x / (float)size.y, 0.6);
+    renderer.camera_projection = mat4Perspective( 1, 2500.0,(float)size.x / (float)size.y, 0.6);
 
-        //VIEW MATRIX - Defines position and orientation of the "camera"
-        Mat4 v = mat4Translate((Vec3f) { 0,2,-35});
+    Mat4 translate_back = mat4Translate((Vec3f) { 0,0,-35});
+    Mat4 rotate_down = mat4RotateX(0.40);
+    renderer.camera_view = mat4MultiplyM(&rotate_down, &translate_back );
 
-        Mat4 rotateDown = mat4RotateX(-0.40); //Rotate around origin/orbit
-        renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
-
-        //TEA TRANSFORM - Defines position and orientation of the object
-        root_entity.transform = mat4RotateZ(3.142128);
-        t = mat4RotateZ(0);
-        root_entity.transform = mat4MultiplyM(&root_entity.transform, &t );
+    while (1) {
 
         //SCENE
         root_entity.transform = mat4RotateY(phi);
         phi += 0.01;
 
-        rendererRender(&renderer);
+        renderer_render(&renderer);
 	}
 
     return 0;

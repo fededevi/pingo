@@ -1,15 +1,14 @@
 
 #pragma once
 
-#include "render/backend.h"
 #include "math/vec2.h"
+#include "render/backend.h"
 
 typedef struct Pixel Pixel;
 
-typedef  struct {
-    BackEnd backend;
-    Vec2i size;
-} LinuxWindowBackEnd;
+typedef struct {
+  Backend backend;
+  Vec2i size;
+} LinuxWindowBackend;
 
-
-void linuxWindowBackEndInit(LinuxWindowBackEnd * thiss, Vec2i size);
+void linuxWindowBackendInit(LinuxWindowBackend *thiss, Vec2i size);

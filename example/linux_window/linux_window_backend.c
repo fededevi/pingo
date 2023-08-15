@@ -1,7 +1,6 @@
 #include "linux_window_backend.h"
 
 #include "render/renderer.h"
-#include "render/texture.h"
 #include "render/pixel.h"
 #include "render/depth.h"
 
@@ -39,13 +38,13 @@ void init_x() {
     visual = DefaultVisual(dis, 0);
 };
 
-void init( Renderer * ren, BackEnd * backEnd, Vec4i _rect) {
+void init( Renderer * ren, Backend * Backend, Vec4i _rect) {
     rect = _rect;
     init_x();
 }
 
-void beforeRender( Renderer * ren, BackEnd * backEnd) {
-    LinuxWindowBackEnd * this = (LinuxWindowBackEnd *) backEnd;
+void beforeRender( Renderer * ren, Backend * Backend) {
+    LinuxWindowBackend * this = (LinuxWindowBackend *) Backend;
 
 }
 
@@ -54,7 +53,7 @@ XImage *create_ximage(Display *display, Visual *visual, int width, int height)
     return XCreateImage(display, visual, 24, ZPixmap, 0, (char*)&frameBuffer[0], width, height, 32, 0);
 }
 
-void afterRender( Renderer * ren,  BackEnd * backEnd) {
+void afterRender( Renderer * ren,  Backend * Backend) {
     if (!img)
     img = create_ximage(dis, visual, totalSize.x, totalSize.y);
 
@@ -70,15 +69,15 @@ void afterRender( Renderer * ren,  BackEnd * backEnd) {
 
 }
 
-Pixel * getFrameBuffer( Renderer * ren,  BackEnd * backEnd) {
+Pixel * getFrameBuffer( Renderer * ren,  Backend * Backend) {
     return frameBuffer;
 }
 
-PingoDepth * getZetaBuffer( Renderer * ren,  BackEnd * backEnd) {
+PingoDepth * getZetaBuffer( Renderer * ren,  Backend * Backend) {
     return zetaBuffer;
 }
 
-void linuxWindowBackEndInit( LinuxWindowBackEnd * this, Vec2i size) {
+void linuxWindowBackendInit( LinuxWindowBackend * this, Vec2i size) {
     totalSize = size;
     this->backend.init = &init;
     this->backend.beforeRender = &beforeRender;
