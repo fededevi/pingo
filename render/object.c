@@ -169,9 +169,9 @@ int object_render(void *this, Mat4 m, Renderer *r)
 
 int object_init(Object *this, Mesh *mesh, Material *material)
 {
-    IF_NULL_RETURN(this, RENDER_ERROR);
-    IF_NULL_RETURN(mesh, RENDER_ERROR);
-    IF_NULL_RETURN(material, RENDER_ERROR);
+    IF_NULL_RETURN(this, INIT_ERROR);
+    IF_NULL_RETURN(mesh, INIT_ERROR);
+    //IF_NULL_RETURN(material, INIT_ERROR);
 
     this->material = material;
     this->mesh = mesh;
