@@ -3,11 +3,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-// What format to use [ UINT8 | RGB565 | RGBA8888 | BGRA8888 | RGB888 ]
-#define RGB888
+// Define one of the available formats
+// #define PINGO_PIXEL_UINT8
+// #define PINGO_PIXEL_RGB565
+// #define PINGO_PIXEL_RGBA8888
+#define PINGO_PIXEL_BGRA8888
+// #define PINGO_PIXEL_RGB888
 
 // Formats definitions:
-#ifdef UINT8
+#ifdef PINGO_PIXEL_UINT8
 typedef struct Pixel {
   uint8_t g;
 } Pixel;
@@ -17,7 +21,7 @@ typedef struct Pixel {
   (Pixel) { 255 }
 #endif
 
-#ifdef RGB565
+#ifdef PINGO_PIXEL_RGB565
 typedef struct Pixel {
   uint8_t red : 5;
   uint8_t green : 6;
@@ -29,7 +33,7 @@ typedef struct Pixel {
   (Pixel) { 255 }
 #endif
 
-#ifdef RGB888
+#ifdef PINGO_PIXEL_RGB888
 typedef struct Pixel {
   uint8_t r;
   uint8_t g;
@@ -42,7 +46,7 @@ typedef struct Pixel {
   (Pixel) { 255, 255, 255 }
 #endif
 
-#ifdef RGBA8888
+#ifdef PINGO_PIXEL_RGBA8888
 typedef struct Pixel {
   uint8_t r;
   uint8_t g;
@@ -56,7 +60,7 @@ typedef struct Pixel {
   (Pixel) { 255, 255, 255, 255 }
 #endif
 
-#ifdef BGRA8888
+#ifdef PINGO_PIXEL_BGRA8888
 typedef struct Pixel {
   uint8_t b;
   uint8_t g;

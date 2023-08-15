@@ -1,6 +1,6 @@
 #include "pixel.h"
 
-#ifdef UINT8
+#ifdef PINGO_PIXEL_UINT8
 
 extern Pixel pixelRandom() {
     return (Pixel){(uint8_t)rand()};
@@ -26,7 +26,7 @@ extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 }
 #endif
 
-#ifdef RGB888
+#ifdef PINGO_PIXEL_RGB888
 extern Pixel pixelRandom() {
     return (Pixel){(uint8_t)rand(),(uint8_t)rand(),(uint8_t)rand()};
 }
@@ -56,7 +56,7 @@ extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a){
 }
 #endif
 
-#ifdef RGBA8888
+#ifdef PINGO_PIXEL_RGBA8888
 extern Pixel pixelRandom() {
     return (Pixel){(uint8_t)rand(),(uint8_t)rand(),(uint8_t)rand(),255};
 }
@@ -80,7 +80,7 @@ extern Pixel pixelMul(Pixel p, float f)
 #endif
 
 
-#ifdef BGRA8888
+#ifdef PINGO_PIXEL_BGRA8888
 extern Pixel pixelRandom() {
     return (Pixel){(uint8_t)rand(),(uint8_t)rand(),(uint8_t)rand(),255};
 }
