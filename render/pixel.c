@@ -37,6 +37,23 @@ uint32_t pixelToRGBA(Pixel * p)
     uint32_t a = p->r | p->g <<8 | p->b<<16| 255<<24;
     return a;
 }
+
+extern Pixel pixelMul(Pixel p, float f)
+{
+    return (Pixel){p.r*f,p.g*f,p.b*f};
+}
+
+extern Pixel pixelFromUInt8( uint8_t g){
+    return (Pixel){g,g,g};
+}
+
+extern uint8_t pixelToUInt8( Pixel * p){
+    return (p->r + p->g + p->b) / 3;
+}
+
+extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a){
+    return (Pixel){r,g,b};
+}
 #endif
 
 #ifdef RGBA8888
