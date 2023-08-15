@@ -54,7 +54,7 @@ int main(){
     Object object;
     object.mesh = &viking_mesh;
 
-    Pixel * image = loadTexture("../assets/viking.rgba", (Vec2i){1024,1024});
+    Pixel * image = loadTexture("assets/viking.rgba", (Vec2i){1024,1024});
 	Texture tex;
 	texture_init(&tex, (Vec2i){1024, 1024},image);
 	Material m;

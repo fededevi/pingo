@@ -6,3 +6,5 @@ build
 .vs/
 
 CMakeSettings.json
+
+CMakeLists.txt.user

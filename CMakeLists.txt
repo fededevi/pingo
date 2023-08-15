@@ -31,6 +31,7 @@ endif (WIN32)
 if (UNIX)
   add_executable( linux_window ${linux_window_src} )
   target_link_libraries(linux_window pingo assets X11)
+  configure_file(${CMAKE_SOURCE_DIR}/assets/viking.rgba ${CMAKE_BINARY_DIR}/assets/viking.rgba COPYONLY)
 
   add_executable( linux_framebuffer ${linux_framebuffer_src} )
   target_link_libraries(linux_framebuffer pingo assets)
