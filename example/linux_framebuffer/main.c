@@ -9,7 +9,6 @@
 #include "render/object.h"
 #include "render/pixel.h"
 #include "render/renderer.h"
-#include "render/scene.h"
 
 #include "linux_framebuffer_backend.h"
 
@@ -46,14 +45,14 @@ int main(){
     rendererInit(&renderer, size,(BackEnd*) &backend );
     rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
 
-    Scene s;
-    sceneInit(&s);
+    Entity s;
+    ent(&s);
     rendererSetScene(&renderer, &s);
 
     Object object;
     object.mesh = &viking_mesh;
 
-    Pixel * image = loadTexture("../assets/viking.rgba", (Vec2i){1024,1024});
+    Pixel * image = loadTexture("./viking.rgba", (Vec2i){1024,1024});
 	Texture tex;
 	texture_init(&tex, (Vec2i){1024, 1024},image);
 	Material m;

@@ -55,7 +55,6 @@ void terminal_backend_init(TerminalBackend *this, Vec2i size)
     this->backend.afterRender = &terminal_backend_afterRender;
     this->backend.getFrameBuffer = &terminal_backend_getFrameBuffer;
     this->backend.getZetaBuffer = &terminal_backend_getZetaBuffer;
-    this->backend.drawPixel = 0;
 
     zetaBuffer = malloc(size.x*size.y*sizeof (PingoDepth));
 	frameBuffer = malloc(size.x*size.y*sizeof (Pixel));
