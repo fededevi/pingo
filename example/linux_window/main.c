@@ -1,4 +1,3 @@
-
 #include "math/mat4.h"
 #include "assets/viking.h"
 #include "linux_window_backend.h"
@@ -68,13 +67,11 @@ int main(){
     renderer.camera_projection = mat4Perspective(1, 500.0, (float) size.x / (float) size.y, 1);
 
     Mat4 translate_back = mat4Translate((Vec3f){0, 0, -35});
-    Mat4 rotate_down = mat4RotateX(-0.30);
+    Mat4 rotate_down = mat4RotateX(0.30);
     renderer.camera_view = mat4MultiplyM(&rotate_down, &translate_back);
 
     while (1) {
-        Mat4 rotate1 = mat4RotateY(phi);
-        Mat4 rotate2 = mat4RotateX(3.1421);
-        root_entity.transform = mat4MultiplyM( &rotate1, &rotate2 );
+        root_entity.transform = mat4RotateY(phi);
 
         phi += 0.01;
 
