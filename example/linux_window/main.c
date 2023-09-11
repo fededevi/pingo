@@ -64,19 +64,14 @@ int main(){
     float phi = 0;
     Mat4 t;
 
-    renderer.camera_projection = mat4Perspective(1, 500.0, (float) size.x / (float) size.y, 1);
+    renderer.camera_projection = mat4Perspective(3, 50.0, (float) size.x / (float) size.y, 0.1);
 
-    Mat4 translate_back = mat4Translate((Vec3f){0, 0, -35});
-    Mat4 rotate_down = mat4RotateX(0.30);
-    renderer.camera_view = mat4MultiplyM(&rotate_down, &translate_back);
+    renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
 
     while (1) {
-        root_entity.transform = mat4RotateY(phi);
-
-        phi += 0.01;
-
+        root_entity.transform = mat4Translate((Vec3f){0, 0, -30});
         renderer_render(&renderer);
-	}
+    }
 
     return 0;
 }

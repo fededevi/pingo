@@ -2,6 +2,7 @@
 #include "backend.h"
 #include "depth.h"
 #include "math/fun.h"
+#include "math/mat4.h"
 #include "mesh.h"
 #include "render/material.h"
 #include "renderer.h"
@@ -17,7 +18,7 @@ int object_render(void *this, Mat4 m, Renderer *r)
     const Vec2i scrSize = r->framebuffer.size;
 
     // VIEW MATRIX
-    Mat4 v = r->camera_view;
+    Mat4 v = mat4Inverse( &r->camera_view );
     Mat4 p = r->camera_projection;
 
     for (int i = 0; i < o->mesh->indexes_count; i += 3) {
@@ -39,9 +40,11 @@ int object_render(void *this, Mat4 m, Renderer *r)
         Vec4f b = {ver2->x, ver2->y, ver2->z, 1};
         Vec4f c = {ver3->x, ver3->y, ver3->z, 1};
 
-        a = mat4MultiplyVec4(&a, &m);
-        b = mat4MultiplyVec4(&b, &m);
-        c = mat4MultiplyVec4(&c, &m);
+        Mat4 vm = mat4MultiplyM(&v,&m);
+
+        a = mat4MultiplyVec4(&a, &vm);
+        b = mat4MultiplyVec4(&b, &vm);
+        c = mat4MultiplyVec4(&c, &vm);
 
         //Calc Face Normal
         Vec3f na = vec3fsubV(*((Vec3f *) (&a)), *((Vec3f *) (&b)));
@@ -51,31 +54,31 @@ int object_render(void *this, Mat4 m, Renderer *r)
         float diffuseLight = (1.0 + vec3Dot(normal, light)) * 0.5;
         diffuseLight = MIN(1.0, MAX(diffuseLight, 0));
 
-        a = mat4MultiplyVec4(&a, &v);
-        b = mat4MultiplyVec4(&b, &v);
-        c = mat4MultiplyVec4(&c, &v);
-
         a = mat4MultiplyVec4(&a, &p);
         b = mat4MultiplyVec4(&b, &p);
         c = mat4MultiplyVec4(&c, &p);
+
 
         //Triangle is completely behind camera
         if (a.z > 0 && b.z > 0 && c.z > 0)
             continue;
 
         // convert to device coordinates by perspective division
-        a.w = 1.0 / a.w;
-        b.w = 1.0 / b.w;
-        c.w = 1.0 / c.w;
-        a.x *= a.w;
-        a.y *= a.w;
-        a.z *= a.w;
-        b.x *= b.w;
-        b.y *= b.w;
-        b.z *= b.w;
-        c.x *= c.w;
-        c.y *= c.w;
-        c.z *= c.w;
+        //a.w = 1.0 / a.w;
+        //b.w = 1.0 / b.w;
+        //c.w = 1.0 / c.w;
+        a.x /= a.w;
+        a.y /= a.w;
+        a.z /= a.w;
+        a.w = 1;
+        b.x /= b.w;
+        b.y /= b.w;
+        b.z /= b.w;
+        b.w = 1;
+        c.x /= c.w;
+        c.y /= c.w;
+        c.z /= c.w;
+        c.w = 1;
 
         float clocking = isClockWise(a.x, a.y, b.x, b.y, c.x, c.y);
         if (clocking >= 0)
@@ -136,15 +139,15 @@ int object_render(void *this, Mat4 m, Renderer *r)
                     continue;
 
                 float depth = -(w0 * a.z + w1 * b.z + w2 * c.z) * areaInverse;
-                if (depth < 0.0 || depth > 1.0)
+                if (depth < -1.0 || depth > 1.0)
                     continue;
 
                 if (depth_check(r->backend->getZetaBuffer(r, r->backend),
                                 x + y * scrSize.x,
-                                1 - depth))
+                                depth))
                     continue;
 
-                depth_write(r->backend->getZetaBuffer(r, r->backend), x + y * scrSize.x, 1 - depth);
+                depth_write(r->backend->getZetaBuffer(r, r->backend), x + y * scrSize.x, depth);
 
                 if (o->material != 0) {
                     //Texture lookup
