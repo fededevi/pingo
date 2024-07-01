@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "math/mat4.h"
 #include "render/mesh.h"
 #include "render/object.h"
-#include "render/pixel.h"
 #include "render/renderer.h"
-#include "render/scene.h"
+#include "render/entity.h"
 
 #include "terminalbackend.h"
 
@@ -15,52 +15,41 @@
 #include "assets/pingo.h"
 
 int main(){
+
+    Object object;
+    object_init(&object, &pingo_mesh, 0);
+
+    Entity root_entity;
+    entity_init(&root_entity, (Renderable*)&object, mat4Identity());
+
     Vec2i size = {200, 60};
 
     TerminalBackend backend;
     terminal_backend_init(&backend, size);
 
     Renderer renderer;
-    rendererInit(&renderer, size,(BackEnd*) &backend );
-    rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
+    renderer_init(&renderer, size,(Backend*) &backend );
 
-    Scene s;
-    sceneInit(&s);
-    rendererSetScene(&renderer, &s);
-
-    Object object;
-    object.mesh = &pingo_mesh;
-    object.material = 0;
-    sceneAddRenderable(&s, object_as_renderable(&object));
+    renderer_set_root_renderable(&renderer, (Renderable*)&root_entity);
 
     float phi = 0;
     Mat4 t;
 
-	// optional hide cursor
-	/*printf("\033[?25l");*/
-	while (1) {
-        // PROJECTION MATRIX - Defines the type of projection used
-        renderer.camera_projection = mat4Perspective( 1, 2500.0,(float)size.x / (float)size.y, 0.6);
+    // PROJECTION MATRIX - Defines the type of projection used
+    renderer.camera_projection = mat4Perspective( 1, 2500.0,(float)size.x / (float)size.y, 1);
 
-        //VIEW MATRIX - Defines position and orientation of the "camera"
-        Mat4 v = mat4Translate((Vec3f) { 0,50,-250});
-        Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
-        renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
+    //VIEW MATRIX - Defines position and orientation of the "camera"
+    Mat4 v = mat4Translate((Vec3f) { 0,0,-250});
+    Mat4 rotateDown = mat4RotateX(0.40); //Rotate around origin/orbit
+    renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
 
-        //TEA TRANSFORM - Defines position and orientation of the object
-        object.transform = mat4RotateZ(3.142128);
-        t = mat4Scale((Vec3f){1,1,1});
-        object.transform = mat4MultiplyM(&object.transform, &t );
-        t = mat4Translate((Vec3f){0,70,0});
-        object.transform = mat4MultiplyM(&object.transform, &t );
-        t = mat4RotateX(3.14);
-        object.transform = mat4MultiplyM(&object.transform, &t );
-
-        //SCENE
-        s.transform = mat4RotateY(phi);
+    while (1) {
+        Mat4 rotate1 = mat4RotateY(phi);
+        Mat4 rotate2 = mat4RotateX(3.1421);
+        root_entity.transform = mat4MultiplyM( &rotate1, &rotate2 );
         phi += 0.01;
 
-        rendererRender(&renderer);
+        renderer_render(&renderer);
         usleep(40000);
 	}
 

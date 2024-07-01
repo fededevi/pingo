@@ -1,30 +1,43 @@
 #include "sprite.h"
-#include "math/mat3.h"
+#include "math/mat4.h"
+#include "render/rasterizer.h"
+#include "renderer.h"
+#include "state.h"
 
-int spriteInit(Sprite *s, Texture f, Mat4 t)
+int render_sprite(void *_sprite, Mat4 transform, Renderer *renderer)
 {
-    if (f.frameBuffer == 0)
-        return 1;
+    IF_NULL_RETURN(_sprite, INIT_ERROR);
+    IF_NULL_RETURN(renderer, INIT_ERROR);
 
-    s->frame = f;
-    s->t = t;
+    Sprite *sprite = _sprite;
 
-    return 0;
+/*
+ *TODO: Implement for 3D?
+ * if (mat4IsOnlyTranslation(&t)) {
+ *     Vec2i off = {s->t.elements[2], s->t.elements[5]};
+ *     rasterizer_draw_pixel_perfect(off,r, &s->frame);
+ *     s->t = backUp;
+ *     return 0;
+ * }
+*/
+    rasterizer_draw_transformed(transform, renderer, &sprite->texture);
+    return OK;
+};
+
+int sprite_init(Sprite *this, Texture texture)
+{
+    IF_NULL_RETURN(this, INIT_ERROR);
+
+    this->texture = texture;
+    this->renderable.render = &render_sprite;
+
+  return OK;
 }
 
-Renderable spriteAsRenderable(Sprite * s) {
-    return (Renderable){ .renderableType = RENDERABLE_SPRITE, .impl = s};
-}
+int sprite_randomize(Sprite *this) {
+  for (int x = 0; x < this->texture.size.x; x++)
+    for (int y = 0; y < this->texture.size.y; y++)
+      texture_draw(&this->texture, (Vec2i){x, y}, pixelRandom());
 
-int spriteRandomize(Sprite * s)
-{
-
-    for (int x = 0; x < s->frame.size.x; x++ ) {
-        for (int y = 0; y < s->frame.size.y; y++ ) {
-
-            texture_draw(&s->frame,(Vec2i){x,y},pixelRandom());
-        }
-    }
-
-    return 0;
+  return OK;
 }

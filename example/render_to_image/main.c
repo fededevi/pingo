@@ -1,6 +1,7 @@
+
 #include "math/mat4.h"
 #include "assets/viking.h"
-#include "linux_window_backend.h"
+#include "jpeg_backend.h"
 
 #include "render/entity.h"
 #include "render/material.h"
@@ -54,24 +55,31 @@ int main(){
 
 
     Vec2i size = {640, 480};
-    LinuxWindowBackend backend;
-    linuxWindowBackendInit(&backend, size);
+    JpegBackend jpegBackend;
+    jpeg_backend_init(&jpegBackend, size, "out.jpeg");
 
     Renderer renderer;
-    renderer_init(&renderer, size, (Backend*)&backend );
+    renderer_init(&renderer, size, (Renderable*)&jpegBackend );
     renderer_set_root_renderable(&renderer, (Renderable*)&root_entity);
 
     float phi = 0;
     Mat4 t;
 
-    renderer.camera_projection = mat4Perspective(3, 50.0, (float) size.x / (float) size.y, 0.1);
+    renderer.camera_projection = mat4Perspective(1, 500.0, (float) size.x / (float) size.y, 1);
 
-    renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
+    Mat4 translate_back = mat4Translate((Vec3f){0, 0, -35});
+    Mat4 rotate_down = mat4RotateX(-0.30);
+    renderer.camera_view = mat4MultiplyM(&rotate_down, &translate_back);
 
     while (1) {
-        root_entity.transform = mat4Translate((Vec3f){0, 0, -30});
+        Mat4 rotate1 = mat4RotateY(phi);
+        Mat4 rotate2 = mat4RotateX(3.1421);
+        root_entity.transform = mat4MultiplyM( &rotate1, &rotate2 );
+
+        phi += 0.01;
+
         renderer_render(&renderer);
-    }
+	}
 
     return 0;
 }

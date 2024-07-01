@@ -4,18 +4,7 @@
 
 typedef struct Renderer Renderer;
 
-typedef enum  {
-    RENDERABLE_SCENE  =0,
-    RENDERABLE_SPRITE,
-    RENDERABLE_OBJECT,
-    RENDERABLE_COUNT,
-} RenderableType;
-
+/// A basic type which provide a render function pointer
 typedef struct {
-    RenderableType renderableType;
-    void * impl;
+  int (*render)(void *this, Mat4 transform, Renderer *renderer);
 } Renderable;
-
-extern int (*renderingFunctions[RENDERABLE_COUNT])(Mat4 transform, Renderer *, Renderable);
-
-

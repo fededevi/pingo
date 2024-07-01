@@ -15,6 +15,7 @@ target_link_libraries(assets pingo m)
 #examples sources
 file( GLOB_RECURSE linux_window_src example/linux_window/*.h example/linux_window/*.c )
 file( GLOB_RECURSE linux_framebuffer_src example/linux_framebuffer/*.h example/linux_framebuffer/*.c )
+file( GLOB_RECURSE render_to_image_src example/render_to_image/*.h example/render_to_image/*.c )
 file( GLOB_RECURSE terminal_src example/terminal/*.h example/terminal/*.c )
 file( GLOB_RECURSE win32_window_src example/win32_window/*.h example/win32_window/*.c example/win32_window/*.cpp )
 
@@ -30,10 +31,16 @@ endif (WIN32)
 
 if (UNIX)
   add_executable( linux_window ${linux_window_src} )
-  target_link_libraries(linux_window pingo assets X11)
+  target_link_libraries(linux_window pingo assets X11 jpeg)
+  configure_file(${CMAKE_SOURCE_DIR}/assets/viking.rgba ${CMAKE_BINARY_DIR}/assets/viking.rgba COPYONLY)
 
-  add_executable( linux_framebuffer ${linux_framebuffer_src} )
-  target_link_libraries(linux_framebuffer pingo assets)
+
+  add_executable( render_to_image ${render_to_image_src} )
+  target_link_libraries(render_to_image pingo assets jpeg)
+  configure_file(${CMAKE_SOURCE_DIR}/assets/viking.rgba ${CMAKE_BINARY_DIR}/assets/viking.rgba COPYONLY)
+
+#  add_executable( linux_framebuffer ${linux_framebuffer_src} )
+#  target_link_libraries(linux_framebuffer pingo assets)
 
   add_executable( linux_terminal ${terminal_src} )
   target_link_libraries(linux_terminal pingo assets)
