@@ -2,19 +2,62 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, test ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, test ]
 
 jobs:
-  example:
+  build-linux:
+    name: Build on Linux
     runs-on: ubuntu-latest
+
     steps:
-    - name: Setup cmake
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Setup CMake
       uses: jwlawson/actions-setup-cmake@v1.12
       with:
         cmake-version: '3.16.x'
-    - name: checkout
+
+    - name: Install Dependencies
+      run: sudo apt-get install -y build-essential
+
+    - name: Create Build Directory
+      run: mkdir -p build
+
+    - name: Configure with CMake
+      run: cmake -S . -B build
+
+    - name: Build with Make
+      run: cmake --build build -- -j$(nproc)
+
+    - name: Run Tests
+      run: ctest --output-on-failure
+      working-directory: build
+
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repository
       uses: actions/checkout@v2
-    - name: Use cmake
-      run: mkdir build && cd build && cmake ../ && make
+
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v1.12
+      with:
+        cmake-version: '3.16.x'
+
+    - name: Create Build Directory
+      run: mkdir -p build
+
+    - name: Configure with CMake
+      run: cmake -S . -B build
+
+    - name: Build with MSBuild
+      run: cmake --build build -- /m
+
+    - name: Run Tests
+      run: ctest --output-on-failure
+      working-directory: build
