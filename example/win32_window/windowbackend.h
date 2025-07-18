@@ -6,9 +6,9 @@ struct Renderer;
 #include "math/vec2.h"
 
 typedef struct Pixel Pixel;
-typedef  struct {
-    BackEnd backend;
+typedef struct {
+    Backend backend;
     Vec2i size;
-} WindowBackEnd;
+} WindowBackend;
 
-void windowBackEndInit(WindowBackEnd * thiss, Vec2i size);
+void window_backend_init(WindowBackend *thiss, Vec2i size);

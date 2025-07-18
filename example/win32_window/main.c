@@ -1,27 +1,32 @@
-#include "windowbackend.h"
+#include "math/mat4.h"
 #include "assets/viking.h"
-#include "render/renderer.h"
-#include "render/texture.h"
-#include "render/sprite.h"
-#include "render/scene.h"
+#include "windowbackend.h"
+
+#include "render/entity.h"
+#include "render/material.h"
 #include "render/object.h"
-#include "render/mesh.h"
-#include "math/mat3.h"
+#include "render/pixel.h"
+#include "render/renderer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+
 
 Pixel * loadTexture(char * filename, Vec2i size) {
-    //Load from filesystem from a RAW RGBA file
     Pixel * image = malloc(size.x*size.y*4);
     FILE * file   = fopen(filename, "rb");
+    if (file == 0) {
+        printf("Error: Could not open file %s\n", filename);
+        exit(-1);
+    }
     for (int i = 1023; i > 0; i--) {
     for (int j = 0; j < 1024; j++) {
-            fread(&image[i*1024 + j].r, 1, 1, file);
-            fread(&image[i*1024 + j].g, 1, 1, file);
-            fread(&image[i*1024 + j].b, 1, 1, file);
-            fread(&image[i*1024 + j].a, 1, 1, file);
+            char r, g, b, a;
+            fread(&r, 1, 1, file);
+            fread(&g, 1, 1, file);
+            fread(&b, 1, 1, file);
+            fread(&a, 1, 1, file);
+            image[i*1024 + j] = pixelFromRGBA(r, g, b, a);
         }
     }
     fclose(file);
@@ -29,59 +34,52 @@ Pixel * loadTexture(char * filename, Vec2i size) {
 }
 
 int main(){
-    Vec2i size = {1280, 800};
 
-    WindowBackEnd backend;
-    windowBackEndInit(&backend, size);
+    Pixel * image = loadTexture("assets/viking.rgba", (Vec2i){1024,1024});
+
+    Texture texture;
+    texture_init(&texture, (Vec2i){1024, 1024}, image);
+
+    Material material;
+    material_init(&material, &texture);
+
+    Object object;
+    object_init(&object, &viking_mesh, &material);
+
+    Entity root_entity;
+    entity_init(&root_entity, (Renderable*)&object, mat4Identity());
+
+
+    Vec2i size = {640, 480};
+    WindowBackend backend;
+    window_backend_init(&backend, size);
 
     Renderer renderer;
-    rendererInit(&renderer, size,(BackEnd*) &backend );
-
-    Scene s;
-    sceneInit(&s);
-    rendererSetScene(&renderer, &s);
-
-    Object viking_room;
-    viking_room.mesh = &viking_mesh;
-    sceneAddRenderable(&s, object_as_renderable(&viking_room));
-    viking_room.material = 0;
-
-    Pixel * image = loadTexture("texture.data", (Vec2i){1024,1024});
-
-    Texture tex;
-    texture_init(&tex, (Vec2i){1024,1024},image);
-
-    Material m;
-    m.texture = &tex;
-    viking_room.material = &m;
+    renderer_init(&renderer, size, (Backend*)&backend );
+    renderer_set_root_renderable(&renderer, (Renderable*)&root_entity);
 
     float phi = 0;
-    Mat4 t;
+
+    renderer.camera_projection = mat4Perspective(3, 50.0, (float) size.x / (float) size.y, 0.1);
+    renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
 
     while (1) {
-        // PROJECTION MATRIX - Defines the type of projection used
-        renderer.camera_projection = mat4Perspective( 1, 250.0,(float)size.x / (float)size.y, 70.0);
+        // Rotation around Y-axis
+        Mat4 rotation = mat4RotateY(phi);
 
-        //VIEW MATRIX - Defines position and orientation of the "camera"
-        Mat4 v = mat4Translate((Vec3f) { 0,0.7,-7});
-        Mat4 rotateDown = mat4RotateX(-0.40); //Rotate around origin/orbit
-        renderer.camera_view = mat4MultiplyM(&rotateDown, &v );
+        // Move object back so it's visible
+        Mat4 translation = mat4Translate((Vec3f){0, -7, -50});
 
-        //TEA TRANSFORM - Defines position and orientation of the object
-        viking_room.transform = mat4RotateZ(3.142128);
-        t = mat4Scale((Vec3f){0.2,0.2,0.2});
-        viking_room.transform = mat4MultiplyM(&viking_room.transform, &t );
-        t = mat4Translate((Vec3f){0,0,0});
-        viking_room.transform = mat4MultiplyM(&viking_room.transform, &t );
-        t = mat4RotateZ(0);
-        viking_room.transform = mat4MultiplyM(&viking_room.transform, &t );
+        // Combine transforms: T * R * Flip
+        //Mat4 model = mat4MultiplyM(&rotation, &flip);
+        Mat4 model = mat4MultiplyM(&rotation, &translation);
 
-        //SCENE
-        s.transform = mat4RotateY(cos(phi -= 0.05)+0.64);
+        root_entity.transform = model;
 
-        rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
-        rendererRender(&renderer);
+        renderer_render(&renderer);
 
+        phi += 0.01f;
+        usleep(16000); // ~60 FPS
     }
 
     return 0;
