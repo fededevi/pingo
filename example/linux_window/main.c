@@ -69,8 +69,22 @@ int main(){
     renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
 
     while (1) {
-        root_entity.transform = mat4Translate((Vec3f){0, 0, -30});
+        // Rotation around Y-axis
+        Mat4 rotation = mat4RotateY(phi);
+
+        // Move object back so it's visible
+        Mat4 translation = mat4Translate((Vec3f){0, -7, -50});
+
+        // Combine transforms: T * R * Flip
+        //Mat4 model = mat4MultiplyM(&rotation, &flip);
+        Mat4 model = mat4MultiplyM(&rotation, &translation);
+
+        root_entity.transform = model;
+
         renderer_render(&renderer);
+
+        phi += 0.01f;
+        usleep(16000); // ~60 FPS
     }
 
     return 0;
