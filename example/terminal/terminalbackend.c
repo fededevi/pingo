@@ -6,7 +6,7 @@
 #include "render/texture.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 Vec2i totalSize;
 PingoDepth * zetaBuffer;
@@ -20,22 +20,35 @@ void terminal_backend_beforeRender( Renderer * ren, Backend * backEnd) {
     printf("\033[2J");
 }
 
-void terminal_backend_afterRender( Renderer * ren,  Backend * backEnd) {
-    const char scale[] = "      ...,,,:::;;cc!!+*C##@";
-    int charSize = sizeof(scale);
-    for (int y = totalSize.y -1; y > 0; y-- ) {
-        char chars[totalSize.x];
-        for (int x = 0; x < totalSize.x; x++ ) {
+void terminal_backend_afterRender(Renderer *ren, Backend *backEnd) {
+    // Grayscale-to-ASCII mapping scale (from dark to bright)
+    const char scale[] = " .'`^\",:;Il!i><~+_-?][}{1)(|\\/*tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$█";
+    int charSize = strlen(scale);
+
+    // Optional: Move cursor to top-left instead of clearing screen
+    printf("\033[H");
+
+    for (int y = totalSize.y - 1; y >= 0; y--) {
+        for (int x = 0; x < totalSize.x; x++) {
+            // Normalize pixel intensity to [0, 1]
             double normalValue = pixelToUInt8(&frameBuffer[x + y * totalSize.x]) / 255.0;
-            normalValue += (rand() % 1000) * 0.0001;
-            normalValue = (normalValue + 0.1) * (1.0/1.2);
-            int index = 0.99 + charSize * normalValue;
-            index = index + ((rand() % 3) - 1);
-            index = index < 0 ? 0 : index >= charSize-1 ? charSize - 2: index;
-            chars[x] = scale[index];
-			printf("%c", chars[x]);
+
+            // Apply contrast curve
+            //normalValue = (normalValue + 0.1) / 1.2;
+
+            // Map to character index
+            int index = (int)(normalValue * (charSize - 1) + 0.5); // round
+
+
+            // Clamp index to valid range
+            if (index < 0) index = 0;
+            if (index >= charSize) index = charSize - 1;
+
+            // Output character directly
+            putchar(scale[index]);
+            putchar(scale[index]);
         }
-		printf("\n");
+        putchar('\n');
     }
 }
 
