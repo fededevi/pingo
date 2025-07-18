@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: CI Build Examples
 
 on:
   push:
@@ -7,14 +7,81 @@ on:
     branches: [ master ]
 
 jobs:
-  example:
+
+  build-linux_window:
     runs-on: ubuntu-latest
     steps:
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.12
-      with:
-        cmake-version: '3.16.x'
-    - name: checkout
+    - name: Checkout code
       uses: actions/checkout@v2
-    - name: Use cmake
-      run: mkdir build && cd build && cmake ../ && make
+
+    - name: Install X11 + JPEG
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libx11-dev libjpeg-dev
+
+    - name: Configure and build linux_window
+      run: |
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build --target linux_window --parallel
+
+  build-render_to_image:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install JPEG
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libjpeg-dev
+
+    - name: Configure and build render_to_image
+      run: |
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build --target render_to_image --parallel
+
+  build-linux_terminal:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure and build linux_terminal
+      run: |
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build --target linux_terminal --parallel
+
+  build-linux_framebuffer:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure and build linux_framebuffer
+      run: |
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build --target linux_framebuffer --parallel
+
+  build-win_window:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure win_window
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build win_window
+      run: cmake --build build --target win_window --config Release
+
+  build-win_terminal:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure win_terminal
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build win_terminal
+      run: cmake --build build --target win_terminal --config Release
