@@ -9,12 +9,18 @@ endif()
 file( GLOB_RECURSE render_src render/*.h render/*.c )
 file( GLOB_RECURSE math_src math/*.h math/*.c )
 add_library( pingo SHARED ${render_src}  ${math_src} )
-target_link_libraries(pingo m)
+if(UNIX) 
+  target_link_libraries(pingo m) 
+endif()
+
 
 # Assets library 
 file( GLOB_RECURSE assets_src assets/*.h assets/*.c )
 add_library( assets SHARED ${assets_src})
-target_link_libraries(assets pingo m)
+if (UNIX)
+  target_link_libraries(assets m)
+endif()
+
 
 #examples sources
 file( GLOB_RECURSE linux_window_src example/linux_window/*.h example/linux_window/*.c )
@@ -37,7 +43,6 @@ if (UNIX)
   add_executable( linux_window ${linux_window_src} )
   target_link_libraries(linux_window pingo assets X11 jpeg)
   configure_file(${CMAKE_SOURCE_DIR}/assets/viking.rgba ${CMAKE_BINARY_DIR}/assets/viking.rgba COPYONLY)
-
 
   add_executable( render_to_image ${render_to_image_src} )
   target_link_libraries(render_to_image pingo assets jpeg)
