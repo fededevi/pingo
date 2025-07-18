@@ -48,15 +48,18 @@ void init_x()
     visual = DefaultVisual(dis, 0);
 };
 
-void init(Renderer *ren, Backend *Backend, Vec4i _rect)
+void init(Renderer *ren, Backend *backend, Vec4i _rect)
 {
+    (void)ren;
+    (void)backend;
     rect = _rect;
     init_x();
 }
 
-void beforeRender(Renderer *ren, Backend *Backend)
+void beforeRender(Renderer *ren, Backend *backend)
 {
-    LinuxWindowBackend *this = (LinuxWindowBackend *) Backend;
+    (void)ren;
+    (void)backend;
 }
 
 XImage *create_ximage(Display *display, Visual *visual, int width, int height)
@@ -91,8 +94,10 @@ void texture_flip_vertically(Texture *f) {
     free(tempBuffer); // Free the temporary buffer
 }
 
-void afterRender(Renderer *ren, Backend *Backend)
+void afterRender(Renderer *ren, Backend *backend)
 {
+    (void)backend;
+
     if (!img) {
         img = create_ximage(dis, visual, totalSize.x, totalSize.y);
     }
@@ -105,13 +110,19 @@ void afterRender(Renderer *ren, Backend *Backend)
     XFlush(dis);
 }
 
-Pixel *getFrameBuffer(Renderer *ren, Backend *Backend)
+Pixel *getFrameBuffer(Renderer *ren, Backend *backend)
 {
+    (void)ren;
+    (void)backend;
+
     return frameBuffer;
 }
 
-PingoDepth *getZetaBuffer(Renderer *ren, Backend *Backend)
+PingoDepth *getZetaBuffer(Renderer *ren, Backend *backend)
 {
+    (void)ren;
+    (void)backend;
+
     return zetaBuffer;
 }
 

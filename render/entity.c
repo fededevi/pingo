@@ -15,8 +15,8 @@ int entity_render(void *this, Mat4 transform, Renderer *renderer)
 
     Mat4 new_transform = mat4MultiplyM(&entity->transform, &transform);
 
-    for (int i = 0; i < entity->children_entities.size; i++) {
-        Entity *child_entity = &entity->children_entities.data[i];
+    for (size_t i = 0; i < entity->children_entities.size; i++) {
+        Entity *child_entity = &((Entity *)entity->children_entities.data)[i];
         child_entity->renderable.render(child_entity, new_transform, renderer);
     }
 

@@ -59,11 +59,10 @@ int main(){
     jpeg_backend_init(&jpegBackend, size, "out.jpeg");
 
     Renderer renderer;
-    renderer_init(&renderer, size, (Renderable*)&jpegBackend );
+    renderer_init(&renderer, size, (Backend*)&jpegBackend );
     renderer_set_root_renderable(&renderer, (Renderable*)&root_entity);
 
     float phi = 0;
-    Mat4 t;
 
     renderer.camera_projection = mat4Perspective(1, 500.0, (float) size.x / (float) size.y, 1);
 

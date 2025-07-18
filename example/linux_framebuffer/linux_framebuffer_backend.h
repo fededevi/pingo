@@ -7,10 +7,10 @@
 typedef struct Pixel Pixel;
 
 typedef  struct {
-    BackEnd backend;
+    Backend backend;
     Vec2i size;
-} LinuxFramebufferBackEnd;
+} LinuxFramebufferBackend;
 
 
-void linuxFramebufferBackEndInit(LinuxFramebufferBackEnd * this, Vec2i size, const char *);
+void linux_framebuffer_backend_init(LinuxFramebufferBackend * this, Vec2i size, const char *);
 

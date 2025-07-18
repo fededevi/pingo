@@ -1,5 +1,3 @@
-#pragma once
-
 #include "array.h"
 #include "state.h"
 

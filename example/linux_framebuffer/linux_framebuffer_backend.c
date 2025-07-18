@@ -22,7 +22,10 @@ PingoDepth * zetaBuffer;
 Pixel * frameBuffer;
 Pixel * renderBuffer; // New buffer for rendering
 
-void init(Renderer *ren, BackEnd *backEnd, Vec4i _rect) {
+void init(Renderer *ren, Backend *backend, Vec4i _rect) {
+    (void)ren;
+    (void)backend;
+
     rect = _rect;
 
     // Allocate memory for the render buffer
@@ -33,36 +36,35 @@ void init(Renderer *ren, BackEnd *backEnd, Vec4i _rect) {
     }
 }
 
-void beforeRender(Renderer *ren, BackEnd *backEnd) {
-    LinuxFramebufferBackEnd *this = (LinuxFramebufferBackEnd *)backEnd;
-
-    // Clear the render buffer
-    //memset(renderBuffer, 0, rect.z * rect.w * sizeof(Pixel));
-
-    // Perform setup before rendering
-    // ...
+void beforeRender(Renderer *ren, Backend *backend) {
+    (void)ren;
+    (void)backend;
 }
 
-void afterRender(Renderer *ren, BackEnd *backEnd) {
-    LinuxFramebufferBackEnd *this = (LinuxFramebufferBackEnd *)backEnd;
+void afterRender(Renderer *ren, Backend *backend) {
+    (void)ren;
+    (void)backend;
 
     // Copy the contents of the render buffer to the framebuffer
     int bufferSize = rect.z * rect.w * sizeof(Pixel);
     memcpy(frameBuffer + rect.x + totalSize.x * rect.y, renderBuffer, bufferSize);
-
-    // Perform cleanup after rendering
-    // ...
 }
 
-Pixel *getFrameBuffer(Renderer *ren, BackEnd *backEnd) {
+Pixel *getFrameBuffer(Renderer *ren, Backend *backend) {
+    (void)ren;
+    (void)backend;
+
     return renderBuffer; // Return the render buffer for rendering
 }
 
-PingoDepth *getZetaBuffer(Renderer *ren, BackEnd *backEnd) {
+PingoDepth *getZetaBuffer(Renderer *ren, Backend *backend) {
+    (void)ren;
+    (void)backend;
+
     return zetaBuffer;
 }
 
-void linuxFramebufferBackEndInit(LinuxFramebufferBackEnd *this, Vec2i size, const char *framebufferDevice) {
+void linux_framebuffer_backend_init(LinuxFramebufferBackend *this, Vec2i size, const char *framebufferDevice) {
     totalSize = size;
     this->backend.init = &init;
     this->backend.beforeRender = &beforeRender;
@@ -74,5 +76,3 @@ void linuxFramebufferBackEndInit(LinuxFramebufferBackEnd *this, Vec2i size, cons
     int fdScreen = open(framebufferDevice, O_RDWR);
     frameBuffer = mmap(0, size.x * size.y * 4, PROT_READ | PROT_WRITE, MAP_SHARED, fdScreen, 0);
 }
-
-// Don't forget to free memory for renderBuffer and zetaBuffer when no longer needed

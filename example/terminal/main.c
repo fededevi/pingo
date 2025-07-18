@@ -63,7 +63,6 @@ int main(){
     renderer_set_root_renderable(&renderer, (Renderable*)&root_entity);
 
     float phi = 0;
-    Mat4 t;
 
     renderer.camera_projection = mat4Perspective(3, 50.0, (float) size.x / (float) size.y, 0.1);
 

@@ -12,15 +12,24 @@ Vec2i totalSize;
 PingoDepth * zetaBuffer;
 Pixel * frameBuffer;
 
-void terminal_backend_init_backend( Renderer * ren, Backend * backEnd, Vec4i _rect) {
+void terminal_backend_init_backend( Renderer * ren, Backend * backend, Vec4i rect) {
+    (void)ren;
+    (void)backend;
+    (void)rect;
 }
 
-void terminal_backend_beforeRender( Renderer * ren, Backend * backEnd) {
+void terminal_backend_beforeRender( Renderer * ren, Backend * backend) {
+    (void)ren;
+    (void)backend;
+
     // clear and move cursor to start point
     printf("\033[2J");
 }
 
-void terminal_backend_afterRender(Renderer *ren, Backend *backEnd) {
+void terminal_backend_afterRender(Renderer *ren, Backend *backend) {
+    (void)ren;
+    (void)backend;
+
     // Grayscale-to-ASCII mapping scale (from dark to bright)
     const char scale[] = " .'`^\",:;Il!i><~+_-?][}{1)(|\\/*tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$█";
     int charSize = strlen(scale);
@@ -52,11 +61,15 @@ void terminal_backend_afterRender(Renderer *ren, Backend *backEnd) {
     }
 }
 
-Pixel * terminal_backend_getFrameBuffer( Renderer * ren,  Backend * backEnd) {
+Pixel * terminal_backend_getFrameBuffer( Renderer * ren,  Backend * backend) {
+    (void)ren;
+    (void)backend;
     return frameBuffer;
 }
 
-PingoDepth * terminal_backend_getZetaBuffer( Renderer * ren,  Backend * backEnd) {
+PingoDepth * terminal_backend_getZetaBuffer( Renderer * ren,  Backend * backend) {
+    (void)ren;
+    (void)backend;
     return zetaBuffer;
 }
 

@@ -10,6 +10,7 @@
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/pixel.h"
+#include "render/renderable.h"
 #include "render/renderer.h"
 
 #include "linux_framebuffer_backend.h"
@@ -51,17 +52,16 @@ int main(){
     object_init(&viking_object, &viking_mesh, &material);
 
     Entity root_entity;
-    entity_init(&root_entity, &viking_object, mat4Identity());
+    entity_init(&root_entity, (Renderable*)&viking_object, mat4Identity());
 
 
     Vec2i size = {1376, 768};
-    LinuxFramebufferBackEnd backend;
-    linuxFramebufferBackEndInit(&backend, size, "/dev/fb0");
+    LinuxFramebufferBackend backend;
+    linux_framebuffer_backend_init(&backend, size, "/dev/fb0");
 
     Renderer renderer;
     renderer_init(&renderer, size,(Backend*) &backend );
-    rendererSetCamera(&renderer,(Vec4i){0,0,size.x,size.y});
-    renderer_set_root_renderable(&renderer, &root_entity);
+    renderer_set_root_renderable(&renderer, (Renderable*)&root_entity);
 
     float phi = 0;
     Mat4 t;

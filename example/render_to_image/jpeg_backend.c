@@ -15,19 +15,32 @@ PingoDepth *zetaBuffer;
 Pixel *frameBuffer;
 Vec2i imageSize;
 
-void jpbe_init(Renderer *ren, Backend *Backend, Vec4i _rect) {}
-
-void jpbe_beforeRender(Renderer *ren, Backend *Backend) {}
-
-Pixel * jpbe_getFrameBuffer(Renderer *ren, Backend *Backend) { return frameBuffer; }
-
-PingoDepth * jpbe_getZetaBuffer(Renderer *ren, Backend *Backend) {
-  return zetaBuffer;
+void jpbe_init(Renderer *ren, Backend *backend, Vec4i _rect) {
+    (void)ren;
+    (void)backend;
+    (void)_rect;
 }
 
-void jpbe_afterRender(Renderer *ren, Backend *Backend)
-{
-  JpegBackend *jpegBackend = (JpegBackend *)Backend;
+void jpbe_beforeRender(Renderer *ren, Backend *backend) {
+    (void)ren;
+    (void)backend;
+}
+
+Pixel * jpbe_getFrameBuffer(Renderer *ren, Backend *backend) {
+    (void)ren;
+    (void)backend;
+    return frameBuffer;
+}
+
+PingoDepth * jpbe_getZetaBuffer(Renderer *ren, Backend *backend) {
+    (void)ren;
+    (void)backend;
+    return zetaBuffer;
+}
+
+void jpbe_afterRender(Renderer *ren, Backend *backend) {
+  (void)ren;
+  JpegBackend *jpegBackend = (JpegBackend *)backend;
 
   FILE *jpegFile = fopen(jpegBackend->jpegFilename, "wb");
   if (!jpegFile) {
@@ -54,7 +67,7 @@ void jpbe_afterRender(Renderer *ren, Backend *Backend)
 
   JSAMPROW row_pointer[1];
   while (cinfo.next_scanline < cinfo.image_height) {
-      row_pointer[0] = &frameBuffer[cinfo.next_scanline * imageSize.x];
+      row_pointer[0] =  (JSAMPROW)&frameBuffer[cinfo.next_scanline * imageSize.x];
       jpeg_write_scanlines(&cinfo, row_pointer, 1);
   }
 
