@@ -73,15 +73,3 @@ jobs:
 
     - name: Build win_window
       run: cmake --build build --target win_window --config Release
-
-  build-win_terminal:
-    runs-on: windows-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Configure win_terminal
-      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-
-    - name: Build win_terminal
-      run: cmake --build build --target win_terminal --config Release

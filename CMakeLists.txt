@@ -34,9 +34,6 @@ include_directories( ./ )
 if (WIN32)
   add_executable( win_window ${win32_window_src} )
   target_link_libraries(win_window pingo assets gdi32)
-
-  add_executable( win_terminal ${terminal_src} )
-  target_link_libraries(win_terminal pingo assets)
 endif (WIN32)
 
 if (UNIX)
