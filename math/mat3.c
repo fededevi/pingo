@@ -4,6 +4,11 @@
 #include <math.h>
 #include <stdint.h>
 
+#if defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable: 4244)
+#endif
+
 Mat3 mat3Identity() {
     return (Mat3){{
         1,  0,  0,
@@ -165,3 +170,7 @@ int mat3IsOnlyTranslationDoubled(Mat3 *m)
     if (m->elements[8] != 1.0) return 0;
     return 1;
 }
+
+#if defined(_MSC_VER)
+    #pragma warning(pop)
+#endif

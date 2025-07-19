@@ -120,7 +120,7 @@ int object_render(void *this, Mat4 m, Renderer *r)
         int32_t w1_row = orient2d(c_s, a_s, minTriangle);
         int32_t w2_row = orient2d(a_s, b_s, minTriangle);
 
-        if (o->material != 0) {
+        if (o->material != 0 && a.z != 0 && b.z != 0 && c.z != 0) {
             tca.x /= a.z;
             tca.y /= a.z;
             tcb.x /= b.z;

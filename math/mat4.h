@@ -30,11 +30,11 @@ Mat4 mat4MultiplyM( Mat4 * m1, Mat4 * m2);
 Mat4 mat4Inverse(Mat4 * mat);
 Mat4 mat4Scale(Vec3f s);
 
-Mat4 mat4Perspective(float near, float far, float aspect, float fov);
-Mat4 mat4Perspective(float near,  float far, float aspect, float fov );
+Mat4 mat4Perspective(F_TYPE near, F_TYPE far, F_TYPE aspect, F_TYPE fov);
+Mat4 mat4Perspective(F_TYPE near,  F_TYPE far, F_TYPE aspect, F_TYPE fov );
 
-float mat4NearFromProjection(Mat4 mat);
-float mat4FarFromProjection(Mat4 mat);
+F_TYPE mat4NearFromProjection(Mat4 mat);
+F_TYPE mat4FarFromProjection(Mat4 mat);
 
 #ifdef __cplusplus
 }

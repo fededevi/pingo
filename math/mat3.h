@@ -30,7 +30,7 @@ extern Mat3 mat3Translate(Vec2f l);
  | s(Θ) | c(Θ)   | 0 |
  | 0    | 0      | 1 |
 */
-extern Mat3 mat3Rotate(float theta);
+extern Mat3 mat3Rotate(F_TYPE theta);
 
 
 /* Builds a clean scale matrix of x, y scaling factors
@@ -52,7 +52,7 @@ extern Mat3 mat3Inverse( Mat3 *v );
 /* Calculate a complete matrix transformation with translation rotation and scale working as expected
  * Rotation and scaled are applied in reference to the provided origin
  */
-extern Mat3 mat3Complete( Vec2f origin, Vec2f translation, Vec2f scale, float rotation );
+extern Mat3 mat3Complete( Vec2f origin, Vec2f translation, Vec2f scale, F_TYPE rotation );
 
 //Calculate determinant of matrix
 extern F_TYPE mat3Determinant(Mat3 * m);

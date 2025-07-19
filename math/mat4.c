@@ -6,6 +6,12 @@
 #include <math.h>
 #include <stdint.h>
 
+#if defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable: 4244)
+#endif
+
+
 Mat4 mat4Identity() {
     return (Mat4){{
             1,  0,  0, 0,
@@ -130,7 +136,7 @@ Mat4 mat4MultiplyM( Mat4 * m1, Mat4 * m2) {
 F_TYPE mat4Determinant(Mat4 * mat)
 {
     F_TYPE * a = mat->elements;
-    float a00 = a[0],  a01 = a[1],  a02 = a[2],  a03 = a[3],
+    F_TYPE a00 = a[0],  a01 = a[1],  a02 = a[2],  a03 = a[3],
             a10 = a[4],  a11 = a[5],  a12 = a[6],  a13 = a[7],
             a20 = a[8],  a21 = a[9],  a22 = a[10], a23 = a[11],
             a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
@@ -155,7 +161,7 @@ F_TYPE mat4Determinant(Mat4 * mat)
 Mat4 mat4Inverse(Mat4 * mat)
 {
     F_TYPE * m = mat->elements;
-    float inv[16], det;
+    F_TYPE inv[16], det;
 
     inv[0] = m[5]  * m[10] * m[15] -
             m[5]  * m[11] * m[14] -
@@ -281,7 +287,7 @@ Mat4 mat4Inverse(Mat4 * mat)
     return out;
 }
 
-Mat4 mat4Perspective2(float near, float far, float aspect, float fovy)
+Mat4 mat4Perspective2(F_TYPE near, F_TYPE far, F_TYPE aspect, F_TYPE fovy)
 {
     F_TYPE h = 1.0 / tan(fovy * 0.5);
     F_TYPE w = h / aspect;
@@ -300,7 +306,7 @@ Mat4 mat4Perspective2(float near, float far, float aspect, float fovy)
     return m;
 }
 
-Mat4 mat4Perspective(float near, float far, float aspect, float fovy)
+Mat4 mat4Perspective(F_TYPE near, F_TYPE far, F_TYPE aspect, F_TYPE fovy)
 {
     F_TYPE h = 1.0 / tan(  fovy * 0.5 ) ;
     F_TYPE w = 1.0 / tan(  aspect * fovy * 0.5 ) ;
@@ -317,21 +323,23 @@ Mat4 mat4Perspective(float near, float far, float aspect, float fovy)
     return m;
 }
 
-float mat4NearFromProjection(Mat4 mat)
+F_TYPE mat4NearFromProjection(Mat4 mat)
 {
-    float C = mat.elements[10]; // 2 2
-    float D = mat.elements[11]; // 2 3
+    F_TYPE C = mat.elements[10]; // 2 2
+    F_TYPE D = mat.elements[11]; // 2 3
 
     return D / (C - 1.0);
 }
 
-float mat4FarFromProjection(Mat4 mat)
+F_TYPE mat4FarFromProjection(Mat4 mat)
 {
-    float C = mat.elements[10]; // 2 2
-    float D = mat.elements[11]; // 2 3
+    F_TYPE C = mat.elements[10]; // 2 2
+    F_TYPE D = mat.elements[11]; // 2 3
 
     return D / (C + 1.0);
 }
 
-
+#if defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
 
