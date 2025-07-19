@@ -65,11 +65,16 @@ jobs:
   build-win_window:
     runs-on: windows-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Configure win_window
-      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+      - name: Install MinGW-w64
+        run: |
+          choco install mingw --version=8.1.0 -y
+          echo "C:\\tools\\mingw64\\bin" >> $GITHUB_PATH
 
-    - name: Build win_window
-      run: cmake --build build --target win_window --config Release
+      - name: Configure win_window with MinGW
+        run: cmake -B build -S . -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build win_window with MinGW
+        run: cmake --build build --target win_window --config Release
