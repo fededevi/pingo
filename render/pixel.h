@@ -8,7 +8,7 @@
 // #define PINGO_PIXEL_RGB565
 // #define PINGO_PIXEL_RGBA8888
 #define PINGO_PIXEL_BGRA8888
-// #define PINGO_PIXEL_RGB888
+//#define PINGO_PIXEL_RGB888
 
 // Formats definitions:
 #ifdef PINGO_PIXEL_UINT8

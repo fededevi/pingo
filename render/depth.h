@@ -12,15 +12,15 @@ typedef struct PingoDepth {
 #endif
 
 #ifdef ZBUFFER16
-typedef struct Depth {
+typedef struct PingoDepth {
   uint16_t d;
-} Depth;
+} PingoDepth;
 #endif
 
 #ifdef ZBUFFER8
-typedef struct Depth {
+typedef struct PingoDepth {
   uint8_t d;
-} Depth;
+} PingoDepth;
 #endif
 
 void depth_write(PingoDepth *d, int idx, float value);

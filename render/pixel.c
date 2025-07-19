@@ -31,13 +31,6 @@ extern Pixel pixelRandom() {
     return (Pixel){(uint8_t)rand(),(uint8_t)rand(),(uint8_t)rand()};
 }
 
-uint32_t pixelToRGBA(Pixel * p)
-{
-    uint8_t g = p->g;
-    uint32_t a = p->r | p->g <<8 | p->b<<16| 255<<24;
-    return a;
-}
-
 extern Pixel pixelMul(Pixel p, float f)
 {
     return (Pixel){p.r*f,p.g*f,p.b*f};
@@ -52,6 +45,7 @@ extern uint8_t pixelToUInt8( Pixel * p){
 }
 
 extern Pixel pixelFromRGBA( uint8_t r, uint8_t g, uint8_t b, uint8_t a){
+    (void)a;
     return (Pixel){r,g,b};
 }
 #endif

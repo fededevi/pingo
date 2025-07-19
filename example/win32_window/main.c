@@ -1,6 +1,7 @@
 #include "math/mat4.h"
 #include "assets/viking.h"
 #include "windowbackend.h"
+#include <windows.h>
 
 #include "render/entity.h"
 #include "render/material.h"
@@ -79,7 +80,7 @@ int main(){
         renderer_render(&renderer);
 
         phi += 0.01f;
-        usleep(16000); // ~60 FPS
+        Sleep(16); // ~60 FPS
     }
 
     return 0;

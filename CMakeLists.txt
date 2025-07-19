@@ -5,6 +5,13 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options( -Wall -Wextra -Wpointer-arith )
 endif()
 
+if (MSVC)
+    add_compile_options(
+        /wd4305  # truncation from double to float
+        /wd4244  # conversion possible loss of data
+    )
+endif()
+
 # Pingo rendering library
 file( GLOB_RECURSE render_src render/*.h render/*.c )
 file( GLOB_RECURSE math_src math/*.h math/*.c )

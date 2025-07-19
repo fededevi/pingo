@@ -1,186 +1,159 @@
-#ifdef WIN32
+#include <stdint.h>
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 
-#include <Windows.h>
+#define UNICODE
+#define _UNICODE
+
+#include <windows.h>
 #include <wingdi.h>
-#include <gdiplus.h>
 
 #include "windowbackend.h"
-
 #include "render/renderer.h"
-#include "render/texture.h"
-#include "render/pixel.h"
-#include "render/depth.h"
 
-LPCWSTR g_szClassName = L"myWindowClass";
+static LPCWSTR g_szClassName = L"myWindowClass";
 
-Vec4i rect;
-Vec2i total_size;
-
-Depth *zeta_buffer;
-Pixel *frame_buffer;
-COLORREF *copy_buffer;
-
-HWND window_handle;
-HDC windows_hdc;
-
-LRESULT CALLBACK wnd_proc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
+static LRESULT CALLBACK wnd_proc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 {
     switch (msg)
     {
     case WM_CLOSE:
         DestroyWindow(hwnd);
         break;
-    case WM_ERASEBKGND:
-        break;
-    case WM_PAINT:
-    {
-        for (int y = 0; y < rect.z * rect.w; y++)
-        {
-            copy_buffer[y] = pixel_to_rgba(&frame_buffer[y]);
-        }
-
-        HBITMAP map = CreateBitmap(rect.z,      // width
-                                   rect.w,      // height
-                                   1,           // Color Planes
-                                   8 * 4,       // Size of memory for one pixel in bits
-                                   copy_buffer); // pointer to array
-
-        HDC bitmap_hdc = CreateCompatibleDC(windows_hdc);
-        SelectObject(bitmap_hdc, map); // Inserting picture into our temp HDC
-
-        PAINTSTRUCT ps;
-        //BeginPaint(window_handle, &ps);
-        FillRect(windows_hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
-        BitBlt(windows_hdc,  // Destination
-               rect.x,       // x dest
-               rect.y,       // y dest
-               rect.z,       // width
-               rect.w,       // height
-               bitmap_hdc,   // source bitmap
-               0,            // x source
-               0,            // y source
-               SRCCOPY);     // copy pixels
-        ps.rcPaint = (RECT){0, 0, total_size.x, total_size.y};
-        //EndPaint(window_handle, &ps);
-        DeleteDC(bitmap_hdc);
-        DeleteObject(map);
-    }
-    break;
-
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
-
     default:
         return DefWindowProc(hwnd, msg, w_param, l_param);
     }
     return 0;
 }
 
-HWND WINAPI win_main(HINSTANCE h_instance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+static HWND win_main(HINSTANCE h_instance, int nCmdShow, WindowBackend *wb)
 {
-    (void)hPrevInstance;
-    (void)lpCmdLine;
-
-    WNDCLASSEX wc;
-    HWND hwnd;
-
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = 0;
+    WNDCLASSEXW wc = {0};
+    wc.cbSize = sizeof(WNDCLASSEXW);
     wc.lpfnWndProc = wnd_proc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
     wc.hInstance = h_instance;
     wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    wc.lpszMenuName = NULL;
     wc.lpszClassName = g_szClassName;
     wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
-    if (!RegisterClassEx(&wc))
+    if (!RegisterClassExW(&wc))
     {
-        MessageBox(NULL, L"Window Registration Failed!", L"Error!",
-                   MB_ICONEXCLAMATION | MB_OK);
+        MessageBoxW(NULL, L"Window Registration Failed!", L"Error!", MB_ICONEXCLAMATION | MB_OK);
         return 0;
     }
 
-    hwnd = CreateWindowEx(
+    HWND hwnd = CreateWindowExW(
         WS_EX_CLIENTEDGE,
         g_szClassName,
         L"Pingo renderer - Window backend",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        total_size.x + 20, // Adjusted for borders
-        total_size.y + 41, // Adjusted for borders
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        wb->size.x + 16, wb->size.y + 39,
         NULL, NULL, h_instance, NULL);
 
     ShowWindow(hwnd, nCmdShow);
     UpdateWindow(hwnd);
 
-    windows_hdc = GetDC(hwnd);
-    window_handle = hwnd;
+    wb->window_handle = hwnd;
+    wb->windows_hdc = GetDC(hwnd);
+
     return hwnd;
 }
 
-void init(Renderer *ren, Backend *backend, Vec4i _rect)
+static void init(Renderer *ren, Backend *backend, Vec4i rect)
 {
     (void)ren;
-    (void)backend;
-    // Save the rect so the windows drawing code knows where and how to copy the rendered buffer on the window
-    rect = _rect;
+    WindowBackend *wb = (WindowBackend *)backend;
+    wb->rect = rect;
 }
 
-void before_render(Renderer *ren, Backend *backend)
+static void before_render(Renderer *ren, Backend *backend)
 {
     (void)ren;
     (void)backend;
 }
 
-void after_render(Renderer *ren, Backend *backend)
+static void after_render(Renderer *ren, Backend *backend)
 {
     (void)ren;
-    (void)backend;
+    WindowBackend *wb = (WindowBackend *)backend;
 
-    // Dispatch window messages, eventually one of the messages will be a redraw and the window rect will be updated
+    StretchDIBits(
+        wb->windows_hdc,
+        0, 0, wb->size.x, wb->size.y,
+        0, 0, wb->size.x, wb->size.y,
+        wb->frame_buffer,
+        (BITMAPINFO *)&(BITMAPINFO){
+            .bmiHeader = {
+                .biSize = sizeof(BITMAPINFOHEADER),
+                .biWidth = wb->size.x,
+                .biHeight = wb->size.y,
+                .biPlanes = 1,
+                .biBitCount = 32,
+                .biCompression = BI_RGB,
+            }
+        },
+        DIB_RGB_COLORS,
+        SRCCOPY);
+
     MSG msg;
-    if (GetMessage(&msg, NULL, 0, 0))
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
 }
 
-Pixel *get_frame_buffer(Renderer *ren, Backend *backend)
+static Pixel *get_frame_buffer(Renderer *ren, Backend *backend)
 {
     (void)ren;
-    (void)backend;
-    return frame_buffer;
+    return ((WindowBackend *)backend)->frame_buffer;
 }
 
-Depth *get_zeta_buffer(Renderer *ren, Backend *backend)
+static PingoDepth *get_zeta_buffer(Renderer *ren, Backend *backend)
 {
     (void)ren;
-    (void)backend;
-    return zeta_buffer;
+    return ((WindowBackend *)backend)->zeta_buffer;
 }
 
-void window_backend_init(WindowBackend *this, Vec2i size)
+void window_backend_init(WindowBackend *thiss, Vec2i size)
 {
-    total_size = size;
-    this->backend.init = &init;
-    this->backend.beforeRender = &before_render;
-    this->backend.afterRender = &after_render;
-    this->backend.getFrameBuffer = &get_frame_buffer;
-    this->backend.getZetaBuffer = &get_zeta_buffer;
-    this->backend.drawPixel = 0;
+    printf("[Init] Initializing window backend with size %d x %d\n", size.x, size.y);
 
-    zeta_buffer = malloc(size.x * size.y * sizeof(Depth));
-    frame_buffer = malloc(size.x * size.y * sizeof(Pixel));
-    copy_buffer = malloc(size.x * size.y * sizeof(COLORREF));
+    thiss->backend.init = init;
+    thiss->backend.beforeRender = before_render;
+    thiss->backend.afterRender = after_render;
+    thiss->backend.getFrameBuffer = get_frame_buffer;
+    thiss->backend.getZetaBuffer = get_zeta_buffer;
 
-    window_handle = win_main(0, 0, 0, SW_NORMAL);
+    thiss->size = size;
+
+    thiss->zeta_buffer = malloc(size.x * size.y * sizeof(PingoDepth));
+    thiss->copy_buffer = malloc(size.x * size.y * sizeof(COLORREF));
+
+    BITMAPINFO bmi = {0};
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = size.x;
+    bmi.bmiHeader.biHeight = -size.y;
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+    HDC screen_dc = GetDC(NULL);
+    thiss->mem_dc = CreateCompatibleDC(screen_dc);
+    ReleaseDC(NULL, screen_dc);
+
+    thiss->dib_bitmap = CreateDIBSection(thiss->mem_dc, &bmi, DIB_RGB_COLORS, &thiss->dib_bits, NULL, 0);
+    SelectObject(thiss->mem_dc, thiss->dib_bitmap);
+    thiss->frame_buffer = (Pixel *)thiss->dib_bits;
+
+    win_main(GetModuleHandle(NULL), SW_SHOWNORMAL, thiss);
+
+    printf("[Init] Window backend initialized successfully\n");
 }
-
-#endif
