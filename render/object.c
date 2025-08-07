@@ -21,6 +21,12 @@ int object_render(void *this, Mat4 m, Renderer *r)
     Mat4 v = mat4Inverse( &r->camera_view );
     Mat4 p = r->camera_projection;
 
+    // Prefetch frequently used pointers/values
+    Pixel *color_buffer = r->framebuffer.frameBuffer;
+    const int framebuffer_width = scrSize.x;
+    const int framebuffer_height = scrSize.y;
+    PingoDepth *z_buffer = r->backend->getZetaBuffer(r, r->backend);
+
     for (int i = 0; i < o->mesh->indexes_count; i += 3) {
         Vec3f *ver1 = &o->mesh->positions[o->mesh->pos_indices[i + 0]];
         Vec3f *ver2 = &o->mesh->positions[o->mesh->pos_indices[i + 1]];
@@ -93,10 +99,10 @@ int object_render(void *this, Mat4 m, Renderer *r)
         int32_t maxX = MAX(MAX(a_s.x, b_s.x), c_s.x);
         int32_t maxY = MAX(MAX(a_s.y, b_s.y), c_s.y);
 
-        minX = MIN(MAX(minX, 0), r->framebuffer.size.x);
-        minY = MIN(MAX(minY, 0), r->framebuffer.size.y);
-        maxX = MIN(MAX(maxX, 0), r->framebuffer.size.x);
-        maxY = MIN(MAX(maxY, 0), r->framebuffer.size.y);
+        minX = MIN(MAX(minX, 0), framebuffer_width);
+        minY = MIN(MAX(minY, 0), framebuffer_height);
+        maxX = MIN(MAX(maxX, 0), framebuffer_width);
+        maxY = MIN(MAX(maxY, 0), framebuffer_height);
 
         // Barycentric coordinates at minX/minY corner
         Vec2i minTriangle = {minX, minY};
@@ -104,7 +110,7 @@ int object_render(void *this, Mat4 m, Renderer *r)
         int32_t area = orient2d(a_s, b_s, c_s);
         if (area == 0)
             continue;
-        float areaInverse = 1.0 / area;
+        float areaInverse = 1.0f / (float)area;
 
         int32_t A01 = (a_s.y - b_s.y); //Barycentric coordinates steps
         int32_t B01 = (b_s.x - a_s.x); //Barycentric coordinates steps
@@ -117,48 +123,93 @@ int object_render(void *this, Mat4 m, Renderer *r)
         int32_t w1_row = orient2d(c_s, a_s, minTriangle);
         int32_t w2_row = orient2d(a_s, b_s, minTriangle);
 
+        // Prepare perspective-correct interpolation if textured
+        Texture *texture = 0;
+        Pixel *tex_buffer = 0;
+        int tex_w = 0, tex_h = 0;
+        int pow2_mask_x = 0, pow2_mask_y = 0;
+        int use_pow2_wrap = 0;
+
         if (o->material != 0 && a.z != 0 && b.z != 0 && c.z != 0) {
-            tca.x /= a.z;
-            tca.y /= a.z;
-            tcb.x /= b.z;
-            tcb.y /= b.z;
-            tcc.x /= c.z;
-            tcc.y /= c.z;
+            // Pre-divide texture coordinates by depth for perspective-correct interpolation
+            tca.x /= a.z; tca.y /= a.z;
+            tcb.x /= b.z; tcb.y /= b.z;
+            tcc.x /= c.z; tcc.y /= c.z;
+
+            texture   = o->material->texture;
+            tex_buffer = texture->frameBuffer;
+            tex_w = texture->size.x;
+            tex_h = texture->size.y;
+            // Power-of-two wrap optimization
+            int pow2x = (tex_w & (tex_w - 1)) == 0;
+            int pow2y = (tex_h & (tex_h - 1)) == 0;
+            use_pow2_wrap = (pow2x && pow2y);
+            if (use_pow2_wrap) {
+                pow2_mask_x = tex_w - 1;
+                pow2_mask_y = tex_h - 1;
+            }
         }
 
-        for (int16_t y = minY; y < maxY; y++, w0_row += B12, w1_row += B20, w2_row += B01) {
+        // Precompute incremental depth and texture coordinate steps
+        float depth_row_start = -((float)w0_row * a.z + (float)w1_row * b.z + (float)w2_row * c.z) * areaInverse;
+        const float depth_dx = -((float)A12 * a.z + (float)A20 * b.z + (float)A01 * c.z) * areaInverse;
+        const float depth_dy = -((float)B12 * a.z + (float)B20 * b.z + (float)B01 * c.z) * areaInverse;
+
+        float s_row_start = 0.0f, t_row_start = 0.0f;
+        float s_dx = 0.0f, t_dx = 0.0f;
+        float s_dy = 0.0f, t_dy = 0.0f;
+        if (texture != 0) {
+            s_row_start = -((float)w0_row * tca.x + (float)w1_row * tcb.x + (float)w2_row * tcc.x) * areaInverse;
+            t_row_start = -((float)w0_row * tca.y + (float)w1_row * tcb.y + (float)w2_row * tcc.y) * areaInverse;
+            s_dx = -((float)A12 * tca.x + (float)A20 * tcb.x + (float)A01 * tcc.x) * areaInverse;
+            t_dx = -((float)A12 * tca.y + (float)A20 * tcb.y + (float)A01 * tcc.y) * areaInverse;
+            s_dy = -((float)B12 * tca.x + (float)B20 * tcb.x + (float)B01 * tcc.x) * areaInverse;
+            t_dy = -((float)B12 * tca.y + (float)B20 * tcb.y + (float)B01 * tcc.y) * areaInverse;
+        }
+
+        for (int16_t y = minY; y < maxY; y++, w0_row += B12, w1_row += B20, w2_row += B01, depth_row_start += depth_dy, s_row_start += s_dy, t_row_start += t_dy) {
             int32_t w0 = w0_row;
             int32_t w1 = w1_row;
             int32_t w2 = w2_row;
 
-            for (int32_t x = minX; x < maxX; x++, w0 += A12, w1 += A20, w2 += A01) {
+            float depth = depth_row_start;
+            float s_lin = s_row_start;
+            float t_lin = t_row_start;
+
+            int row_index = y * framebuffer_width;
+
+            for (int32_t x = minX; x < maxX; x++, w0 += A12, w1 += A20, w2 += A01, depth += depth_dx, s_lin += s_dx, t_lin += t_dx) {
                 if ((w0 | w1 | w2) < 0)
                     continue;
 
-                float depth = -(w0 * a.z + w1 * b.z + w2 * c.z) * areaInverse;
-                if (depth < -1.0 || depth > 1.0)
+                if (depth < -1.0f || depth > 1.0f)
                     continue;
 
-                if (depth_check(r->backend->getZetaBuffer(r, r->backend),
-                                x + y * scrSize.x,
-                                depth))
+                int idx = row_index + x;
+                if (depth_check(z_buffer, idx, depth))
                     continue;
 
-                depth_write(r->backend->getZetaBuffer(r, r->backend), x + y * scrSize.x, depth);
+                depth_write(z_buffer, idx, depth);
 
-                if (o->material != 0) {
-                    //Texture lookup
+                if (texture != 0) {
+                    // Perspective-correct texture coordinates
+                    float u = s_lin * depth;
+                    float v = t_lin * depth;
 
-                    float textCoordx = -(w0 * tca.x + w1 * tcb.x + w2 * tcc.x) * areaInverse * depth;
-                    float textCoordy = -(w0 * tca.y + w1 * tcb.y + w2 * tcc.y) * areaInverse * depth;
-
-                    Pixel text = texture_readF(o->material->texture,
-                                               (Vec2f){textCoordx, textCoordy});
-                    texture_draw(&r->framebuffer, (Vec2i){x, y}, pixelMul(text, diffuseLight));
+                    // Map [0,1) to [0, tex_size)
+                    uint32_t ux = (uint32_t)(u * (float)tex_w);
+                    uint32_t vy = (uint32_t)(v * (float)tex_h);
+                    if (use_pow2_wrap) {
+                        ux &= (uint32_t)pow2_mask_x;
+                        vy &= (uint32_t)pow2_mask_y;
+                    } else {
+                        ux %= (uint32_t)tex_w;
+                        vy %= (uint32_t)tex_h;
+                    }
+                    Pixel text = tex_buffer[ux + vy * (uint32_t)tex_w];
+                    color_buffer[idx] = pixelMul(text, diffuseLight);
                 } else {
-                    texture_draw(&r->framebuffer,
-                                 (Vec2i){x, y},
-                                 pixelMul(pixelFromUInt8(255), diffuseLight));
+                    color_buffer[idx] = pixelMul(pixelFromUInt8(255), diffuseLight);
                 }
             }
         }
