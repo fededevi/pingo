@@ -19,18 +19,24 @@ int texture_init( Texture *f, Vec2i size, Pixel *buf )
 
 void texture_draw(Texture *f, Vec2i pos, Pixel color)
 {
+    // Bounds checking to prevent buffer overflow
+    if (pos.x < 0 || pos.x >= f->size.x || pos.y < 0 || pos.y >= f->size.y)
+        return;
     f->frameBuffer[pos.x + pos.y * f->size.x] = color;
 }
 
 Pixel texture_read(Texture *f, Vec2i pos)
 {
+    // Bounds checking to prevent buffer overflow
+    if (pos.x < 0 || pos.x >= f->size.x || pos.y < 0 || pos.y >= f->size.y)
+        return (Pixel){0}; // Return black/zero pixel for out-of-bounds access
     return f->frameBuffer[pos.x + pos.y * f->size.x];
 }
 
 Pixel texture_readF(Texture *f, Vec2f pos)
 {
     uint16_t x = (uint16_t)(pos.x * f->size.x) % f->size.x;
-    uint16_t y = (uint16_t)(pos.y * f->size.y) % f->size.x;
+    uint16_t y = (uint16_t)(pos.y * f->size.y) % f->size.y;
     uint32_t index = x + y * f->size.x;
     Pixel value = f->frameBuffer[index];
     return value;
