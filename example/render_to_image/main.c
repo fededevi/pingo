@@ -80,6 +80,8 @@ int main(){
         renderer_render(&renderer);
 	}
 
+    // Clean up allocated texture memory
+    free(image);
     return 0;
 }
 

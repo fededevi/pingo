@@ -276,7 +276,11 @@ Mat4 mat4Inverse(Mat4 * mat)
             m[8] * m[2] * m[5];
 
     det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-    //assert(det != 0);
+    
+    // Return identity matrix for singular matrices (det == 0) to avoid NaN propagation
+    if (det == 0.0) {
+        return mat4Identity();
+    }
 
     Mat4 out;
     det = 1.0 / det;

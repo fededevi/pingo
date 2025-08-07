@@ -83,6 +83,8 @@ int main(){
         Sleep(16); // ~60 FPS
     }
 
+    // Clean up allocated texture memory
+    free(image);
     return 0;
 }
 

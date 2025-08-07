@@ -64,9 +64,6 @@ int object_render(void *this, Mat4 m, Renderer *r)
             continue;
 
         // convert to device coordinates by perspective division
-        //a.w = 1.0 / a.w;
-        //b.w = 1.0 / b.w;
-        //c.w = 1.0 / c.w;
         a.x /= a.w;
         a.y /= a.w;
         a.z /= a.w;
