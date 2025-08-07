@@ -87,6 +87,8 @@ int main(){
         usleep(16000); // ~60 FPS
     }
 
+    // Clean up allocated texture memory
+    free(image);
     return 0;
 }
 

@@ -64,10 +64,6 @@ int object_render(void *this, Mat4 m, Renderer *r)
             continue;
 
         // convert to device coordinates by perspective division
-        // Check for division by zero to prevent crashes
-        if (a.w == 0.0f || b.w == 0.0f || c.w == 0.0f)
-            continue;
-        
         a.x /= a.w;
         a.y /= a.w;
         a.z /= a.w;

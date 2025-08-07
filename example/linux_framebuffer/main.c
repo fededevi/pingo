@@ -89,5 +89,7 @@ int main(){
         usleep(40000);
 	}
 
+    // Clean up allocated texture memory
+    free(image);
     return 0;
 }
