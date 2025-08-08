@@ -1,19 +1,17 @@
 #include "math/mat4.h"
 #include "assets/viking.h"
-#include "linux_window_backend.h"
+#include "examples/backend_config.h"
 
+#include "math/vec2.h"
 #include "render/entity.h"
 #include "render/material.h"
-#include "render/mesh.h"
 #include "render/object.h"
 #include "render/pixel.h"
 #include "render/renderer.h"
 
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 
 Pixel * loadTexture(char * filename, Vec2i size) {
     Pixel * image = malloc(size.x*size.y*4);
@@ -52,13 +50,11 @@ int main(){
     Entity root_entity;
     entity_init(&root_entity, (Renderable*)&object, mat4Identity());
 
-
-    Vec2i size = {640, 480};
-    LinuxWindowBackend backend;
-    linuxWindowBackendInit(&backend, size);
+    Backend * backend = get_backend();
+    Vec2i size = get_rendering_size();
 
     Renderer renderer;
-    renderer_init(&renderer, size, (Backend*)&backend );
+    renderer_init(&renderer, size, backend );
     renderer_set_root_renderable(&renderer, (Renderable*)&root_entity);
 
     float phi = 0;

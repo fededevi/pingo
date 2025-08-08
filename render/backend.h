@@ -26,4 +26,6 @@ typedef struct Backend {
 
   // Should return the address of the buffer (height*width*sizeof(Pixel))
   PingoDepth *(*getZetaBuffer)(Renderer *, struct Backend *);
+
+  
 } Backend;
