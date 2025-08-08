@@ -1,9 +1,9 @@
 #pragma once
 
-#include "types.h"
-#include "vec2.h"
-#include "vec3.h"
-#include "vec4.h"
+#include "math/types.h"
+#include "math/vec2.h"
+#include "math/vec3.h"
+#include "math/vec4.h"
 
 #ifdef __cplusplus
 extern "C" {

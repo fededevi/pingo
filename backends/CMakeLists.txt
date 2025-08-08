@@ -2,9 +2,7 @@
 
 # Helper for common include dirs
 set(PINGO_INCLUDE_DIRS
-    ${CMAKE_SOURCE_DIR}/render
-    ${CMAKE_SOURCE_DIR}/math
-    ${CMAKE_SOURCE_DIR}/assets
+    ${CMAKE_SOURCE_DIR}
 )
 
 # Linux window backend

@@ -3,7 +3,7 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-#include "vec2.h"
+#include "math/vec2.h"
 
 int edgeFunction(const Vec2f *a, const Vec2f *b, const Vec2f *c) {
   return (c->x - a->x) * (b->y - a->y) - (c->y - a->y) * (b->x - a->x);
