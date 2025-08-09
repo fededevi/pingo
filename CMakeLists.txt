@@ -16,6 +16,12 @@ endif()
 file( GLOB_RECURSE render_src render/*.h render/*.c )
 file( GLOB_RECURSE math_src math/*.h math/*.c )
 add_library( pingo SHARED ${render_src}  ${math_src} )
+target_include_directories(pingo PUBLIC
+    ${CMAKE_SOURCE_DIR}/render
+    ${CMAKE_SOURCE_DIR}/math
+    ${CMAKE_SOURCE_DIR}/assets
+    ${CMAKE_SOURCE_DIR}
+)
 if(UNIX) 
   target_link_libraries(pingo m) 
 endif()
@@ -28,6 +34,8 @@ if (UNIX)
   target_link_libraries(assets m)
 endif()
 
+# Test suite
+add_subdirectory(tests)
 
 #examples sources
 file( GLOB_RECURSE linux_window_src example/linux_window/*.h example/linux_window/*.c )

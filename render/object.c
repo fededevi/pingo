@@ -8,6 +8,31 @@
 #include "renderer.h"
 #include "state.h"
 
+// Frustum culling helper function
+static int frustum_cull_triangle(Vec4f a, Vec4f b, Vec4f c) {
+    // Simple frustum culling - check if all vertices are outside any plane
+    
+    // Near plane (z > w)
+    if (a.z > a.w && b.z > b.w && c.z > c.w) return 1;
+    
+    // Far plane (z < -w)
+    if (a.z < -a.w && b.z < -b.w && c.z < -c.w) return 1;
+    
+    // Left plane (x < -w)
+    if (a.x < -a.w && b.x < -b.w && c.x < -c.w) return 1;
+    
+    // Right plane (x > w)
+    if (a.x > a.w && b.x > b.w && c.x > c.w) return 1;
+    
+    // Top plane (y > w)
+    if (a.y > a.w && b.y > b.w && c.y > c.w) return 1;
+    
+    // Bottom plane (y < -w)
+    if (a.y < -a.w && b.y < -b.w && c.y < -c.w) return 1;
+    
+    return 0; // Not culled
+}
+
 int object_render(void *this, Mat4 m, Renderer *r)
 {
     Object *o = this;
@@ -58,6 +83,9 @@ int object_render(void *this, Mat4 m, Renderer *r)
         b = mat4MultiplyVec4(&b, &p);
         c = mat4MultiplyVec4(&c, &p);
 
+        // Frustum culling (configurable)
+        if (r->enable_frustum_culling && frustum_cull_triangle(a, b, c))
+            continue;
 
         //Triangle is completely behind camera
         if (a.z > 0 && b.z > 0 && c.z > 0)
@@ -77,16 +105,19 @@ int object_render(void *this, Mat4 m, Renderer *r)
         c.z /= c.w;
         c.w = 1;
 
-        float clocking = isClockWise(a.x, a.y, b.x, b.y, c.x, c.y);
-        if (clocking >= 0)
-            continue;
+        // Backface culling (configurable)
+        if (r->enable_backface_culling) {
+            float clocking = isClockWise(a.x, a.y, b.x, b.y, c.x, c.y);
+            if (clocking >= 0)
+                continue;
+        }
 
-        //Compute Screen coordinates
-        float halfX = scrSize.x / 2;
-        float halfY = scrSize.y / 2;
-        Vec2i a_s = {a.x * halfX + halfX, a.y * halfY + halfY};
-        Vec2i b_s = {b.x * halfX + halfX, b.y * halfY + halfY};
-        Vec2i c_s = {c.x * halfX + halfX, c.y * halfY + halfY};
+        //Compute Screen coordinates (optimized)
+        float halfX = scrSize.x * 0.5f;
+        float halfY = scrSize.y * 0.5f;
+        Vec2i a_s = {(int)(a.x * halfX + halfX), (int)(a.y * halfY + halfY)};
+        Vec2i b_s = {(int)(b.x * halfX + halfX), (int)(b.y * halfY + halfY)};
+        Vec2i c_s = {(int)(c.x * halfX + halfX), (int)(c.y * halfY + halfY)};
 
         int32_t minX = MIN(MIN(a_s.x, b_s.x), c_s.x);
         int32_t minY = MIN(MIN(a_s.y, b_s.y), c_s.y);
@@ -132,19 +163,25 @@ int object_render(void *this, Mat4 m, Renderer *r)
             int32_t w2 = w2_row;
 
             for (int32_t x = minX; x < maxX; x++, w0 += A12, w1 += A20, w2 += A01) {
+                // Early rejection using bitwise OR (optimization)
                 if ((w0 | w1 | w2) < 0)
                     continue;
 
                 float depth = -(w0 * a.z + w1 * b.z + w2 * c.z) * areaInverse;
-                if (depth < -1.0 || depth > 1.0)
+                if (depth < -1.0f || depth > 1.0f)
                     continue;
 
-                if (depth_check(r->backend->getZetaBuffer(r, r->backend),
-                                x + y * scrSize.x,
-                                depth))
-                    continue;
+                // Early Z-test (configurable optimization)
+                int pixel_index = x + y * scrSize.x;
+                if (r->enable_early_z_test) {
+                    if (depth_check(r->backend->getZetaBuffer(r, r->backend), pixel_index, depth))
+                        continue;
+                } else {
+                    if (depth_check(r->backend->getZetaBuffer(r, r->backend), pixel_index, depth))
+                        continue;
+                }
 
-                depth_write(r->backend->getZetaBuffer(r, r->backend), x + y * scrSize.x, depth);
+                depth_write(r->backend->getZetaBuffer(r, r->backend), pixel_index, depth);
 
                 if (o->material != 0) {
                     //Texture lookup
