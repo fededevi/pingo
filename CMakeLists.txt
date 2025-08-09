@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 project( pingo)
 
+# Prevent in-source builds
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+    message(FATAL_ERROR "In-source builds are not allowed. Please create a separate build directory and run cmake from there.")
+endif()
+
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options( -Wall -Wextra -Wpointer-arith )
 endif()

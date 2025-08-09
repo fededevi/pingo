@@ -30,7 +30,7 @@ add_executable(math_benchmarks
 add_executable(visual_benchmarks
     benchmark_visual_main.c
     benchmark_visual.c
-    benchmark_utils.c
+    benchmark_simple_utils.c
     ../example/linux_window/linux_window_backend.c
 )
 
@@ -77,33 +77,51 @@ target_link_libraries(math_tests
     assets
 )
 
+# Link libraries for non-X11 targets
+target_link_libraries(math_tests
+    ${MATH_LIBRARY}
+    pingo
+    assets
+)
+
 target_link_libraries(math_benchmarks
     ${MATH_LIBRARY}
     pingo
     assets
 )
 
-# Link libraries for visual benchmarks (including X11)
+# Handle X11-dependent targets
 if(UNIX AND NOT APPLE)
-    find_package(X11 REQUIRED)
-    target_link_libraries(visual_benchmarks
-        ${MATH_LIBRARY}
-        pingo
-        assets
-        ${X11_LIBRARIES}
-    )
-    target_link_libraries(library_optimized_test
-        ${MATH_LIBRARY}
-        pingo
-        assets
-        ${X11_LIBRARIES}
-    )
+    find_package(X11)
+    if(X11_FOUND)
+        message(STATUS "X11 found - building visual benchmarks")
+        target_link_libraries(visual_benchmarks
+            ${MATH_LIBRARY}
+            pingo
+            assets
+            ${X11_LIBRARIES}
+        )
+        target_link_libraries(library_optimized_test
+            ${MATH_LIBRARY}
+            pingo
+            assets
+            ${X11_LIBRARIES}
+        )
+    else()
+        message(WARNING "X11 not found - disabling visual benchmarks")
+        # Disable X11-dependent targets
+        set_target_properties(visual_benchmarks PROPERTIES EXCLUDE_FROM_ALL TRUE)
+        # Library test can still work without X11 (just won't render visually)
+        target_link_libraries(library_optimized_test
+            ${MATH_LIBRARY}
+            pingo
+            assets
+        )
+    endif()
 else()
-    target_link_libraries(visual_benchmarks
-        ${MATH_LIBRARY}
-        pingo
-        assets
-    )
+    # Non-Unix systems - disable visual benchmarks, enable library test without X11
+    message(STATUS "Non-Unix system - visual benchmarks disabled")
+    set_target_properties(visual_benchmarks PROPERTIES EXCLUDE_FROM_ALL TRUE)
     target_link_libraries(library_optimized_test
         ${MATH_LIBRARY}
         pingo
