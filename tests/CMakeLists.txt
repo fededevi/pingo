@@ -1,7 +1,12 @@
 # Test suite for Pingo Math Library
 
 # Find math library (for M_PI constant)
-find_library(MATH_LIBRARY m)
+if(WIN32)
+    # On Windows, math functions are built into the C runtime
+    set(MATH_LIBRARY "")
+else()
+    find_library(MATH_LIBRARY m)
+endif()
 
 # Create test executable
 add_executable(math_tests
@@ -92,7 +97,7 @@ target_link_libraries(math_benchmarks
 
 # Handle X11-dependent targets
 if(UNIX AND NOT APPLE)
-    find_package(X11)
+    find_package(X11 QUIET)
     if(X11_FOUND)
         message(STATUS "X11 found - building visual benchmarks")
         target_link_libraries(visual_benchmarks
