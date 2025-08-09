@@ -8,6 +8,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xos.h>
 #include <X11/Xutil.h>
+#include <unistd.h>
 
 Vec4i rect;
 Vec2i totalSize;
@@ -137,4 +138,22 @@ void linuxWindowBackendInit(LinuxWindowBackend *this, Vec2i size)
 
     zetaBuffer = malloc(size.x * size.y * sizeof(PingoDepth));
     frameBuffer = malloc(size.x * size.y * sizeof(Pixel));
+}
+
+// Interface functions for common main
+Backend* create_backend(Vec2i size) {
+    LinuxWindowBackend *lwb = malloc(sizeof(LinuxWindowBackend));
+    linuxWindowBackendInit(lwb, size);
+    return (Backend*)lwb;
+}
+
+void destroy_backend(Backend* backend) {
+    // X11 cleanup would go here if needed
+    free(zetaBuffer);
+    free(frameBuffer);
+    free(backend);
+}
+
+void backend_sleep(int microseconds) {
+    usleep(microseconds);
 }

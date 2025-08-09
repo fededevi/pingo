@@ -10,6 +10,7 @@
 #include <jpeglib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 PingoDepth *zetaBuffer;
 Pixel *frameBuffer;
@@ -74,6 +75,9 @@ void jpbe_afterRender(Renderer *ren, Backend *backend) {
   jpeg_finish_compress(&cinfo);
   fclose(jpegFile);
   jpeg_destroy_compress(&cinfo);
+  
+  // Exit after rendering one frame for image output
+  exit(0);
 }
 
 int jpeg_backend_init(JpegBackend *this, Vec2i size, const char *filename) {
@@ -95,4 +99,23 @@ int jpeg_backend_init(JpegBackend *this, Vec2i size, const char *filename) {
   frameBuffer = malloc(size.x * size.y * sizeof(Pixel));
 
   return OK; // Success
+}
+
+// Interface functions for common main
+Backend* create_backend(Vec2i size) {
+    JpegBackend *jpegBackend = malloc(sizeof(JpegBackend));
+    jpeg_backend_init(jpegBackend, size, "output.jpg");
+    return (Backend*)jpegBackend;
+}
+
+void destroy_backend(Backend* backend) {
+    JpegBackend *jpegBackend = (JpegBackend*)backend;
+    free(jpegBackend->jpegFilename);
+    free(zetaBuffer);
+    free(frameBuffer);
+    free(jpegBackend);
+}
+
+void backend_sleep(int microseconds) {
+    usleep(microseconds);
 }

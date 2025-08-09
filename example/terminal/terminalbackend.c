@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 Vec2i totalSize;
 PingoDepth * zetaBuffer;
@@ -84,4 +85,20 @@ void terminal_backend_init(TerminalBackend *this, Vec2i size)
 
     zetaBuffer = malloc(size.x*size.y*sizeof (PingoDepth));
 	frameBuffer = malloc(size.x*size.y*sizeof (Pixel));
+}
+
+// Interface functions for common main
+Backend* create_backend(Vec2i size) {
+    TerminalBackend *termBackend = malloc(sizeof(TerminalBackend));
+    terminal_backend_init(termBackend, size);
+    return (Backend*)termBackend;
+}
+
+void destroy_backend(Backend* backend) {
+    // Terminal backend cleanup would go here
+    free(backend);
+}
+
+void backend_sleep(int microseconds) {
+    usleep(microseconds);
 }

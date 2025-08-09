@@ -42,33 +42,53 @@ endif()
 # Test suite
 add_subdirectory(tests)
 
-#examples sources
-file( GLOB_RECURSE linux_window_src example/linux_window/*.h example/linux_window/*.c )
-file( GLOB_RECURSE linux_framebuffer_src example/linux_framebuffer/*.h example/linux_framebuffer/*.c )
-file( GLOB_RECURSE render_to_image_src example/render_to_image/*.h example/render_to_image/*.c )
-file( GLOB_RECURSE terminal_src example/terminal/*.h example/terminal/*.c )
-file( GLOB_RECURSE win32_window_src example/win32_window/*.h example/win32_window/*.c example/win32_window/*.cpp )
-
-include_directories( ./ )
-
+# Backend libraries from existing sources
 if (WIN32)
-  add_executable( win_window ${win32_window_src} )
-  target_link_libraries(win_window pingo assets gdi32)
+  # Windows backend library
+  add_library( win32_window_backend SHARED example/win32_window/windowbackend.c )
+  target_link_libraries(win32_window_backend pingo gdi32)
+  target_include_directories(win32_window_backend PRIVATE example/win32_window)
+  
+  add_executable( win_window example/common/main.c )
+  target_link_libraries(win_window pingo assets win32_window_backend gdi32)
 endif (WIN32)
 
 if (UNIX)
-  add_executable( linux_window ${linux_window_src} )
-  target_link_libraries(linux_window pingo assets X11 jpeg)
+  # Linux Window Backend (requires X11)
+  add_library( linux_window_backend SHARED example/linux_window/linux_window_backend.c )
+  target_link_libraries(linux_window_backend pingo X11)
+  target_include_directories(linux_window_backend PRIVATE example/linux_window)
+  
+  add_executable( linux_window example/common/main.c )
+  target_link_libraries(linux_window pingo assets linux_window_backend X11 jpeg)
+
+  # JPEG Backend (requires libjpeg)  
+  add_library( jpeg_backend SHARED example/render_to_image/jpeg_backend.c )
+  target_link_libraries(jpeg_backend pingo jpeg)
+  target_include_directories(jpeg_backend PRIVATE example/render_to_image)
+  
+  add_executable( render_to_image example/common/main.c )
+  target_link_libraries(render_to_image pingo assets jpeg_backend jpeg)
+
+  # Linux Framebuffer Backend
+  add_library( linux_framebuffer_backend SHARED example/linux_framebuffer/linux_framebuffer_backend.c )
+  target_link_libraries(linux_framebuffer_backend pingo)
+  target_include_directories(linux_framebuffer_backend PRIVATE example/linux_framebuffer)
+  
+  add_executable( linux_framebuffer example/common/main.c )
+  target_link_libraries(linux_framebuffer pingo assets linux_framebuffer_backend)
+
+  # Terminal Backend
+  add_library( terminal_backend SHARED example/terminal/terminalbackend.c )
+  target_link_libraries(terminal_backend pingo)
+  target_include_directories(terminal_backend PRIVATE example/terminal)
+  
+  add_executable( linux_terminal example/common/main.c )
+  target_link_libraries(linux_terminal pingo assets terminal_backend)
+
+  # Copy assets for examples that need them
   configure_file(${CMAKE_SOURCE_DIR}/assets/viking.rgba ${CMAKE_BINARY_DIR}/assets/viking.rgba COPYONLY)
-
-  add_executable( render_to_image ${render_to_image_src} )
-  target_link_libraries(render_to_image pingo assets jpeg)
-  configure_file(${CMAKE_SOURCE_DIR}/assets/viking.rgba ${CMAKE_BINARY_DIR}/assets/viking.rgba COPYONLY)
-
-  add_executable( linux_framebuffer ${linux_framebuffer_src} )
-  target_link_libraries(linux_framebuffer pingo assets)
-
-  add_executable( linux_terminal ${terminal_src} )
-  target_link_libraries(linux_terminal pingo assets)
 endif (UNIX)
+
+include_directories( ./ )
 

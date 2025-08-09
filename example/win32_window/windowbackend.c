@@ -157,3 +157,26 @@ void window_backend_init(WindowBackend *thiss, Vec2i size)
 
     printf("[Init] Window backend initialized successfully\n");
 }
+
+// Interface functions for common main
+Backend* create_backend(Vec2i size) {
+    WindowBackend *wb = malloc(sizeof(WindowBackend));
+    window_backend_init(wb, size);
+    return (Backend*)wb;
+}
+
+void destroy_backend(Backend* backend) {
+    WindowBackend *wb = (WindowBackend*)backend;
+    if (wb->mem_dc) {
+        DeleteDC(wb->mem_dc);
+    }
+    if (wb->dib_bitmap) {
+        DeleteObject(wb->dib_bitmap);
+    }
+    free(wb->depth_buffer);
+    free(wb);
+}
+
+void backend_sleep(int microseconds) {
+    Sleep(microseconds / 1000); // Sleep takes milliseconds on Windows
+}

@@ -76,3 +76,21 @@ void linux_framebuffer_backend_init(LinuxFramebufferBackend *this, Vec2i size, c
     int fdScreen = open(framebufferDevice, O_RDWR);
     frameBuffer = mmap(0, size.x * size.y * 4, PROT_READ | PROT_WRITE, MAP_SHARED, fdScreen, 0);
 }
+
+// Interface functions for common main
+Backend* create_backend(Vec2i size) {
+    LinuxFramebufferBackend *lfb = malloc(sizeof(LinuxFramebufferBackend));
+    linux_framebuffer_backend_init(lfb, size, "/dev/fb0");
+    return (Backend*)lfb;
+}
+
+void destroy_backend(Backend* backend) {
+    // Cleanup would be more complex for framebuffer, but for now just free
+    free(zetaBuffer);
+    // frameBuffer is mmap'd, should munmap it
+    free(backend);
+}
+
+void backend_sleep(int microseconds) {
+    usleep(microseconds);
+}
