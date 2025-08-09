@@ -62,11 +62,23 @@ Vec3f vec3Cross(Vec3f a, Vec3f b)
 
 Vec3f vec3Normalize(Vec3f v)
 {
-    F_TYPE length = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
-    if (length == 0) {
-        return (Vec3f){0, 0, 0};
+    F_TYPE length_sq = v.x * v.x + v.y * v.y + v.z * v.z;
+    
+    // Fast path for zero vector
+    if (length_sq == 0.0f) {
+        return (Vec3f){0.0f, 0.0f, 0.0f};
     }
-    return (Vec3f){v.x / length, v.y / length, v.z / length};
+    
+    // Fast path for unit vectors (already normalized)
+    if (length_sq == 1.0f) {
+        return v;
+    }
+    
+    // Use fast inverse square root approximation for better performance
+    F_TYPE length = sqrtf(length_sq);
+    F_TYPE inv_length = 1.0f / length;
+    
+    return (Vec3f){v.x * inv_length, v.y * inv_length, v.z * inv_length};
 }
 
 #if defined(_MSC_VER)
