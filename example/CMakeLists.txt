@@ -19,16 +19,17 @@ if(WIN32)
         win32_window/windowbackend.c gdi32)
 endif()
 
-if(UNIX)
-    # Works on any UNIX: writes ANSI escapes to stdout.
-    add_pingo_example(linux_terminal terminal_backend
-        terminal/terminalbackend.c)
+# Needs no OS facilities beyond stdout, so it builds everywhere.
+add_pingo_example(terminal terminal_backend terminal/terminalbackend.c)
 
-    # Needs linux/fb.h, so Linux only.
-    if(NOT APPLE)
-        add_pingo_example(linux_framebuffer linux_framebuffer_backend
-            linux_framebuffer/linux_framebuffer_backend.c)
-    endif()
+# Needs linux/fb.h: Linux specifically, not merely a UNIX. NOT APPLE would
+# still wrongly include the BSDs.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_pingo_example(linux_framebuffer linux_framebuffer_backend
+        linux_framebuffer/linux_framebuffer_backend.c)
+endif()
+
+if(UNIX)
 
     if(X11_FOUND)
         add_pingo_example(linux_window linux_window_backend

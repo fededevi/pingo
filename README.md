@@ -58,6 +58,12 @@ library's tests:
 `pingo_render` links `pingo_math`, and `pingo_assets` uses the `Mesh` type from
 `pingo_render`, so linking the renderer alone brings the maths with it.
 
+The renderer's tests draw into memory at 64x48 and compare the result against
+committed PPM references, so they run on every platform - including the
+cross-compiled ones, where no window backend exists. Regenerate the references
+after a deliberate change by running the test executable with
+`--write-references`.
+
 ## Backends
 
 A backend is five function pointers — `init`, `beforeRender`, `afterRender`,
@@ -68,7 +74,7 @@ those and handing the struct to `renderer_init()`.
 |---------|--------|-------|
 | `linux_window` | X11 window | libX11 |
 | `linux_framebuffer` | `/dev/fb0` directly | — |
-| `linux_terminal` | ASCII art in the terminal | — |
+| `terminal` | ASCII art in the terminal (any platform) | — |
 | `render_to_image` | JPEG file | libjpeg |
 | `win_window` | Win32 GDI window | Windows |
 

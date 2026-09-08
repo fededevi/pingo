@@ -9,11 +9,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 Vec2i totalSize;
 PingoDepth *zetaBuffer;
 Pixel *frameBuffer;
+
+// This backend writes ANSI escapes and one UTF-8 character. A Windows console
+// interprets neither by default, so both have to be switched on; on every
+// other platform they already work.
+static void enable_ansi_output(void) {
+#ifdef _WIN32
+  HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+  DWORD mode = 0;
+  if (out != INVALID_HANDLE_VALUE && GetConsoleMode(out, &mode)) {
+    SetConsoleMode(out, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+  }
+  SetConsoleOutputCP(CP_UTF8);
+#endif
+}
 
 void terminal_backend_init_backend(Renderer *ren, Backend *backend,
                                    Vec4i rect) {
@@ -88,6 +107,8 @@ PgError terminal_backend_init(TerminalBackend *this, Vec2i size) {
     return pg_fail(PG_INVALID_ARGUMENT, "backend size must be positive");
   }
 
+  enable_ansi_output();
+
   totalSize = size;
   this->backend.init = &terminal_backend_init_backend;
   this->backend.beforeRender = &terminal_backend_beforeRender;
@@ -138,4 +159,10 @@ void destroy_backend(Backend *backend) {
   free(backend);
 }
 
-void backend_sleep(int microseconds) { usleep(microseconds); }
+void backend_sleep(int microseconds) {
+#ifdef _WIN32
+  Sleep((DWORD)(microseconds / 1000)); // Sleep takes milliseconds
+#else
+  usleep(microseconds);
+#endif
+}

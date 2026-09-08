@@ -10,3 +10,5 @@ CMakeSettings.json
 CMakeLists.txt.user
 
 toolchain-mingw64.cmake
+
+.claude/

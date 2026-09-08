@@ -29,3 +29,5 @@ install(TARGETS pingo_render
 install(DIRECTORY ./
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/pingo/render
     FILES_MATCHING PATTERN "*.h")
+
+add_subdirectory(tests)
