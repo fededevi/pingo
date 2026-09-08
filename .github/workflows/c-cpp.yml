@@ -42,35 +42,35 @@ jobs:
             runs-on: ubuntu-latest
             cc: aarch64-linux-gnu-gcc
             sysroot: /usr/aarch64-linux-gnu
-            packages: gcc-aarch64-linux-gnu
+            packages: gcc-aarch64-linux-gnu qemu-user-static binfmt-support
             qemu: true
 
           - name: linux-riscv64
             runs-on: ubuntu-latest
             cc: riscv64-linux-gnu-gcc
             sysroot: /usr/riscv64-linux-gnu
-            packages: gcc-riscv64-linux-gnu
+            packages: gcc-riscv64-linux-gnu qemu-user-static binfmt-support
             qemu: true
 
           - name: linux-armhf
             runs-on: ubuntu-latest
             cc: arm-linux-gnueabihf-gcc
             sysroot: /usr/arm-linux-gnueabihf
-            packages: gcc-arm-linux-gnueabihf
+            packages: gcc-arm-linux-gnueabihf qemu-user-static binfmt-support
             qemu: true
 
           - name: linux-s390x
             runs-on: ubuntu-latest
             cc: s390x-linux-gnu-gcc
             sysroot: /usr/s390x-linux-gnu
-            packages: gcc-s390x-linux-gnu
+            packages: gcc-s390x-linux-gnu qemu-user-static binfmt-support
             qemu: true
 
           - name: linux-sparc64
             runs-on: ubuntu-latest
             cc: sparc64-linux-gnu-gcc
             sysroot: /usr/sparc64-linux-gnu
-            packages: gcc-sparc64-linux-gnu
+            packages: gcc-sparc64-linux-gnu qemu-user-static binfmt-support
             qemu: true
 
     steps:
@@ -82,12 +82,16 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y ${{ matrix.packages }}
 
-    # Registers binfmt handlers so the cross-built test binaries execute as if
-    # native. Installing qemu-user-static alone does not do this: the handlers
-    # are never registered, and every test fails instantly with an exec error.
+    # Without this the cross-built binaries are handed to the shell, which
+    # tries to parse the ELF as a script. qemu-user-static ships the binfmt
+    # definitions but does not activate them; update-binfmts does, and unlike
+    # docker/setup-qemu-action it covers every architecture qemu supports
+    # rather than Docker's platform list, which excludes sparc64.
     - name: Register qemu binfmt handlers
       if: matrix.qemu
-      uses: docker/setup-qemu-action@v3
+      run: |
+        sudo update-binfmts --enable
+        update-binfmts --display | grep -c enabled
 
     - name: Build and test
       env:
