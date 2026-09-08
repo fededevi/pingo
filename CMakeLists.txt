@@ -1,94 +1,96 @@
-cmake_minimum_required(VERSION 3.10)
-project( pingo)
+cmake_minimum_required(VERSION 3.16...3.31)
+
+# LANGUAGES C: there is no C++ in this project, and without this CMake probes
+# and ABI-tests a C++ compiler on every configure for nothing.
+project(pingo
+    VERSION 1.0.0
+    DESCRIPTION "Software 3D renderer in C"
+    LANGUAGES C)
 
 # Prevent in-source builds
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(FATAL_ERROR "In-source builds are not allowed. Please create a separate build directory and run cmake from there.")
 endif()
 
-if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options( -Wall -Wextra -Wpointer-arith )
-endif()
+# Offer the standard build types in cmake-gui/ccmake without choosing one:
+# an unset CMAKE_BUILD_TYPE is a legitimate request for no flags at all.
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    Debug Release RelWithDebInfo MinSizeRel)
 
-if (MSVC)
+# Needed early: the INSTALL_INTERFACE include paths below reference
+# CMAKE_INSTALL_INCLUDEDIR.
+include(GNUInstallDirs)
+
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Wall -Wextra -Wpointer-arith)
+elseif(MSVC)
     add_compile_options(
+        /W4      # match the warning level the GNU/Clang builds get
         /wd4305  # truncation from double to float
         /wd4244  # conversion possible loss of data
     )
 endif()
 
-# Pingo rendering library
-file( GLOB_RECURSE render_src render/*.h render/*.c )
-file( GLOB_RECURSE math_src math/*.h math/*.c )
-add_library( pingo SHARED ${render_src}  ${math_src} )
-target_include_directories(pingo PUBLIC
-    ${CMAKE_SOURCE_DIR}/render
-    ${CMAKE_SOURCE_DIR}/math
-    ${CMAKE_SOURCE_DIR}/assets
-    ${CMAKE_SOURCE_DIR}
-)
-if(UNIX) 
-  target_link_libraries(pingo m) 
+# include(CTest) rather than a bare enable_testing(): it enables testing, and
+# additionally writes DartConfiguration.tcl, which `ctest -T test` (the
+# dashboard mode the VS Code CMake Tools extension uses) warns about when
+# missing.
+include(CTest)
+
+# Applies to every target in every subdirectory.
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Without this each subdirectory drops its output in its own build folder, so
+# where a binary lands would depend on which CMakeLists declared it. Examples
+# also load assets/viking.rgba relative to the working directory, which only
+# works if the binaries share one.
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+# ---------------------------------------------------------------------------
+# Optional dependencies
+#
+# Only the example backends need these. Probing them turns a link-time
+# `undefined reference to XOpenDisplay` into a configure-time message saying
+# which examples are unavailable, so any environment builds whatever it can
+# without being told what it has.
+# ---------------------------------------------------------------------------
+if(UNIX)
+    find_package(X11 QUIET)
+    find_package(JPEG QUIET)
 endif()
 
+# ---------------------------------------------------------------------------
+# The parts. Each directory owns its library, its install rules and its tests.
+# Order matters: render uses math, assets uses the Mesh type from render.
+# ---------------------------------------------------------------------------
+add_subdirectory(math)
+add_subdirectory(render)
+add_subdirectory(assets)
+add_subdirectory(example)
 
-# Assets library 
-file( GLOB_RECURSE assets_src assets/*.h assets/*.c )
-add_library( assets SHARED ${assets_src})
-if (UNIX)
-  target_link_libraries(assets m)
-endif()
+# ---------------------------------------------------------------------------
+# Package config, so the libraries are consumable via find_package(pingo).
+# Each subdirectory has already added its own target to pingoTargets.
+# ---------------------------------------------------------------------------
+include(CMakePackageConfigHelpers)
 
-# Test suite
-add_subdirectory(tests)
+install(EXPORT pingoTargets
+    FILE pingoTargets.cmake
+    NAMESPACE pingo::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pingo)
 
-# Backend libraries from existing sources
-if (WIN32)
-  # Windows backend library
-  add_library( win32_window_backend SHARED example/win32_window/windowbackend.c )
-  target_link_libraries(win32_window_backend pingo gdi32)
-  target_include_directories(win32_window_backend PRIVATE example/win32_window)
-  
-  add_executable( win_window example/common/main.c )
-  target_link_libraries(win_window pingo assets win32_window_backend gdi32)
-endif (WIN32)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/pingoConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion)
 
-if (UNIX)
-  # Linux Window Backend (requires X11)
-  add_library( linux_window_backend SHARED example/linux_window/linux_window_backend.c )
-  target_link_libraries(linux_window_backend pingo X11)
-  target_include_directories(linux_window_backend PRIVATE example/linux_window)
-  
-  add_executable( linux_window example/common/main.c )
-  target_link_libraries(linux_window pingo assets linux_window_backend X11 jpeg)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pingoConfig.cmake
+"include(\"\${CMAKE_CURRENT_LIST_DIR}/pingoTargets.cmake\")\n")
 
-  # JPEG Backend (requires libjpeg)  
-  add_library( jpeg_backend SHARED example/render_to_image/jpeg_backend.c )
-  target_link_libraries(jpeg_backend pingo jpeg)
-  target_include_directories(jpeg_backend PRIVATE example/render_to_image)
-  
-  add_executable( render_to_image example/common/main.c )
-  target_link_libraries(render_to_image pingo assets jpeg_backend jpeg)
-
-  # Linux Framebuffer Backend
-  add_library( linux_framebuffer_backend SHARED example/linux_framebuffer/linux_framebuffer_backend.c )
-  target_link_libraries(linux_framebuffer_backend pingo)
-  target_include_directories(linux_framebuffer_backend PRIVATE example/linux_framebuffer)
-  
-  add_executable( linux_framebuffer example/common/main.c )
-  target_link_libraries(linux_framebuffer pingo assets linux_framebuffer_backend)
-
-  # Terminal Backend
-  add_library( terminal_backend SHARED example/terminal/terminalbackend.c )
-  target_link_libraries(terminal_backend pingo)
-  target_include_directories(terminal_backend PRIVATE example/terminal)
-  
-  add_executable( linux_terminal example/common/main.c )
-  target_link_libraries(linux_terminal pingo assets terminal_backend)
-
-  # Copy assets for examples that need them
-  configure_file(${CMAKE_SOURCE_DIR}/assets/viking.rgba ${CMAKE_BINARY_DIR}/assets/viking.rgba COPYONLY)
-endif (UNIX)
-
-include_directories( ./ )
-
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/pingoConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/pingoConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pingo)

@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 typedef struct Mat4 {
-    F_TYPE elements[16];
+  F_TYPE elements[16];
 } Mat4;
 
 Mat4 mat4Identity();
@@ -24,14 +24,13 @@ Vec2f mat4MultiplyVec2(Vec2f *v, Mat4 *t);
 Vec3f mat4MultiplyVec3(Vec3f *v, Mat4 *t);
 
 Vec4f mat4MultiplyVec4(Vec4f *v, Mat4 *t);
-Vec4f mat4MultiplyVec4in( Vec4f *v, Mat4 *t );
+Vec4f mat4MultiplyVec4in(Vec4f *v, Mat4 *t);
 
-Mat4 mat4MultiplyM( Mat4 * m1, Mat4 * m2);
-Mat4 mat4Inverse(Mat4 * mat);
+Mat4 mat4MultiplyM(Mat4 *m1, Mat4 *m2);
+Mat4 mat4Inverse(Mat4 *mat);
 Mat4 mat4Scale(Vec3f s);
 
 Mat4 mat4Perspective(F_TYPE near, F_TYPE far, F_TYPE aspect, F_TYPE fov);
-Mat4 mat4Perspective(F_TYPE near,  F_TYPE far, F_TYPE aspect, F_TYPE fov );
 
 F_TYPE mat4NearFromProjection(Mat4 mat);
 F_TYPE mat4FarFromProjection(Mat4 mat);

@@ -1,8 +1,7 @@
 #pragma once
 
+#include "fwd.h"
 #include "math/mat4.h"
-
-typedef struct Renderer Renderer;
 
 /// A basic type which provide a render function pointer
 typedef struct {

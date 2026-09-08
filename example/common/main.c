@@ -1,96 +1,181 @@
-#include "math/mat4.h"
+#include "example_backend.h"
+
 #include "assets/viking.h"
+#include "math/mat4.h"
 #include "render/backend.h"
 
 #include "render/entity.h"
 #include "render/material.h"
-#include "render/mesh.h"
 #include "render/object.h"
 #include "render/pixel.h"
 #include "render/renderer.h"
+#include "render/state.h"
 
-#include <math.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <string.h>
 
-// Function to load texture - common across all examples
-Pixel * loadTexture(char * filename, Vec2i size) {
-    Pixel * image = malloc(size.x*size.y*4);
-    FILE * file   = fopen(filename, "rb");
-    if (file == 0) {
-        printf("Error: Could not open file %s\n", filename);
-        exit(-1);
-    }
-    for (int i = 1023; i > 0; i--) {
-    for (int j = 0; j < 1024; j++) {
-            char r, g, b, a;
-            fread(&r, 1, 1, file);
-            fread(&g, 1, 1, file);
-            fread(&b, 1, 1, file);
-            fread(&a, 1, 1, file);
-            image[i*1024 + j] = pixelFromRGBA(r, g, b, a);
-        }
-    }
-    fclose(file);
-    return image;
+#define TEXTURE_PATH "assets/viking.rgba"
+#define TEXTURE_SIZE 1024
+
+// Turns the enum State returned by the render API into something printable.
+static const char *state_name(int state) {
+  switch (state) {
+  case OK:
+    return "OK";
+  case INIT_ERROR:
+    return "INIT_ERROR";
+  case RENDER_ERROR:
+    return "RENDER_ERROR";
+  case SET_ERROR:
+    return "SET_ERROR";
+  default:
+    break;
+  }
+  return "unrecognized state";
 }
 
-// Backend creation function - to be implemented by each backend library
-extern Backend* create_backend(Vec2i size);
-extern void destroy_backend(Backend* backend);
-extern void backend_sleep(int microseconds);
+// Every setup call below returns enum State and none of them are optional, so
+// a failure names the call that failed and stops rather than pressing on with
+// a half-built scene.
+#define CHECK(call)                                                            \
+  do {                                                                         \
+    int check_state = (call);                                                  \
+    if (check_state != OK) {                                                   \
+      fprintf(stderr, "error: %s failed with %s (%d)\n  at %s:%d\n", #call,    \
+              state_name(check_state), check_state, __FILE__, __LINE__);       \
+      exit(EXIT_FAILURE);                                                      \
+    }                                                                          \
+  } while (0)
 
-int main(){
-    // Load texture - common across all examples
-    Pixel * image = loadTexture("assets/viking.rgba", (Vec2i){1024,1024});
+// Loads a raw RGBA image into *out. *out is only written on success.
+static PgError load_texture(const char *filename, Vec2i size, Pixel **out) {
+  if (out == NULL) {
+    return pg_fail(PG_INVALID_ARGUMENT, "out must not be NULL");
+  }
+  if (size.x <= 0 || size.y <= 0) {
+    return pg_fail(PG_INVALID_ARGUMENT, "texture size must be positive");
+  }
 
-    Texture texture;
-    texture_init(&texture, (Vec2i){1024, 1024}, image);
+  const size_t pixel_count = (size_t)size.x * (size_t)size.y;
 
-    Material material;
-    material_init(&material, &texture);
+  Pixel *image = malloc(pixel_count * sizeof(Pixel));
+  if (image == NULL) {
+    return pg_fail(PG_OUT_OF_MEMORY, "allocate the texture");
+  }
 
-    Object object;
-    object_init(&object, &viking_mesh, &material);
+  FILE *file = fopen(filename, "rb");
+  if (file == NULL) {
+    PgError error = pg_fail_errno(PG_IO, "open the texture file");
+    if (errno == ENOENT) {
+      error.status = PG_NOT_FOUND;
+      error.hint = "The path is relative to the working directory. Run the "
+                   "example from the build directory, where CMake places a "
+                   "copy of assets/.";
+    }
+    free(image);
+    return error;
+  }
 
-    Entity root_entity;
-    entity_init(&root_entity, (Renderable*)&object, mat4Identity());
+  // The file stores rows top-to-bottom and the texture wants them the other
+  // way up, hence counting y down. Note y >= 0: an earlier bound stopped at 1
+  // and left row 0 as uninitialized malloc memory.
+  for (int y = size.y - 1; y >= 0; y--) {
+    for (int x = 0; x < size.x; x++) {
+      unsigned char rgba[4];
+      if (fread(rgba, 1, sizeof(rgba), file) != sizeof(rgba)) {
+        PgError error = ferror(file)
+                            ? pg_fail_errno(PG_IO, "read the texture file")
+                            : pg_fail_hint(PG_IO, "read the texture file",
+                                           "The file is shorter than the "
+                                           "declared image size.");
+        fclose(file);
+        free(image);
+        return error;
+      }
+      image[y * size.x + x] = pixelFromRGBA(rgba[0], rgba[1], rgba[2], rgba[3]);
+    }
+  }
 
-    // Backend-specific initialization
-    Vec2i size = {640, 480};
-    Backend* backend = create_backend(size);
-    
-    Renderer renderer;
-    renderer_init(&renderer, size, backend);
-    renderer_set_root_renderable(&renderer, (Renderable*)&root_entity);
+  fclose(file);
+  *out = image;
+  return PG_SUCCESS;
+}
 
-    float phi = 0;
+int main(void) {
+  // main returns int, so it cannot use RETURN_IF_ERROR: it reports and exits.
+  Pixel *image = NULL;
+  PgError error =
+      load_texture(TEXTURE_PATH, (Vec2i){TEXTURE_SIZE, TEXTURE_SIZE}, &image);
+  if (pg_failed(error)) {
+    pg_error_report(error, stderr);
+    return EXIT_FAILURE;
+  }
 
-    // Default camera setup (can be overridden by backend if needed)
-    renderer.camera_projection = mat4Perspective(3, 50.0, (float) size.x / (float) size.y, 0.1);
-    renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
+  Texture texture;
+  CHECK(texture_init(&texture, (Vec2i){TEXTURE_SIZE, TEXTURE_SIZE}, image));
 
-    while (1) {
-        // Rotation around Y-axis
-        Mat4 rotation = mat4RotateY(phi);
+  Material material;
+  CHECK(material_init(&material, &texture));
 
-        // Move object back so it's visible
-        Mat4 translation = mat4Translate((Vec3f){0, -7, -50});
+  Object object;
+  CHECK(object_init(&object, &viking_mesh, &material));
 
-        // Combine transforms: T * R
-        Mat4 model = mat4MultiplyM(&rotation, &translation);
+  Entity root_entity;
+  CHECK(entity_init(&root_entity, (Renderable *)&object, mat4Identity()));
 
-        root_entity.transform = model;
+  // Backend-specific initialization
+  Vec2i size = {640, 480};
+  Backend *backend = NULL;
+  error = create_backend(size, &backend);
+  if (pg_failed(error)) {
+    pg_error_report(error, stderr);
+    free(image);
+    return EXIT_FAILURE;
+  }
 
-        renderer_render(&renderer);
+  Renderer renderer;
+  CHECK(renderer_init(&renderer, size, backend));
+  CHECK(renderer_set_root_renderable(&renderer, (Renderable *)&root_entity));
 
-        phi += 0.01f;
-        backend_sleep(16000); // ~60 FPS - backend-specific sleep
+  float phi = 0;
+
+  // Default camera setup (can be overridden by backend if needed)
+  renderer.camera_projection =
+      mat4Perspective(3, 50.0, (float)size.x / (float)size.y, 0.1);
+  renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
+
+  int exit_code = EXIT_SUCCESS;
+
+  while (1) {
+    // Rotation around Y-axis
+    Mat4 rotation = mat4RotateY(phi);
+
+    // Move object back so it's visible
+    Mat4 translation = mat4Translate((Vec3f){0, -7, -50});
+
+    // Combine transforms: T * R
+    Mat4 model = mat4MultiplyM(&rotation, &translation);
+
+    root_entity.transform = model;
+
+    // Leaving the loop on failure means the cleanup below actually runs,
+    // instead of spinning silently on a broken renderer.
+    int state = renderer_render(&renderer);
+    if (state != OK) {
+      fprintf(stderr, "error: renderer_render failed with %s (%d)\n",
+              state_name(state), state);
+      exit_code = EXIT_FAILURE;
+      break;
     }
 
-    // Clean up
-    destroy_backend(backend);
-    free(image);
-    return 0;
+    phi += 0.01f;
+    backend_sleep(16000); // ~60 FPS - backend-specific sleep
+  }
+
+  // Clean up
+  destroy_backend(backend);
+  free(image);
+  return exit_code;
 }

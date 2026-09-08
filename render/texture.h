@@ -1,13 +1,14 @@
 #pragma once
 
+#include "fwd.h"
 #include "math/vec2.h"
 #include "pixel.h"
 #include "renderable.h"
 
-typedef struct Texture {
+struct Texture {
   Vec2i size;
   Pixel *frameBuffer;
-} Texture;
+};
 
 extern int texture_init(Texture *f, Vec2i size, Pixel *);
 

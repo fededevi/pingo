@@ -7,13 +7,13 @@ extern "C" {
 #endif
 
 typedef struct Vec2i {
-    I_TYPE x;
-    I_TYPE y;
+  I_TYPE x;
+  I_TYPE y;
 } Vec2i;
 
 typedef struct {
-    F_TYPE x;
-    F_TYPE y;
+  F_TYPE x;
+  F_TYPE y;
 } Vec2f;
 
 extern Vec2i vector2ISum(Vec2i l, Vec2i r);

@@ -1,12 +1,11 @@
 #pragma once
 
+#include "fwd.h"
 #include "pixel.h"
 #include "texture.h"
 #include <stdbool.h>
 
-typedef struct Backend Backend;
-
-typedef struct Renderer {
+struct Renderer {
   Renderable *root_renderable;
 
   Texture framebuffer;
@@ -22,8 +21,7 @@ typedef struct Renderer {
   bool enable_backface_culling;
   bool enable_frustum_culling;
   bool enable_early_z_test;
-
-} Renderer;
+};
 
 extern int renderer_render(Renderer *);
 

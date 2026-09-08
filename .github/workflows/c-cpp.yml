@@ -8,145 +8,89 @@ on:
 
 jobs:
 
-  # Test Suite - Run first to catch issues early
-  test-suite:
-    runs-on: ubuntu-latest
+  # One job for every architecture and compiler. They all run the same preset;
+  # what differs is only what the host provides, which is why the compiler
+  # comes from the environment rather than from the project.
+  #
+  # The cross entries need no sysroot juggling: qemu-user registers binfmt
+  # handlers, so ctest executes the foreign test binaries as if they were
+  # native. A cross runner also has neither libX11 nor libjpeg, so those
+  # entries double as coverage of the build with both optional dependencies
+  # absent, and armhf covers a 32-bit target.
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x86_64-gcc
+            runs-on: ubuntu-latest
+            cc: gcc
+            packages: libx11-dev libxext-dev libjpeg-dev
+
+          - name: linux-x86_64-clang
+            runs-on: ubuntu-latest
+            cc: clang
+            packages: clang libx11-dev libxext-dev libjpeg-dev
+
+          - name: macos
+            runs-on: macos-latest
+            cc: clang
+
+          - name: linux-aarch64
+            runs-on: ubuntu-latest
+            cc: aarch64-linux-gnu-gcc
+            packages: gcc-aarch64-linux-gnu qemu-user-static
+
+          - name: linux-riscv64
+            runs-on: ubuntu-latest
+            cc: riscv64-linux-gnu-gcc
+            packages: gcc-riscv64-linux-gnu qemu-user-static
+
+          - name: linux-armhf
+            runs-on: ubuntu-latest
+            cc: arm-linux-gnueabihf-gcc
+            packages: gcc-arm-linux-gnueabihf qemu-user-static
+
+          - name: linux-s390x
+            runs-on: ubuntu-latest
+            cc: s390x-linux-gnu-gcc
+            packages: gcc-s390x-linux-gnu qemu-user-static
+
+          - name: linux-sparc64
+            runs-on: ubuntu-latest
+            cc: sparc64-linux-gnu-gcc
+            packages: gcc-sparc64-linux-gnu qemu-user-static
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    - name: Configure and build test suite
-      run: |
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-        cmake --build build --target math_tests --parallel
-
-    - name: Run math library tests
-      run: |
-        cd build
-        ./tests/math_tests
-
-    - name: Build and run math benchmarks
-      run: |
-        cmake --build build --target math_benchmarks --parallel
-        cd build
-        timeout 30s ./tests/math_benchmarks || echo "Math benchmarks completed"
-
-  # Core Library Build
-  build-core-libraries:
-    runs-on: ubuntu-latest
-    needs: test-suite
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Build core libraries
-      run: |
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-        cmake --build build --target pingo assets --parallel
-
-    - name: Verify no X11 dependencies in core libraries
-      run: |
-        cd build
-        echo "Checking libpingo.so dependencies:"
-        ldd libpingo.so | grep -v "X11\|libX" || echo "✅ No X11 dependencies found"
-        echo "Checking libassets.so dependencies:"
-        ldd libassets.so | grep -v "X11\|libX" || echo "✅ No X11 dependencies found"
-
-  # Advanced Benchmarks (optional X11)
-  test-benchmarks:
-    runs-on: ubuntu-latest
-    needs: test-suite
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Install X11 (optional)
+    - name: Install packages
+      if: matrix.packages
       run: |
         sudo apt-get update
-        sudo apt-get install -y libx11-dev libxext-dev || echo "X11 install failed, continuing without"
+        sudo apt-get install -y ${{ matrix.packages }}
 
-    - name: Build benchmarks
-      run: |
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-        cmake --build build --target library_optimized_test --parallel || echo "Visual benchmarks skipped (no X11)"
+    - name: Build and test
+      env:
+        CC: ${{ matrix.cc }}
+      run: cmake --workflow --preset default
 
-    - name: Run library optimization test (if available)
-      run: |
-        cd build
-        timeout 60s ./tests/library_optimized_test || echo "Library optimization test completed or skipped"
-
-  build-linux_window:
-    runs-on: ubuntu-latest
-    needs: test-suite
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Install X11 + JPEG
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libx11-dev libjpeg-dev
-
-    - name: Configure and build linux_window
-      run: |
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-        cmake --build build --target linux_window --parallel
-
-  build-render_to_image:
-    runs-on: ubuntu-latest
-    needs: test-suite
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Install JPEG
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libjpeg-dev
-
-    - name: Configure and build render_to_image
-      run: |
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-        cmake --build build --target render_to_image --parallel
-
-  build-linux_terminal:
-    runs-on: ubuntu-latest
-    needs: test-suite
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Configure and build linux_terminal
-      run: |
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-        cmake --build build --target linux_terminal --parallel
-
-  build-linux_framebuffer:
-    runs-on: ubuntu-latest
-    needs: test-suite
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Configure and build linux_framebuffer
-      run: |
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-        cmake --build build --target linux_framebuffer --parallel
-
-  build-win_window:
+  # Separate only because it needs choco rather than apt, and a generator that
+  # is not the platform default.
+  windows:
     runs-on: windows-latest
-    needs: test-suite
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-      - name: Install MinGW-w64
-        run: |
-          choco install mingw --version=8.1.0 -y
-          echo "C:\\tools\\mingw64\\bin" >> $GITHUB_PATH
+    - name: Install MinGW-w64
+      run: |
+        choco install mingw -y
+        echo "C:\\tools\\mingw64\\bin" >> $GITHUB_PATH
 
-      - name: Configure win_window with MinGW
-        run: cmake -B build -S . -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build win_window with MinGW
-        run: cmake --build build --target win_window --config Release
+    - name: Build and test
+      env:
+        CC: gcc
+        CMAKE_GENERATOR: MinGW Makefiles
+      run: cmake --workflow --preset default

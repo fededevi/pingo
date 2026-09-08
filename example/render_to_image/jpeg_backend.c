@@ -1,5 +1,7 @@
 #include "jpeg_backend.h"
 
+#include "example/common/example_backend.h"
+
 #include "render/depth.h"
 #include "render/pixel.h"
 #include "render/state.h"
@@ -17,26 +19,26 @@ Pixel *frameBuffer;
 Vec2i imageSize;
 
 void jpbe_init(Renderer *ren, Backend *backend, Vec4i _rect) {
-    (void)ren;
-    (void)backend;
-    (void)_rect;
+  (void)ren;
+  (void)backend;
+  (void)_rect;
 }
 
 void jpbe_beforeRender(Renderer *ren, Backend *backend) {
-    (void)ren;
-    (void)backend;
+  (void)ren;
+  (void)backend;
 }
 
-Pixel * jpbe_getFrameBuffer(Renderer *ren, Backend *backend) {
-    (void)ren;
-    (void)backend;
-    return frameBuffer;
+Pixel *jpbe_getFrameBuffer(Renderer *ren, Backend *backend) {
+  (void)ren;
+  (void)backend;
+  return frameBuffer;
 }
 
-PingoDepth * jpbe_getZetaBuffer(Renderer *ren, Backend *backend) {
-    (void)ren;
-    (void)backend;
-    return zetaBuffer;
+PingoDepth *jpbe_getZetaBuffer(Renderer *ren, Backend *backend) {
+  (void)ren;
+  (void)backend;
+  return zetaBuffer;
 }
 
 void jpbe_afterRender(Renderer *ren, Backend *backend) {
@@ -45,8 +47,10 @@ void jpbe_afterRender(Renderer *ren, Backend *backend) {
 
   FILE *jpegFile = fopen(jpegBackend->jpegFilename, "wb");
   if (!jpegFile) {
-      fprintf(stderr, "Error opening %s for writing.\n", jpegBackend->jpegFilename);
-      return;
+    PgError error = pg_fail_errno(PG_IO, "open the output JPEG for writing");
+    pg_error_report(error, stderr);
+    fprintf(stderr, "  file: %s\n", jpegBackend->jpegFilename);
+    exit(EXIT_FAILURE);
   }
 
   struct jpeg_compress_struct cinfo;
@@ -68,54 +72,101 @@ void jpbe_afterRender(Renderer *ren, Backend *backend) {
 
   JSAMPROW row_pointer[1];
   while (cinfo.next_scanline < cinfo.image_height) {
-      row_pointer[0] =  (JSAMPROW)&frameBuffer[cinfo.next_scanline * imageSize.x];
-      jpeg_write_scanlines(&cinfo, row_pointer, 1);
+    row_pointer[0] = (JSAMPROW)&frameBuffer[cinfo.next_scanline * imageSize.x];
+    jpeg_write_scanlines(&cinfo, row_pointer, 1);
   }
 
   jpeg_finish_compress(&cinfo);
-  fclose(jpegFile);
   jpeg_destroy_compress(&cinfo);
-  
+
+  // fclose can fail on a full or failing disk, and libjpeg buffers, so a
+  // successful compress does not by itself mean the file was written.
+  if (fclose(jpegFile) != 0) {
+    PgError error = pg_fail_errno(PG_IO, "write the output JPEG");
+    pg_error_report(error, stderr);
+    fprintf(stderr, "  file: %s\n", jpegBackend->jpegFilename);
+    exit(EXIT_FAILURE);
+  }
+
+  printf("Wrote %s\n", jpegBackend->jpegFilename);
+
   // Exit after rendering one frame for image output
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
 
-int jpeg_backend_init(JpegBackend *this, Vec2i size, const char *filename) {
+PgError jpeg_backend_init(JpegBackend *this, Vec2i size, const char *filename) {
+  if (this == NULL) {
+    return pg_fail(PG_INVALID_ARGUMENT, "backend must not be NULL");
+  }
+  if (filename == NULL) {
+    return pg_fail(PG_INVALID_ARGUMENT, "output filename must not be NULL");
+  }
+  if (size.x <= 0 || size.y <= 0) {
+    return pg_fail(PG_INVALID_ARGUMENT, "backend size must be positive");
+  }
+
   this->backend.init = &jpbe_init;
   this->backend.beforeRender = &jpbe_beforeRender;
   this->backend.afterRender = &jpbe_afterRender;
   this->backend.getFrameBuffer = &jpbe_getFrameBuffer;
   this->backend.getZetaBuffer = &jpbe_getZetaBuffer;
 
-  if (filename == NULL) {
-    return INIT_ERROR; // Allocation failed
-  }
+  // Zeroed so a failure part way through leaves destroy_backend safe pointers
+  // to free rather than whatever malloc happened to return.
+  this->jpegFilename = NULL;
 
   imageSize = size;
 
   this->jpegFilename = strdup(filename);
+  if (this->jpegFilename == NULL) {
+    return pg_fail(PG_OUT_OF_MEMORY, "copy the output filename");
+  }
 
-  zetaBuffer = malloc(size.x * size.y * sizeof(PingoDepth));
-  frameBuffer = malloc(size.x * size.y * sizeof(Pixel));
+  const size_t pixels = (size_t)size.x * (size_t)size.y;
 
-  return OK; // Success
+  zetaBuffer = malloc(pixels * sizeof(PingoDepth));
+  if (zetaBuffer == NULL) {
+    return pg_fail(PG_OUT_OF_MEMORY, "allocate depth buffer");
+  }
+
+  frameBuffer = malloc(pixels * sizeof(Pixel));
+  if (frameBuffer == NULL) {
+    return pg_fail(PG_OUT_OF_MEMORY, "allocate frame buffer");
+  }
+
+  return PG_SUCCESS;
 }
 
-// Interface functions for common main
-Backend* create_backend(Vec2i size) {
-    JpegBackend *jpegBackend = malloc(sizeof(JpegBackend));
-    jpeg_backend_init(jpegBackend, size, "output.jpg");
-    return (Backend*)jpegBackend;
+PgError create_backend(Vec2i size, Backend **out) {
+  if (out == NULL) {
+    return pg_fail(PG_INVALID_ARGUMENT, "out must not be NULL");
+  }
+
+  JpegBackend *jpegBackend = calloc(1, sizeof(JpegBackend));
+  if (jpegBackend == NULL) {
+    return pg_fail(PG_OUT_OF_MEMORY, "allocate JPEG backend");
+  }
+
+  PgError error = jpeg_backend_init(jpegBackend, size, "output.jpg");
+  if (pg_failed(error)) {
+    destroy_backend((Backend *)jpegBackend);
+    return error;
+  }
+
+  *out = (Backend *)jpegBackend;
+  return PG_SUCCESS;
 }
 
-void destroy_backend(Backend* backend) {
-    JpegBackend *jpegBackend = (JpegBackend*)backend;
+void destroy_backend(Backend *backend) {
+  JpegBackend *jpegBackend = (JpegBackend *)backend;
+  if (jpegBackend != NULL) {
     free(jpegBackend->jpegFilename);
-    free(zetaBuffer);
-    free(frameBuffer);
-    free(jpegBackend);
+  }
+  free(zetaBuffer);
+  zetaBuffer = NULL;
+  free(frameBuffer);
+  frameBuffer = NULL;
+  free(jpegBackend);
 }
 
-void backend_sleep(int microseconds) {
-    usleep(microseconds);
-}
+void backend_sleep(int microseconds) { usleep(microseconds); }

@@ -1,9 +1,7 @@
 #pragma once
 
+#include "fwd.h"
 #include "renderable.h"
-
-typedef struct Mesh Mesh;
-typedef struct Material Material;
 
 typedef struct Object {
   Renderable renderable;

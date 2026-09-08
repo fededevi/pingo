@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fwd.h"
+
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -8,13 +10,13 @@
 // #define PINGO_PIXEL_RGB565
 // #define PINGO_PIXEL_RGBA8888
 #define PINGO_PIXEL_BGRA8888
-//#define PINGO_PIXEL_RGB888
+// #define PINGO_PIXEL_RGB888
 
 // Formats definitions:
 #ifdef PINGO_PIXEL_UINT8
-typedef struct Pixel {
+struct Pixel {
   uint8_t g;
-} Pixel;
+};
 #define PIXELBLACK                                                             \
   (Pixel) { 0 }
 #define PIXELWHITE                                                             \
@@ -22,11 +24,11 @@ typedef struct Pixel {
 #endif
 
 #ifdef PINGO_PIXEL_RGB565
-typedef struct Pixel {
+struct Pixel {
   uint8_t red : 5;
   uint8_t green : 6;
   uint8_t blue : 5;
-} Pixel;
+};
 #define PIXELBLACK                                                             \
   (Pixel) { 0 }
 #define PIXELWHITE                                                             \
@@ -34,11 +36,11 @@ typedef struct Pixel {
 #endif
 
 #ifdef PINGO_PIXEL_RGB888
-typedef struct Pixel {
+struct Pixel {
   uint8_t r;
   uint8_t g;
   uint8_t b;
-} Pixel;
+};
 
 #define PIXELBLACK                                                             \
   (Pixel) { 0, 0, 0 }
@@ -47,12 +49,12 @@ typedef struct Pixel {
 #endif
 
 #ifdef PINGO_PIXEL_RGBA8888
-typedef struct Pixel {
+struct Pixel {
   uint8_t r;
   uint8_t g;
   uint8_t b;
   uint8_t a;
-} Pixel;
+};
 
 #define PIXELBLACK                                                             \
   (Pixel) { 0, 0, 0, 255 }
@@ -61,12 +63,12 @@ typedef struct Pixel {
 #endif
 
 #ifdef PINGO_PIXEL_BGRA8888
-typedef struct Pixel {
+struct Pixel {
   uint8_t b;
   uint8_t g;
   uint8_t r;
   uint8_t a;
-} Pixel;
+};
 
 #define PIXELBLACK                                                             \
   (Pixel) { 0, 0, 0, 255 }

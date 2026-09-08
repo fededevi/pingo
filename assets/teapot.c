@@ -2,7 +2,7 @@
 
 #define teapot_vertices 1728
 
-Vec3f positions[teapot_vertices] = {
+static Vec3f positions[teapot_vertices] = {
     {0.700000f, -1.200000f, 0.000000f},
     {0.605600f, -1.200000f, -0.355700f},
     {0.598800f, -1.243700f, -0.351700f},
@@ -1733,7 +1733,7 @@ Vec3f positions[teapot_vertices] = {
     {0.458200f, -1.255600f, 0.269100f}
 };
 
-uint16_t indexes[teapot_vertices] = {
+static uint16_t indexes[teapot_vertices] = {
     0,
     1,
     2,

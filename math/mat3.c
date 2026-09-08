@@ -5,207 +5,195 @@
 #include <stdint.h>
 
 #if defined(_MSC_VER)
-    #pragma warning(push)
-    #pragma warning(disable: 4244)
+#pragma warning(push)
+#pragma warning(disable : 4244)
 #endif
 
-Mat3 mat3Identity() {
-    return (Mat3){{
-        1,  0,  0,
-        0,  1,  0,
-        0,  0,  1
-    }};
-}
+Mat3 mat3Identity() { return (Mat3){{1, 0, 0, 0, 1, 0, 0, 0, 1}}; }
 
 Mat3 mat3Translate(Vec2f l) {
-    F_TYPE x = l.x;
-    F_TYPE y = l.y;
-    return (Mat3){{
-        1,  0,  x,
-        0,  1,  y,
-        0,  0,  1
-    }};
+  F_TYPE x = l.x;
+  F_TYPE y = l.y;
+  return (Mat3){{1, 0, x, 0, 1, y, 0, 0, 1}};
 }
 
 Mat3 mat3Rotate(F_TYPE theta) {
-    F_TYPE s = sin(theta);
-    F_TYPE c = cos(theta);
-    return (Mat3){{
-        c, -s,  0,
-        s,  c,  0,
-        0,  0,  1
-    }};
+  F_TYPE s = sin(theta);
+  F_TYPE c = cos(theta);
+  return (Mat3){{c, -s, 0, s, c, 0, 0, 0, 1}};
 }
 
 extern Mat3 mat3Scale(Vec2f s) {
-    F_TYPE p = s.x;
-    F_TYPE q = s.y;
-    return (Mat3){{
-        p,  0,  0,
-        0,  q,  0,
-        0,  0,  1
-    }};
+  F_TYPE p = s.x;
+  F_TYPE q = s.y;
+  return (Mat3){{p, 0, 0, 0, q, 0, 0, 0, 1}};
 }
 
 Vec2f mat3Multiply(Vec2f *v, Mat3 *t) {
-    F_TYPE a = v->x * t->elements[0] + v->y * t->elements[1] + 1.0 * t->elements[2];
-    F_TYPE b = v->x * t->elements[3] + v->y * t->elements[4] + 1.0 * t->elements[5];
-    //F_TYPE c = v->x * t->elements[6] + v->y * t->elements[7] + 1.0 * t->elements[8];
-    return (Vec2f){a,b};
+  F_TYPE a =
+      v->x * t->elements[0] + v->y * t->elements[1] + 1.0 * t->elements[2];
+  F_TYPE b =
+      v->x * t->elements[3] + v->y * t->elements[4] + 1.0 * t->elements[5];
+  // F_TYPE c = v->x * t->elements[6] + v->y * t->elements[7] + 1.0 *
+  // t->elements[8];
+  return (Vec2f){a, b};
 }
 
-Mat3 mat3MultiplyM( Mat3 * m1, Mat3 * m2) {
-    F_TYPE * a = m2->elements;
-    F_TYPE * b = m1->elements;
-    
-    // Fast path for identity matrix multiplication
-    if (a[0] == 1.0f && a[1] == 0.0f && a[2] == 0.0f &&
-        a[3] == 0.0f && a[4] == 1.0f && a[5] == 0.0f &&
-        a[6] == 0.0f && a[7] == 0.0f && a[8] == 1.0f) {
-        return *m1; // Identity * matrix = matrix
-    }
-    
-    if (b[0] == 1.0f && b[1] == 0.0f && b[2] == 0.0f &&
-        b[3] == 0.0f && b[4] == 1.0f && b[5] == 0.0f &&
-        b[6] == 0.0f && b[7] == 0.0f && b[8] == 1.0f) {
-        return *m2; // matrix * Identity = matrix
-    }
-    
-    // General case
-    Mat3 out;
-    out.elements[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6];
-    out.elements[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7];
-    out.elements[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8];
-    out.elements[3] = a[3] * b[0] + a[4] * b[3] + a[5] * b[6];
-    out.elements[4] = a[3] * b[1] + a[4] * b[4] + a[5] * b[7];
-    out.elements[5] = a[3] * b[2] + a[4] * b[5] + a[5] * b[8];
-    out.elements[6] = a[6] * b[0] + a[7] * b[3] + a[8] * b[6];
-    out.elements[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7];
-    out.elements[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8];
-    return out;
+Mat3 mat3MultiplyM(Mat3 *m1, Mat3 *m2) {
+  F_TYPE *a = m2->elements;
+  F_TYPE *b = m1->elements;
+
+  // Fast path for identity matrix multiplication
+  if (a[0] == 1.0f && a[1] == 0.0f && a[2] == 0.0f && a[3] == 0.0f &&
+      a[4] == 1.0f && a[5] == 0.0f && a[6] == 0.0f && a[7] == 0.0f &&
+      a[8] == 1.0f) {
+    return *m1; // Identity * matrix = matrix
+  }
+
+  if (b[0] == 1.0f && b[1] == 0.0f && b[2] == 0.0f && b[3] == 0.0f &&
+      b[4] == 1.0f && b[5] == 0.0f && b[6] == 0.0f && b[7] == 0.0f &&
+      b[8] == 1.0f) {
+    return *m2; // matrix * Identity = matrix
+  }
+
+  // General case
+  Mat3 out;
+  out.elements[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6];
+  out.elements[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7];
+  out.elements[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8];
+  out.elements[3] = a[3] * b[0] + a[4] * b[3] + a[5] * b[6];
+  out.elements[4] = a[3] * b[1] + a[4] * b[4] + a[5] * b[7];
+  out.elements[5] = a[3] * b[2] + a[4] * b[5] + a[5] * b[8];
+  out.elements[6] = a[6] * b[0] + a[7] * b[3] + a[8] * b[6];
+  out.elements[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7];
+  out.elements[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8];
+  return out;
 }
 
-F_TYPE mat3Determinant(Mat3 * mat)
-{
-    F_TYPE * m = mat->elements;
-    return m[0] * (m[4] * m[8] - m[5] * m[7]) -
-            m[3] * (m[3] * m[8] - m[5] * m[6]) +
-            m[6] * (m[3] * m[7] - m[4] * m[6]);
+F_TYPE mat3Determinant(Mat3 *mat) {
+  F_TYPE *m = mat->elements;
+  return m[0] * (m[4] * m[8] - m[5] * m[7]) -
+         m[3] * (m[3] * m[8] - m[5] * m[6]) +
+         m[6] * (m[3] * m[7] - m[4] * m[6]);
 }
 
-Mat3 mat3Inverse(Mat3 *v)
-{
-    F_TYPE * b = v->elements;
-    
-    // Fast path for identity matrix
-    if (b[0] == 1.0f && b[1] == 0.0f && b[2] == 0.0f &&
-        b[3] == 0.0f && b[4] == 1.0f && b[5] == 0.0f &&
-        b[6] == 0.0f && b[7] == 0.0f && b[8] == 1.0f) {
-        return mat3Identity();
-    }
-    
-    // Fast path for translation-only matrix
-    if (b[0] == 1.0f && b[1] == 0.0f && b[3] == 0.0f && b[4] == 1.0f &&
-        b[6] == 0.0f && b[7] == 0.0f && b[8] == 1.0f) {
-        return (Mat3){{
-            1.0f, 0.0f, -b[2],
-            0.0f, 1.0f, -b[5],
-            0.0f, 0.0f, 1.0f
-        }};
-    }
-    
-    // Fast path for scale-only matrix
-    if (b[1] == 0.0f && b[2] == 0.0f && b[3] == 0.0f && b[5] == 0.0f &&
-        b[6] == 0.0f && b[7] == 0.0f && b[8] == 1.0f) {
-        F_TYPE inv_x = 1.0f / b[0];
-        F_TYPE inv_y = 1.0f / b[4];
-        return (Mat3){{
-            inv_x, 0.0f, 0.0f,
-            0.0f, inv_y, 0.0f,
-            0.0f, 0.0f, 1.0f
-        }};
-    }
-    
-    // General case
-    F_TYPE s = 1.0 / mat3Determinant(v);
+Mat3 mat3Inverse(Mat3 *v) {
+  F_TYPE *b = v->elements;
 
-    Mat3 out;
-    F_TYPE * a = out.elements;
+  // Fast path for identity matrix
+  if (b[0] == 1.0f && b[1] == 0.0f && b[2] == 0.0f && b[3] == 0.0f &&
+      b[4] == 1.0f && b[5] == 0.0f && b[6] == 0.0f && b[7] == 0.0f &&
+      b[8] == 1.0f) {
+    return mat3Identity();
+  }
 
-    //calculate inverse
-    a[0] = (s) * (b[4] * b[8] - b[5] * b[7]);
-    a[1] = (s) * (b[2] * b[7] - b[1] * b[8]);
-    a[2] = (s) * (b[1] * b[5] - b[2] * b[4]);
-    a[3] = (s) * (b[5] * b[6] - b[3] * b[8]);
-    a[4] = (s) * (b[0] * b[8] - b[2] * b[6]);
-    a[5] = (s) * (b[2] * b[3] - b[0] * b[5]);
-    a[6] = (s) * (b[3] * b[7] - b[4] * b[6]);
-    a[7] = (s) * (b[1] * b[6] - b[0] * b[7]);
-    a[8] = (s) * (b[0] * b[4] - b[1] * b[3]);
+  // Fast path for translation-only matrix
+  if (b[0] == 1.0f && b[1] == 0.0f && b[3] == 0.0f && b[4] == 1.0f &&
+      b[6] == 0.0f && b[7] == 0.0f && b[8] == 1.0f) {
+    return (Mat3){{1.0f, 0.0f, -b[2], 0.0f, 1.0f, -b[5], 0.0f, 0.0f, 1.0f}};
+  }
 
-    return out;
+  // Fast path for scale-only matrix
+  if (b[1] == 0.0f && b[2] == 0.0f && b[3] == 0.0f && b[5] == 0.0f &&
+      b[6] == 0.0f && b[7] == 0.0f && b[8] == 1.0f) {
+    F_TYPE inv_x = 1.0f / b[0];
+    F_TYPE inv_y = 1.0f / b[4];
+    return (Mat3){{inv_x, 0.0f, 0.0f, 0.0f, inv_y, 0.0f, 0.0f, 0.0f, 1.0f}};
+  }
+
+  // General case
+  F_TYPE s = 1.0 / mat3Determinant(v);
+
+  Mat3 out;
+  F_TYPE *a = out.elements;
+
+  // calculate inverse
+  a[0] = (s) * (b[4] * b[8] - b[5] * b[7]);
+  a[1] = (s) * (b[2] * b[7] - b[1] * b[8]);
+  a[2] = (s) * (b[1] * b[5] - b[2] * b[4]);
+  a[3] = (s) * (b[5] * b[6] - b[3] * b[8]);
+  a[4] = (s) * (b[0] * b[8] - b[2] * b[6]);
+  a[5] = (s) * (b[2] * b[3] - b[0] * b[5]);
+  a[6] = (s) * (b[3] * b[7] - b[4] * b[6]);
+  a[7] = (s) * (b[1] * b[6] - b[0] * b[7]);
+  a[8] = (s) * (b[0] * b[4] - b[1] * b[3]);
+
+  return out;
 }
 
-extern Mat3 mat3Complete( Vec2f origin, Vec2f translation, Vec2f scale, F_TYPE rotation ){
-    int isRotated = rotation != 0;
-    int isScaled = scale.x != 1.0 || scale.y != 1.0;
+extern Mat3 mat3Complete(Vec2f origin, Vec2f translation, Vec2f scale,
+                         F_TYPE rotation) {
+  int isRotated = rotation != 0;
+  int isScaled = scale.x != 1.0 || scale.y != 1.0;
 
-    //This is just a translation
-    if (!isRotated && !isScaled) {
-        return mat3Translate(translation);
-    }
+  // This is just a translation
+  if (!isRotated && !isScaled) {
+    return mat3Translate(translation);
+  }
 
-    //Transform is more complex, translate first in the origin
-    Mat3 m = mat3Translate((Vec2f){-origin.x,-origin.y});
+  // Transform is more complex, translate first in the origin
+  Mat3 m = mat3Translate((Vec2f){-origin.x, -origin.y});
 
-    //Apply rotation
-    if (isRotated) {
-        Mat3 r = mat3Rotate(rotation);
-        m = mat3MultiplyM(&m, &r);
-    }
+  // Apply rotation
+  if (isRotated) {
+    Mat3 r = mat3Rotate(rotation);
+    m = mat3MultiplyM(&m, &r);
+  }
 
-    //Apply scale
-    if (isScaled) {
-        Mat3 s = mat3Scale(scale);
-        m = mat3MultiplyM(&m, &s);
-    }
+  // Apply scale
+  if (isScaled) {
+    Mat3 s = mat3Scale(scale);
+    m = mat3MultiplyM(&m, &s);
+  }
 
-    //Translate it to supposed location
-    Vec2f finalTranslation = {origin.x + translation.x, origin.y + translation.y};
-    Mat3 t = mat3Translate(finalTranslation);
-    m = mat3MultiplyM(&m, &t);
+  // Translate it to supposed location
+  Vec2f finalTranslation = {origin.x + translation.x, origin.y + translation.y};
+  Mat3 t = mat3Translate(finalTranslation);
+  m = mat3MultiplyM(&m, &t);
 
-    return m;
+  return m;
 }
 
-int mat3IsOnlyTranslation(Mat3 *m )
-{
-    if (m->elements[0] != 1.0) return 0;
-    if (m->elements[1] != 0.0) return 0;
-    //if (m->elements[2] != 0.0) return 0; This is a translation component
-    if (m->elements[3] != 0.0) return 0;
-    if (m->elements[4] != 1.0) return 0;
-    //if (m->elements[5] != 1.0) return 0; This is a translation component
-    if (m->elements[6] != 0.0) return 0;
-    if (m->elements[7] != 0.0) return 0;
-    if (m->elements[8] != 1.0) return 0;
-    return 1;
+int mat3IsOnlyTranslation(Mat3 *m) {
+  if (m->elements[0] != 1.0)
+    return 0;
+  if (m->elements[1] != 0.0)
+    return 0;
+  // if (m->elements[2] != 0.0) return 0; This is a translation component
+  if (m->elements[3] != 0.0)
+    return 0;
+  if (m->elements[4] != 1.0)
+    return 0;
+  // if (m->elements[5] != 1.0) return 0; This is a translation component
+  if (m->elements[6] != 0.0)
+    return 0;
+  if (m->elements[7] != 0.0)
+    return 0;
+  if (m->elements[8] != 1.0)
+    return 0;
+  return 1;
 }
 
-int mat3IsOnlyTranslationDoubled(Mat3 *m)
-{
-    if (m->elements[0] != 2.0) return 0;
-    if (m->elements[1] != 0.0) return 0;
-    //if (m->elements[2] != 0.0) return 0; This is a translation component
-    if (m->elements[3] != 0.0) return 0;
-    if (m->elements[4] != 2.0) return 0;
-    //if (m->elements[5] != 1.0) return 0; This is a translation component
-    if (m->elements[6] != 0.0) return 0;
-    if (m->elements[7] != 0.0) return 0;
-    if (m->elements[8] != 1.0) return 0;
-    return 1;
+int mat3IsOnlyTranslationDoubled(Mat3 *m) {
+  if (m->elements[0] != 2.0)
+    return 0;
+  if (m->elements[1] != 0.0)
+    return 0;
+  // if (m->elements[2] != 0.0) return 0; This is a translation component
+  if (m->elements[3] != 0.0)
+    return 0;
+  if (m->elements[4] != 2.0)
+    return 0;
+  // if (m->elements[5] != 1.0) return 0; This is a translation component
+  if (m->elements[6] != 0.0)
+    return 0;
+  if (m->elements[7] != 0.0)
+    return 0;
+  if (m->elements[8] != 1.0)
+    return 0;
+  return 1;
 }
 
 #if defined(_MSC_VER)
-    #pragma warning(pop)
+#pragma warning(pop)
 #endif
