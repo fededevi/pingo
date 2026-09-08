@@ -41,30 +41,35 @@ jobs:
           - name: linux-aarch64
             runs-on: ubuntu-latest
             cc: aarch64-linux-gnu-gcc
+            sysroot: /usr/aarch64-linux-gnu
             packages: gcc-aarch64-linux-gnu
             qemu: true
 
           - name: linux-riscv64
             runs-on: ubuntu-latest
             cc: riscv64-linux-gnu-gcc
+            sysroot: /usr/riscv64-linux-gnu
             packages: gcc-riscv64-linux-gnu
             qemu: true
 
           - name: linux-armhf
             runs-on: ubuntu-latest
             cc: arm-linux-gnueabihf-gcc
+            sysroot: /usr/arm-linux-gnueabihf
             packages: gcc-arm-linux-gnueabihf
             qemu: true
 
           - name: linux-s390x
             runs-on: ubuntu-latest
             cc: s390x-linux-gnu-gcc
+            sysroot: /usr/s390x-linux-gnu
             packages: gcc-s390x-linux-gnu
             qemu: true
 
           - name: linux-sparc64
             runs-on: ubuntu-latest
             cc: sparc64-linux-gnu-gcc
+            sysroot: /usr/sparc64-linux-gnu
             packages: gcc-sparc64-linux-gnu
             qemu: true
 
@@ -87,6 +92,10 @@ jobs:
     - name: Build and test
       env:
         CC: ${{ matrix.cc }}
+        # qemu resolves the target's dynamic loader and libc under here. The
+        # cross packages install them to /usr/<triple>, not /lib, so without
+        # this every cross-built test fails to start.
+        QEMU_LD_PREFIX: ${{ matrix.sysroot }}
       run: cmake --workflow --preset default
 
   # Separate only because it needs choco rather than apt, and a generator that
