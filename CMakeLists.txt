@@ -58,7 +58,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # without being told what it has.
 # ---------------------------------------------------------------------------
 if(UNIX)
-    find_package(X11 QUIET)
+    # Not on Apple: macOS runners report X11 as found while shipping no
+    # X11/Xlib.h, and the backend that needs it is Linux/X11 specific anyway.
+    if(NOT APPLE)
+        find_package(X11 QUIET)
+    endif()
     find_package(JPEG QUIET)
 endif()
 

@@ -41,27 +41,32 @@ jobs:
           - name: linux-aarch64
             runs-on: ubuntu-latest
             cc: aarch64-linux-gnu-gcc
-            packages: gcc-aarch64-linux-gnu qemu-user-static
+            packages: gcc-aarch64-linux-gnu
+            qemu: true
 
           - name: linux-riscv64
             runs-on: ubuntu-latest
             cc: riscv64-linux-gnu-gcc
-            packages: gcc-riscv64-linux-gnu qemu-user-static
+            packages: gcc-riscv64-linux-gnu
+            qemu: true
 
           - name: linux-armhf
             runs-on: ubuntu-latest
             cc: arm-linux-gnueabihf-gcc
-            packages: gcc-arm-linux-gnueabihf qemu-user-static
+            packages: gcc-arm-linux-gnueabihf
+            qemu: true
 
           - name: linux-s390x
             runs-on: ubuntu-latest
             cc: s390x-linux-gnu-gcc
-            packages: gcc-s390x-linux-gnu qemu-user-static
+            packages: gcc-s390x-linux-gnu
+            qemu: true
 
           - name: linux-sparc64
             runs-on: ubuntu-latest
             cc: sparc64-linux-gnu-gcc
-            packages: gcc-sparc64-linux-gnu qemu-user-static
+            packages: gcc-sparc64-linux-gnu
+            qemu: true
 
     steps:
     - uses: actions/checkout@v3
@@ -71,6 +76,13 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y ${{ matrix.packages }}
+
+    # Registers binfmt handlers so the cross-built test binaries execute as if
+    # native. Installing qemu-user-static alone does not do this: the handlers
+    # are never registered, and every test fails instantly with an exec error.
+    - name: Register qemu binfmt handlers
+      if: matrix.qemu
+      uses: docker/setup-qemu-action@v3
 
     - name: Build and test
       env:
