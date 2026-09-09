@@ -1,6 +1,6 @@
 #include "assets/viking.h"
 #include "example/linux_window/linux_window_backend.h"
-#include "render/entity.h"
+#include "render/transform.h"
 #include "render/material.h"
 #include "render/object.h"
 #include "render/renderer.h"
@@ -21,11 +21,11 @@
 typedef struct {
   LinuxWindowBackend backend;
   Renderer renderer;
-  Entity root_entity;
+  Transform root_node;
 
   // Multiple objects for realistic culling test
   Object objects[MAX_OBJECTS];
-  Entity entities[MAX_OBJECTS];
+  Transform entities[MAX_OBJECTS];
   Material materials[MAX_OBJECTS];
   Texture textures[MAX_OBJECTS];
   Pixel *texture_data[MAX_OBJECTS];
@@ -111,13 +111,13 @@ void library_benchmark_init(LibraryBenchmark *lb, int width, int height) {
     Mat4 rotation = mat4RotateY(lb->rotations[i].y);
     Mat4 transform = mat4MultiplyM(&rotation, &translation);
 
-    entity_init(&lb->entities[i], (Renderable *)&lb->objects[i], transform);
+    transform_init(&lb->entities[i], (Renderable *)&lb->objects[i], transform);
   }
 
   // Create a simple scene graph - for now, we'll render objects individually
   // In a real implementation, you'd create a proper scene graph
-  entity_init(&lb->root_entity, NULL, mat4Identity());
-  renderer_set_root_renderable(&lb->renderer, (Renderable *)&lb->root_entity);
+  transform_init(&lb->root_node, NULL, mat4Identity());
+  renderer_set_root_renderable(&lb->renderer, (Renderable *)&lb->root_node);
 
   printf("Library benchmark initialized with %d objects\n", MAX_OBJECTS);
   printf("Objects distributed in 3D space for realistic culling test\n");
@@ -165,7 +165,7 @@ double library_benchmark_run_with_config(LibraryBenchmark *lb, double duration,
       Mat4 temp = mat4MultiplyM(&rotation, &scale);
       Mat4 transform = mat4MultiplyM(&temp, &translation);
 
-      lb->entities[i].transform = transform;
+      lb->entities[i].local = transform;
 
       // Render each object individually (simulating scene graph traversal)
       lb->renderer.root_renderable = (Renderable *)&lb->entities[i];

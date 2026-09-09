@@ -68,14 +68,14 @@ void visual_benchmark_init(VisualBenchmark *vb, int width, int height) {
   object_init(&vb->object, &viking_mesh, &vb->material);
 
   // Initialize root entity
-  entity_init(&vb->root_entity, (Renderable *)&vb->object, mat4Identity());
+  transform_init(&vb->root_node, (Renderable *)&vb->object, mat4Identity());
 
   // Initialize backend
   linux_window_backend_init(&vb->backend, vb->window_size);
 
   // Initialize renderer
   renderer_init(&vb->renderer, vb->window_size, (Backend *)&vb->backend);
-  renderer_set_root_renderable(&vb->renderer, (Renderable *)&vb->root_entity);
+  renderer_set_root_renderable(&vb->renderer, (Renderable *)&vb->root_node);
 
   // Setup camera
   float aspect_ratio = (float)width / (float)height;
@@ -108,7 +108,7 @@ void visual_benchmark_update_scene(VisualBenchmark *vb) {
   Mat4 model = mat4MultiplyM(&rotation, &translation);
 
   // Update entity transform
-  vb->root_entity.transform = model;
+  vb->root_node.local = model;
 
   // Update rotation for next frame
   vb->rotation_angle += 0.02f; // Slightly faster rotation for benchmark

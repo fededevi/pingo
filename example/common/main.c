@@ -4,7 +4,7 @@
 #include "math/mat4.h"
 #include "render/backend.h"
 
-#include "render/entity.h"
+#include "render/transform.h"
 #include "render/material.h"
 #include "render/object.h"
 #include "render/pixel.h"
@@ -122,8 +122,8 @@ int main(void) {
   Object object;
   CHECK(object_init(&object, &viking_mesh, &material));
 
-  Entity root_entity;
-  CHECK(entity_init(&root_entity, (Renderable *)&object, mat4Identity()));
+  Transform root_node;
+  CHECK(transform_init(&root_node, (Renderable *)&object, mat4Identity()));
 
   // Backend-specific initialization
   Vec2i size = {640, 480};
@@ -137,7 +137,7 @@ int main(void) {
 
   Renderer renderer;
   CHECK(renderer_init(&renderer, size, backend));
-  CHECK(renderer_set_root_renderable(&renderer, (Renderable *)&root_entity));
+  CHECK(renderer_set_root_renderable(&renderer, (Renderable *)&root_node));
 
   float phi = 0;
 
@@ -158,7 +158,7 @@ int main(void) {
     // Combine transforms: T * R
     Mat4 model = mat4MultiplyM(&rotation, &translation);
 
-    root_entity.transform = model;
+    root_node.local = model;
 
     // Leaving the loop on failure means the cleanup below actually runs,
     // instead of spinning silently on a broken renderer.

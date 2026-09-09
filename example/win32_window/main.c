@@ -3,7 +3,7 @@
 #include "window_backend.h"
 #include <windows.h>
 
-#include "render/entity.h"
+#include "render/transform.h"
 #include "render/material.h"
 #include "render/object.h"
 #include "render/pixel.h"
@@ -46,8 +46,8 @@ int main() {
   Object object;
   object_init(&object, &viking_mesh, &material);
 
-  Entity root_entity;
-  entity_init(&root_entity, (Renderable *)&object, mat4Identity());
+  Transform root_node;
+  transform_init(&root_node, (Renderable *)&object, mat4Identity());
 
   Vec2i size = {640, 480};
   WindowBackend backend;
@@ -55,7 +55,7 @@ int main() {
 
   Renderer renderer;
   renderer_init(&renderer, size, (Backend *)&backend);
-  renderer_set_root_renderable(&renderer, (Renderable *)&root_entity);
+  renderer_set_root_renderable(&renderer, (Renderable *)&root_node);
 
   float phi = 0;
 
@@ -74,7 +74,7 @@ int main() {
     // Mat4 model = mat4MultiplyM(&rotation, &flip);
     Mat4 model = mat4MultiplyM(&rotation, &translation);
 
-    root_entity.transform = model;
+    root_node.local = model;
 
     renderer_render(&renderer);
 

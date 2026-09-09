@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "math/mat4.h"
-#include "render/entity.h"
+#include "render/transform.h"
 #include "render/material.h"
 #include "render/mesh.h"
 #include "render/object.h"
@@ -50,8 +50,8 @@ int main() {
   Object viking_object;
   object_init(&viking_object, &viking_mesh, &material);
 
-  Entity root_entity;
-  entity_init(&root_entity, (Renderable *)&viking_object, mat4Identity());
+  Transform root_node;
+  transform_init(&root_node, (Renderable *)&viking_object, mat4Identity());
 
   Vec2i size = {1376, 768};
   LinuxFramebufferBackend backend;
@@ -59,7 +59,7 @@ int main() {
 
   Renderer renderer;
   renderer_init(&renderer, size, (Backend *)&backend);
-  renderer_set_root_renderable(&renderer, (Renderable *)&root_entity);
+  renderer_set_root_renderable(&renderer, (Renderable *)&root_node);
 
   float phi = 0;
   Mat4 t;
@@ -76,12 +76,12 @@ int main() {
     renderer.camera.view = mat4MultiplyM(&rotateDown, &v);
 
     // TEA TRANSFORM - Defines position and orientation of the object
-    root_entity.transform = mat4RotateZ(3.142128);
+    root_node.local = mat4RotateZ(3.142128);
     t = mat4RotateZ(0);
-    root_entity.transform = mat4MultiplyM(&root_entity.transform, &t);
+    root_node.local = mat4MultiplyM(&root_node.local, &t);
 
     // SCENE
-    root_entity.transform = mat4RotateY(phi);
+    root_node.local = mat4RotateY(phi);
     phi += 0.01;
 
     renderer_render(&renderer);

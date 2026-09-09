@@ -2,7 +2,7 @@
 
 #include "assets/viking.h"
 #include "example/linux_window/linux_window_backend.h"
-#include "render/entity.h"
+#include "render/transform.h"
 #include "render/material.h"
 #include "render/mesh.h"
 #include "render/object.h"
@@ -15,7 +15,7 @@ typedef struct {
   // Rendering components
   LinuxWindowBackend backend;
   Renderer renderer;
-  Entity root_entity;
+  Transform root_node;
   Object object;
   Material material;
   Texture texture;

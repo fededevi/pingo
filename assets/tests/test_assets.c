@@ -19,7 +19,7 @@
 #include "golden.h"
 #include "memory_backend.h"
 
-#include "render/entity.h"
+#include "render/transform.h"
 #include "render/material.h"
 #include "render/mesh.h"
 #include "render/object.h"
@@ -75,10 +75,10 @@ static int render_scene(const AssetScene *scene, MemoryBackend *backend) {
   Object object;
   object_init(&object, scene->mesh, &material);
 
-  Entity root;
+  Transform root;
   Mat4 rotation = mat4RotateY(0.6f);
   Mat4 translation = mat4Translate((Vec3f){0, 0, -scene->distance});
-  entity_init(&root, (Renderable *)&object,
+  transform_init(&root, (Renderable *)&object,
               mat4MultiplyM(&rotation, &translation));
   renderer_set_root_renderable(&renderer, (Renderable *)&root);
 

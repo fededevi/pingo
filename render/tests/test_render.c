@@ -18,7 +18,7 @@
 #include "golden.h"
 #include "memory_backend.h"
 
-#include "render/entity.h"
+#include "render/transform.h"
 #include "render/material.h"
 #include "render/mesh.h"
 #include "render/object.h"
@@ -54,7 +54,7 @@ static Texture texture;
 static Material material;
 static Mesh mesh;
 static Object object;
-static Entity root;
+static Transform root;
 
 static void init_checker_texture(void) {
   checker[0] = pixel_from_rgba(255, 255, 255, 255);
@@ -74,7 +74,7 @@ static void build_empty(Renderer *renderer) {
   mesh.positions = NULL;
   mesh.tex_coords = NULL;
   object_init(&object, &mesh, &material);
-  entity_init(&root, (Renderable *)&object, mat4Identity());
+  transform_init(&root, (Renderable *)&object, mat4Identity());
   renderer_set_root_renderable(renderer, (Renderable *)&root);
 
   renderer->camera.projection =
@@ -107,7 +107,7 @@ static void build_triangle(Renderer *renderer) {
   mesh.tex_coords = tri_coords;
 
   object_init(&object, &mesh, &material);
-  entity_init(&root, (Renderable *)&object,
+  transform_init(&root, (Renderable *)&object,
               mat4Translate((Vec3f){0, 0, -2.2f}));
   renderer_set_root_renderable(renderer, (Renderable *)&root);
 
@@ -164,7 +164,7 @@ static void build_cube(Renderer *renderer) {
 
   Mat4 rotation = mat4RotateY(0.7f);
   Mat4 translation = mat4Translate((Vec3f){0, 0, -2.8f});
-  entity_init(&root, (Renderable *)&object,
+  transform_init(&root, (Renderable *)&object,
               mat4MultiplyM(&rotation, &translation));
   renderer_set_root_renderable(renderer, (Renderable *)&root);
 
@@ -187,13 +187,13 @@ static Vec3f tri2_positions[3];
 static uint16_t tri2_indices[3];
 static Mesh mesh2;
 static Object object2;
-static Entity child_a;
-static Entity child_b;
+static Transform child_a;
+static Transform child_b;
 static Renderable *group_children[2];
 
 // A group with no content of its own, two children reached through the
 // multi-child path, and a non-black clear colour. Each of those was
-// unreachable in the other scenes: entity_init's single-child shortcut covers
+// unreachable in the other scenes: transform_init's single-child shortcut covers
 // content, and every scene cleared to black.
 static void build_group(Renderer *renderer) {
   init_checker_texture();
@@ -227,12 +227,12 @@ static void build_group(Renderer *renderer) {
   mesh2.tex_coords = tri_coords;
   object_init(&object2, &mesh2, &material);
 
-  entity_init(&child_a, (Renderable *)&object, mat4Translate((Vec3f){0, 0, -2.5f}));
-  entity_init(&child_b, (Renderable *)&object2, mat4Translate((Vec3f){0, 0, -2.5f}));
+  transform_init(&child_a, (Renderable *)&object, mat4Translate((Vec3f){0, 0, -2.5f}));
+  transform_init(&child_b, (Renderable *)&object2, mat4Translate((Vec3f){0, 0, -2.5f}));
   group_children[0] = (Renderable *)&child_a;
   group_children[1] = (Renderable *)&child_b;
 
-  entity_init_children(&root, mat4Identity(), group_children, 2);
+  transform_init_children(&root, mat4Identity(), group_children, 2);
   renderer_set_root_renderable(renderer, (Renderable *)&root);
 
   renderer->clear = true;

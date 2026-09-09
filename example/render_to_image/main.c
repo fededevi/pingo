@@ -3,7 +3,7 @@
 #include "jpeg_backend.h"
 #include "math/mat4.h"
 
-#include "render/entity.h"
+#include "render/transform.h"
 #include "render/material.h"
 #include "render/mesh.h"
 #include "render/object.h"
@@ -49,8 +49,8 @@ int main() {
   Object object;
   object_init(&object, &viking_mesh, &material);
 
-  Entity root_entity;
-  entity_init(&root_entity, (Renderable *)&object, mat4Identity());
+  Transform root_node;
+  transform_init(&root_node, (Renderable *)&object, mat4Identity());
 
   Vec2i size = {640, 480};
   JpegBackend jpegBackend;
@@ -58,7 +58,7 @@ int main() {
 
   Renderer renderer;
   renderer_init(&renderer, size, (Backend *)&jpegBackend);
-  renderer_set_root_renderable(&renderer, (Renderable *)&root_entity);
+  renderer_set_root_renderable(&renderer, (Renderable *)&root_node);
 
   float phi = 0;
 
@@ -72,7 +72,7 @@ int main() {
   while (1) {
     Mat4 rotate1 = mat4RotateY(phi);
     Mat4 rotate2 = mat4RotateX(3.1421);
-    root_entity.transform = mat4MultiplyM(&rotate1, &rotate2);
+    root_node.local = mat4MultiplyM(&rotate1, &rotate2);
 
     phi += 0.01;
 

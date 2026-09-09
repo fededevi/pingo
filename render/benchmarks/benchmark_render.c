@@ -16,7 +16,7 @@
 
 #include "memory_backend.h"
 
-#include "render/entity.h"
+#include "render/transform.h"
 #include "render/material.h"
 #include "render/mesh.h"
 #include "render/object.h"
@@ -128,9 +128,9 @@ static int measure(const char *name, int frames, int width, int height,
       rings ? build_sphere(&mesh, rings, segments) : build_quad(&mesh);
 
   Object object;
-  Entity root;
+  Transform root;
   object_init(&object, &mesh, &material);
-  entity_init(&root, (Renderable *)&object, mat4Identity());
+  transform_init(&root, (Renderable *)&object, mat4Identity());
   renderer_set_root_renderable(&renderer, (Renderable *)&root);
 
   renderer.camera.projection =
@@ -151,7 +151,7 @@ static int measure(const char *name, int frames, int width, int height,
   const int warmup = frames < 10 ? frames : frames / 10 + 1;
   for (int i = 0; i < warmup; i++) {
     Mat4 rotation = mat4RotateY(spin ? 0.01f * (float)i : 0.0f);
-    root.transform = mat4MultiplyM(&rotation, &translation);
+    root.local = mat4MultiplyM(&rotation, &translation);
     if (renderer_render(&renderer) != OK) {
       fprintf(stderr, "  renderer_render failed\n");
       memory_backend_free(&backend);
@@ -162,7 +162,7 @@ static int measure(const char *name, int frames, int width, int height,
   const clock_t start = clock();
   for (int i = 0; i < frames; i++) {
     Mat4 rotation = mat4RotateY(spin ? 0.01f * (float)i : 0.0f);
-    root.transform = mat4MultiplyM(&rotation, &translation);
+    root.local = mat4MultiplyM(&rotation, &translation);
     if (renderer_render(&renderer) != OK) {
       fprintf(stderr, "  renderer_render failed\n");
       memory_backend_free(&backend);
