@@ -1,3 +1,5 @@
+add_subdirectory(unit)
+
 # Golden-image tests for pingo_render.
 #
 # These render into memory rather than onto a screen, so they run everywhere -

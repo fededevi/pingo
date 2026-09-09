@@ -37,6 +37,10 @@ typedef struct Transform {
 
 PINGO_ASSERT_RENDERABLE_FIRST(Transform);
 
+/** The vtable entry, declared so it can be called and tested
+ * directly and not only through Renderable.render. */
+extern int transform_render(void *this, Mat4 parent, Renderer *renderer);
+
 /** One child, stored inline. `renderable` may be NULL for a bare group. */
 extern int transform_init(Transform *this, Renderable *renderable, Mat4 local);
 

@@ -61,6 +61,13 @@ library's tests:
 `pingo_render` links `pingo_math`, and `pingo_assets` uses the `Mesh` type from
 `pingo_render`, so linking the renderer alone brings the maths with it.
 
+`render_unit_tests` covers the render types in isolation - Pixel, Texture,
+depth, RenderTarget, Transform, the drawables and Renderer - checking the
+things a picture cannot show: which arguments are rejected, that the masked
+and general texture samplers agree, that the shade table matches `pixel_mul`
+for every channel value and factor, and that a failing child aborts a
+traversal. `math_tests` does the same for the maths.
+
 The renderer's tests draw into memory at 64x48 and compare the result against
 committed PPM references, so they run on every platform - including the
 cross-compiled ones, where no window backend exists. Regenerate them all after
