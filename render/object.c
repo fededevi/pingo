@@ -10,6 +10,14 @@
 #ifndef PINGO_SPAN_CLIP_MIN_WIDTH
 #define PINGO_SPAN_CLIP_MIN_WIDTH 16
 #endif
+
+// Bounding-box area from which tabulating a triangle's shade beats converting
+// and multiplying three channels for every one of its pixels. Chosen by
+// measurement; the table has 256 entries, so it needs a triangle of about
+// that size to repay building it.
+#ifndef PINGO_SHADE_TABLE_MIN_AREA
+#define PINGO_SHADE_TABLE_MIN_AREA 256
+#endif
 #include "math/fun.h"
 #include "math/mat4.h"
 #include "mesh.h"
@@ -239,6 +247,14 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     // an untextured mesh - and two of the four shipped meshes are untextured.
     const Pixel flat_color = pixelMul(pixelFromUInt8(255), diffuseLight);
 
+    PixelShadeTable shade;
+    const int use_shade_table =
+        (o->material != 0) &&
+        ((int32_t)(maxX - minX) * (maxY - minY) >= PINGO_SHADE_TABLE_MIN_AREA);
+    if (use_shade_table) {
+      pixel_shade_table_init(&shade, diffuseLight);
+    }
+
     float invAw = 0, invBw = 0, invCw = 0;
     if (o->material != 0 && aw != 0 && bw != 0 && cw != 0) {
       invAw = 1.0f / aw;
@@ -308,7 +324,9 @@ int object_render(void *this, Mat4 m, Renderer *r) {
           Pixel text = texture_readF(o->material->texture,
                                      (Vec2f){textCoordx, textCoordy});
           texture_draw_index(&r->framebuffer, pixel_index,
-                             pixelMul(text, diffuseLight));
+                             use_shade_table
+                                 ? pixelMulTable(text, &shade)
+                                 : pixelMul(text, diffuseLight));
         } else {
           texture_draw_index(&r->framebuffer, pixel_index, flat_color);
         }
