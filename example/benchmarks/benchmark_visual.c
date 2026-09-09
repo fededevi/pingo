@@ -79,9 +79,9 @@ void visual_benchmark_init(VisualBenchmark *vb, int width, int height) {
 
   // Setup camera
   float aspect_ratio = (float)width / (float)height;
-  vb->renderer.camera_projection =
+  vb->renderer.camera.projection =
       mat4Perspective(3.0f, 50.0f, aspect_ratio, 0.1f);
-  vb->renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
+  vb->renderer.camera.view = mat4Translate((Vec3f){0, 0, 0});
 
   printf("Visual benchmark initialized successfully\n");
 }

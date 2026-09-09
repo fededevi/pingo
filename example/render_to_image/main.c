@@ -62,12 +62,12 @@ int main() {
 
   float phi = 0;
 
-  renderer.camera_projection =
+  renderer.camera.projection =
       mat4Perspective(1, 500.0, (float)size.x / (float)size.y, 1);
 
   Mat4 translate_back = mat4Translate((Vec3f){0, 0, -35});
   Mat4 rotate_down = mat4RotateX(-0.30);
-  renderer.camera_view = mat4MultiplyM(&rotate_down, &translate_back);
+  renderer.camera.view = mat4MultiplyM(&rotate_down, &translate_back);
 
   while (1) {
     Mat4 rotate1 = mat4RotateY(phi);

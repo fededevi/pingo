@@ -72,9 +72,9 @@ void library_benchmark_init(LibraryBenchmark *lb, int width, int height) {
 
   // Setup camera
   float aspect_ratio = (float)width / (float)height;
-  lb->renderer.camera_projection =
+  lb->renderer.camera.projection =
       mat4Perspective(3.0f, 50.0f, aspect_ratio, 0.1f);
-  lb->renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
+  lb->renderer.camera.view = mat4Translate((Vec3f){0, 0, 0});
 
   // Create multiple objects distributed in 3D space
   Vec2i texture_size = {128, 128}; // Smaller textures for performance

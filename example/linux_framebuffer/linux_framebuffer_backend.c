@@ -29,10 +29,9 @@ static Pixel *renderBuffer;
 static size_t mappedBytes;
 static int framebufferFd = -1;
 
-void init(Renderer *ren, Backend *backend, Vec4i _rect) {
+void init(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
-  (void)_rect;
 
   // Deliberately ignores _rect. renderer_init passes {0, 0, 0, 0}, and this
   // used to size renderBuffer from it - malloc(0), which renderer_render then

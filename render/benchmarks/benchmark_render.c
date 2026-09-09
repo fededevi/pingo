@@ -133,9 +133,9 @@ static int measure(const char *name, int frames, int width, int height,
   entity_init(&root, (Renderable *)&object, mat4Identity());
   renderer_set_root_renderable(&renderer, (Renderable *)&root);
 
-  renderer.camera_projection =
+  renderer.camera.projection =
       mat4Perspective(1, 200.0, (float)width / (float)height, 0.6);
-  renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
+  renderer.camera.view = mat4Translate((Vec3f){0, 0, 0});
 
   // A sphere's silhouette does not change as it turns, so spinning it varies
   // the triangle slopes without changing the pixel count. A flat quad is the

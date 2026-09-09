@@ -37,11 +37,9 @@ static void enable_ansi_output(void) {
 #endif
 }
 
-void terminal_backend_init_backend(Renderer *ren, Backend *backend,
-                                   Vec4i rect) {
+void terminal_backend_init_backend(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
-  (void)rect;
 }
 
 void terminal_backend_beforeRender(Renderer *ren, Backend *backend) {

@@ -61,9 +61,9 @@ int main() {
 
   float phi = 0;
 
-  renderer.camera_projection =
+  renderer.camera.projection =
       mat4Perspective(3, 50.0, (float)size.x / (float)size.y, 0.1);
-  renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
+  renderer.camera.view = mat4Translate((Vec3f){0, 0, 0});
 
   while (1) {
     // Rotation around Y-axis

@@ -7,10 +7,9 @@
 
 // The vtable takes no user pointer, so the buffers are reached through the
 // backend pointer each call rather than through globals.
-static void mb_init(Renderer *renderer, Backend *backend, Vec4i rect) {
+static void mb_init(Renderer *renderer, Backend *backend) {
   (void)renderer;
   (void)backend;
-  (void)rect;
 }
 
 static void mb_before_render(Renderer *renderer, Backend *backend) {

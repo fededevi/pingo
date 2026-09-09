@@ -1,6 +1,5 @@
 #include "entity.h"
 #include "math/mat4.h"
-#include "render/array.h"
 #include "state.h"
 #include <stddef.h>
 
@@ -14,41 +13,40 @@ int entity_render(void *this, Mat4 transform, Renderer *renderer) {
 
   Mat4 new_transform = mat4MultiplyM(&entity->transform, &transform);
 
-  for (size_t i = 0; i < entity->children.count; i++) {
-    Entity *child_entity = &((Entity *)entity->children.data)[i];
-    child_entity->renderable.render(child_entity, new_transform, renderer);
+  for (size_t i = 0; i < entity->child_count; i++) {
+    Renderable *child = entity->children[i];
+    if (child != NULL) {
+      const int e = child->render(child, new_transform, renderer);
+      if (e != OK) {
+        return e;
+      }
+    }
   }
 
-  Renderable *renderable = entity->content;
+  // A grouping node has no content of its own. This used to be dereferenced
+  // unconditionally, so a zeroed entity crashed rather than drawing nothing.
+  if (entity->content == NULL) {
+    return OK;
+  }
 
-  return renderable->render(renderable, new_transform, renderer);
+  return entity->content->render(entity->content, new_transform, renderer);
 };
 
 int entity_init(Entity *this, Renderable *renderable, Mat4 transform) {
-  IF_NULL_RETURN(this, INIT_ERROR);
-  IF_NULL_RETURN(renderable, INIT_ERROR);
-
-  this->content = renderable;
-  this->renderable.render = &entity_render;
-  this->transform = transform;
-  this->visible = true;
-
-  array_init(&this->children, 0, 0);
-
-  return OK;
+  return entity_init_children(this, renderable, transform, NULL, 0);
 }
 
 int entity_init_children(Entity *this, Renderable *renderable, Mat4 transform,
-                         Entity children[], size_t children_count) {
+                         Renderable **children, size_t child_count) {
   IF_NULL_RETURN(this, INIT_ERROR);
-  IF_NULL_RETURN(renderable, INIT_ERROR);
 
+  // renderable may be NULL: that is a grouping node.
   this->content = renderable;
   this->renderable.render = &entity_render;
   this->transform = transform;
   this->visible = true;
-
-  array_init(&this->children, children_count, children);
+  this->children = children;
+  this->child_count = (children == NULL) ? 0 : child_count;
 
   return OK;
 }

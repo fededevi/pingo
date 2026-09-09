@@ -20,10 +20,9 @@ static Pixel *frame_buffer;
 static RenderTarget target;
 Vec2i imageSize;
 
-void jpbe_init(Renderer *ren, Backend *backend, Vec4i _rect) {
+void jpbe_init(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
-  (void)_rect;
 }
 
 void jpbe_beforeRender(Renderer *ren, Backend *backend) {

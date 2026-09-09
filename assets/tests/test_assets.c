@@ -82,9 +82,9 @@ static int render_scene(const AssetScene *scene, MemoryBackend *backend) {
               mat4MultiplyM(&rotation, &translation));
   renderer_set_root_renderable(&renderer, (Renderable *)&root);
 
-  renderer.camera_projection =
+  renderer.camera.projection =
       mat4Perspective(1, 200.0, (float)WIDTH / (float)HEIGHT, 0.6);
-  renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
+  renderer.camera.view = mat4Translate((Vec3f){0, 0, 0});
 
   if (renderer_render(&renderer) != OK) {
     fprintf(stderr, "  renderer_render failed\n");

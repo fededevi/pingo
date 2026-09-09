@@ -66,14 +66,14 @@ int main() {
 
   while (1) {
     // PROJECTION MATRIX - Defines the type of projection used
-    renderer.camera_projection =
+    renderer.camera.projection =
         mat4Perspective(1, 2500.0, (float)size.x / (float)size.y, 0.6);
 
     // VIEW MATRIX - Defines position and orientation of the "camera"
     Mat4 v = mat4Translate((Vec3f){0, 2, -35});
 
     Mat4 rotateDown = mat4RotateX(-0.40); // Rotate around origin/orbit
-    renderer.camera_view = mat4MultiplyM(&rotateDown, &v);
+    renderer.camera.view = mat4MultiplyM(&rotateDown, &v);
 
     // TEA TRANSFORM - Defines position and orientation of the object
     root_entity.transform = mat4RotateZ(3.142128);

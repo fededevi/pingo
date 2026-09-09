@@ -142,9 +142,9 @@ int main(void) {
   float phi = 0;
 
   // Default camera setup (can be overridden by backend if needed)
-  renderer.camera_projection =
+  renderer.camera.projection =
       mat4Perspective(3, 50.0, (float)size.x / (float)size.y, 0.1);
-  renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
+  renderer.camera.view = mat4Translate((Vec3f){0, 0, 0});
 
   int exit_code = EXIT_SUCCESS;
 

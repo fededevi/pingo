@@ -74,7 +74,7 @@ static HWND win_main(HINSTANCE h_instance, int nCmdShow, WindowBackend *wb) {
   return hwnd;
 }
 
-static void init(Renderer *ren, Backend *backend, Vec4i rect) {
+static void init(Renderer *ren, Backend *backend) {
   (void)ren;
   WindowBackend *wb = (WindowBackend *)backend;
   wb->rect = rect;

@@ -14,7 +14,6 @@
 #include <X11/Xutil.h>
 #include <unistd.h>
 
-Vec4i rect;
 Vec2i totalSize;
 
 static PingoDepth *depth_buffer;
@@ -53,10 +52,9 @@ PgError init_x(void) {
   return PG_SUCCESS;
 }
 
-void init(Renderer *ren, Backend *backend, Vec4i _rect) {
+void init(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
-  rect = _rect;
   // The window is already open: create_backend does it, because this slot
   // returns void and so has no way to report a failure.
 }

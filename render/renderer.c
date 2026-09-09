@@ -15,7 +15,7 @@ int renderer_init(Renderer *r, Vec2i size, Backend *backend) {
   r->clear = 1;
   r->clear_color = PIXEL_BLACK;
   r->backend = backend;
-  r->backend->init(r, r->backend, (Vec4i){0, 0, 0, 0});
+  r->backend->init(r, r->backend);
 
   r->enable_backface_culling = true;
   r->enable_frustum_culling = false; // Disabled by default (can have overhead)
@@ -50,7 +50,9 @@ int renderer_render(Renderer *r) {
   }
 
   if (r->clear) {
-    memset(r->target.color.pixels, 0, (size_t)pixels * sizeof(Pixel));
+    // Was a memset to zero, which ignored clear_color entirely - setting it
+    // to anything but black had no effect at all.
+    texture_fill(&r->target.color, r->clear_color);
   }
 
   r->root_renderable->render(r->root_renderable, mat4Identity(), r);

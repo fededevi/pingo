@@ -105,8 +105,8 @@ int object_render(void *this, Mat4 m, Renderer *r) {
   const Vec2i scrSize = r->target.color.size;
 
   // VIEW MATRIX
-  Mat4 v = mat4Inverse(&r->camera_view);
-  Mat4 p = r->camera_projection;
+  Mat4 v = mat4Inverse(&r->camera.view);
+  Mat4 p = r->camera.projection;
 
   // Read from the target rather than fetched through the backend: it used to
   // be an opaque call made two or three times per pixel.

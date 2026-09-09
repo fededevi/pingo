@@ -34,15 +34,16 @@ typedef struct {
 Anything embedding a `Renderable` as its first field is drawable, which is how C
 gets polymorphism here:
 
-- **`Entity`** — a transform, a visibility flag, and child entities. Composing
-  these is what makes the graph a tree; each node concatenates its transform and
-  recurses.
+- **`Entity`** — a transform, a visibility flag, and children. Composing these
+  is what makes the graph a tree; each node concatenates its transform and
+  recurses. Its content may be NULL, which makes it a pure grouping node, and
+  its children are `Renderable *`, so anything drawable can be one.
 - **`Object`** — a `Mesh` plus a `Material`. This is what actually reaches the
   rasterizer.
 - **`Sprite`** — a `Texture` drawn straight through the given transform,
   bypassing the camera.
 
-The camera lives on the `Renderer` as `camera_projection` and `camera_view`.
+The camera lives on the `Renderer` as `camera.projection` and `camera.view`.
 Backface culling, frustum culling and early-Z are toggles on the same struct
 (`renderer_enable_*`), all on by default.
 

@@ -8,8 +8,12 @@
  */
 
 struct Backend {
-  // Called on initialization and re-initialization
-  void (*init)(Renderer *, struct Backend *, Vec4i rect);
+  // Called on initialization and re-initialization.
+  //
+  // This used to take a Vec4i rect, which renderer_init always passed as
+  // {0,0,0,0} and every backend ignored. Rendering to a sub-rectangle wants a
+  // RenderTarget describing it, not a rectangle handed to init.
+  void (*init)(Renderer *, struct Backend *);
 
   // Called before starting rendering
   void (*before_render)(Renderer *, struct Backend *);

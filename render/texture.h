@@ -23,6 +23,14 @@ extern void texture_draw(Texture *f, Vec2i pos, Pixel color);
 // The rasterizer already holds the linear index, having needed it for the
 // depth buffer. Going back through x and y makes texture_draw recompute
 // x + y * width, a multiply per pixel drawn, for a result already known.
+/** Fills the whole surface with one colour. */
+static inline void texture_fill(Texture *f, Pixel color) {
+  const int n = f->size.x * f->size.y;
+  for (int i = 0; i < n; i++) {
+    f->pixels[i] = color;
+  }
+}
+
 static inline void texture_draw_index(Texture *f, int index, Pixel color) {
   f->pixels[index] = color;
 }

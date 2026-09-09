@@ -6,6 +6,12 @@
 #include "texture.h"
 #include <stdbool.h>
 
+/** The two matrices are only ever set and used together. */
+typedef struct Camera {
+  Mat4 projection;
+  Mat4 view;
+} Camera;
+
 struct Renderer {
   Renderable *root_renderable;
 
@@ -15,8 +21,7 @@ struct Renderer {
   Pixel clear_color;
   bool clear;
 
-  Mat4 camera_projection;
-  Mat4 camera_view;
+  Camera camera;
 
   Backend *backend;
 

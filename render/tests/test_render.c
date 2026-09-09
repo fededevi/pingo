@@ -77,9 +77,9 @@ static void build_empty(Renderer *renderer) {
   entity_init(&root, (Renderable *)&object, mat4Identity());
   renderer_set_root_renderable(renderer, (Renderable *)&root);
 
-  renderer->camera_projection =
+  renderer->camera.projection =
       mat4Perspective(1, 50.0, (float)WIDTH / (float)HEIGHT, 0.6);
-  renderer->camera_view = mat4Translate((Vec3f){0, 0, 0});
+  renderer->camera.view = mat4Translate((Vec3f){0, 0, 0});
 }
 
 static Vec3f tri_positions[3];
@@ -111,9 +111,9 @@ static void build_triangle(Renderer *renderer) {
               mat4Translate((Vec3f){0, 0, -2.2f}));
   renderer_set_root_renderable(renderer, (Renderable *)&root);
 
-  renderer->camera_projection =
+  renderer->camera.projection =
       mat4Perspective(1, 50.0, (float)WIDTH / (float)HEIGHT, 0.6);
-  renderer->camera_view = mat4Translate((Vec3f){0, 0, 0});
+  renderer->camera.view = mat4Translate((Vec3f){0, 0, 0});
 }
 
 static Vec3f cube_positions[8];
@@ -168,9 +168,9 @@ static void build_cube(Renderer *renderer) {
               mat4MultiplyM(&rotation, &translation));
   renderer_set_root_renderable(renderer, (Renderable *)&root);
 
-  renderer->camera_projection =
+  renderer->camera.projection =
       mat4Perspective(1, 50.0, (float)WIDTH / (float)HEIGHT, 0.6);
-  renderer->camera_view = mat4Translate((Vec3f){0, 0, 0});
+  renderer->camera.view = mat4Translate((Vec3f){0, 0, 0});
 }
 
 // A mesh carrying no texture coordinates, which several shipped assets do.
