@@ -118,20 +118,6 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     const Vec3f *ver2 = &o->mesh->positions[o->mesh->pos_indices[i + 1]];
     const Vec3f *ver3 = &o->mesh->positions[o->mesh->pos_indices[i + 2]];
 
-    Vec2f tca = {0, 0};
-    Vec2f tcb = {0, 0};
-    Vec2f tcc = {0, 0};
-
-    // A mesh need not carry texture coordinates - teapot and pingo do not.
-    // Checking only the material dereferenced NULL for those, so every such
-    // mesh crashed the renderer instead of drawing untextured.
-    if (o->material != 0 && o->mesh->textCoord != 0 &&
-        o->mesh->tex_indices != 0) {
-      tca = o->mesh->textCoord[o->mesh->tex_indices[i + 0]];
-      tcb = o->mesh->textCoord[o->mesh->tex_indices[i + 1]];
-      tcc = o->mesh->textCoord[o->mesh->tex_indices[i + 2]];
-    }
-
     Vec4f a = {ver1->x, ver1->y, ver1->z, 1};
     Vec4f b = {ver2->x, ver2->y, ver2->z, 1};
     Vec4f c = {ver3->x, ver3->y, ver3->z, 1};
@@ -140,18 +126,12 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     b = mat4MultiplyVec4(&b, &vm);
     c = mat4MultiplyVec4(&c, &vm);
 
-    // Calc Face Normal
-    // Built member-wise on purpose: casting &a from Vec4f* to Vec3f* and
-    // dereferencing it violates strict aliasing, which -O2 and above are
-    // entitled to act on.
-    Vec3f a3 = {a.x, a.y, a.z};
-    Vec3f b3 = {b.x, b.y, b.z};
-    Vec3f c3 = {c.x, c.y, c.z};
-    Vec3f na = vec3fsubV(a3, b3);
-    Vec3f nb = vec3fsubV(a3, c3);
-    Vec3f normal = vec3Normalize(vec3Cross(na, nb));
-    float diffuseLight = (1.0f + vec3Dot(normal, light)) * 0.5f;
-    diffuseLight = MIN(1.0f, MAX(diffuseLight, 0.0f));
+    // View-space positions, kept for the face normal below. Built member-wise
+    // on purpose: casting &a from Vec4f* to Vec3f* and dereferencing it
+    // violates strict aliasing, which -O2 and above are entitled to act on.
+    const Vec3f a3 = {a.x, a.y, a.z};
+    const Vec3f b3 = {b.x, b.y, b.z};
+    const Vec3f c3 = {c.x, c.y, c.z};
 
     a = mat4MultiplyVec4(&a, &p);
     b = mat4MultiplyVec4(&b, &p);
@@ -190,6 +170,30 @@ int object_render(void *this, Mat4 m, Renderer *r) {
       float clocking = isClockWise(a.x, a.y, b.x, b.y, c.x, c.y);
       if (clocking >= 0)
         continue;
+    }
+
+    // Everything below is for a triangle that will actually be drawn. The
+    // normal costs a cross product and a square root, and on a closed mesh
+    // about half of all triangles are discarded above - so computing it
+    // before the culls, as this used to, threw that half away.
+    const Vec3f na = vec3fsubV(a3, b3);
+    const Vec3f nb = vec3fsubV(a3, c3);
+    const Vec3f normal = vec3Normalize(vec3Cross(na, nb));
+    float diffuseLight = (1.0f + vec3Dot(normal, light)) * 0.5f;
+    diffuseLight = MIN(1.0f, MAX(diffuseLight, 0.0f));
+
+    Vec2f tca = {0, 0};
+    Vec2f tcb = {0, 0};
+    Vec2f tcc = {0, 0};
+
+    // A mesh need not carry texture coordinates - teapot and pingo do not.
+    // Checking only the material dereferenced NULL for those, so every such
+    // mesh crashed the renderer instead of drawing untextured.
+    if (o->material != 0 && o->mesh->textCoord != 0 &&
+        o->mesh->tex_indices != 0) {
+      tca = o->mesh->textCoord[o->mesh->tex_indices[i + 0]];
+      tcb = o->mesh->textCoord[o->mesh->tex_indices[i + 1]];
+      tcc = o->mesh->textCoord[o->mesh->tex_indices[i + 2]];
     }
 
     // Compute Screen coordinates (optimized)
