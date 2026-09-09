@@ -1,7 +1,7 @@
 #include "assets/viking.h"
-#include "example/terminal/terminalbackend.h"
+#include "example/terminal/terminal_backend.h"
 #include "math/mat4.h"
-#include "terminalbackend.h"
+#include "terminal_backend.h"
 
 #include "render/entity.h"
 #include "render/material.h"

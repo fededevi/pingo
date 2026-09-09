@@ -1,6 +1,6 @@
 #include "assets/viking.h"
 #include "math/mat4.h"
-#include "windowbackend.h"
+#include "window_backend.h"
 #include <windows.h>
 
 #include "render/entity.h"

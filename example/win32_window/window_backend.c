@@ -10,7 +10,7 @@
 #include <wingdi.h>
 
 #include "render/renderer.h"
-#include "windowbackend.h"
+#include "window_backend.h"
 #include "render/state.h"
 #include "render/target.h"
 

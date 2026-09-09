@@ -166,18 +166,6 @@ Vec3f mat4MultiplyVec3(const Vec3f *v, const Mat4 *t) {
   return (Vec3f){a, b, c};
 }
 
-Vec4f mat4MultiplyVec4in(const Vec4f *v, const Mat4 *t) {
-  F_TYPE a = v->x * t->elements[0] + v->y * t->elements[4] +
-             v->z * t->elements[8] + 1.0 * t->elements[12];
-  F_TYPE b = v->x * t->elements[1] + v->y * t->elements[5] +
-             v->z * t->elements[9] + 1.0 * t->elements[13];
-  F_TYPE c = v->x * t->elements[2] + v->y * t->elements[6] +
-             v->z * t->elements[10] + 1.0 * t->elements[14];
-  F_TYPE d = v->x * t->elements[3] + v->y * t->elements[7] +
-             v->z * t->elements[1] + 1.0 * t->elements[15];
-  return (Vec4f){a, b, c, d};
-}
-
 Mat4 mat4MultiplyM(const Mat4 *m1, const Mat4 *m2) {
   const F_TYPE *a = m2->elements;
   const F_TYPE *b = m1->elements;
@@ -252,7 +240,7 @@ Mat4 mat4MultiplyM(const Mat4 *m1, const Mat4 *m2) {
   return out;
 }
 
-F_TYPE mat4Determinant(Mat4 *mat) {
+F_TYPE mat4Determinant(const Mat4 *mat) {
   const F_TYPE *a = mat->elements;
   F_TYPE a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3], a10 = a[4], a11 = a[5],
          a12 = a[6], a13 = a[7], a20 = a[8], a21 = a[9], a22 = a[10],
@@ -375,19 +363,6 @@ Mat4 mat4Inverse(const Mat4 *mat) {
   return out;
 }
 
-Mat4 mat4Perspective2(F_TYPE near, F_TYPE far, F_TYPE aspect, F_TYPE fovy) {
-  F_TYPE h = 1.0 / tan(fovy * 0.5);
-  F_TYPE w = h / aspect;
-  F_TYPE d = far - near;
-
-  F_TYPE x = far / d;
-  F_TYPE y = -(far * near) / d;
-
-  Mat4 m = {{w, 0, 0, 0, 0, h, 0, 0, 0, 0, x, -1, 0, 0, y, 0}};
-
-  return m;
-}
-
 Mat4 mat4Perspective(F_TYPE near, F_TYPE far, F_TYPE aspect, F_TYPE fovy) {
   F_TYPE h = 1.0 / tan(fovy * 0.5);
   F_TYPE w = 1.0 / tan(aspect * fovy * 0.5);
@@ -405,7 +380,6 @@ Mat4 mat4Perspective(F_TYPE near, F_TYPE far, F_TYPE aspect, F_TYPE fovy) {
  *     elements[14] = -2 * far * near / (far - near)   -> C
  * Dividing the two gives C / A = -2 * near, hence near = -C / (2A).
  * Substituting that back into A yields far = -C / (2 * (A - 1)).
- * Note that mat4Perspective2() uses a different depth convention (no factor
  * of two in elements[14]) and is not inverted by these functions. */
 F_TYPE mat4NearFromProjection(Mat4 mat) {
   F_TYPE A = mat.elements[10];

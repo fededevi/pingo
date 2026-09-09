@@ -4,7 +4,7 @@
 #include "renderer.h"
 #include "state.h"
 
-int render_sprite(void *_sprite, Mat4 transform, Renderer *renderer) {
+int sprite_render(void *_sprite, Mat4 transform, Renderer *renderer) {
   IF_NULL_RETURN(_sprite, INIT_ERROR);
   IF_NULL_RETURN(renderer, INIT_ERROR);
 
@@ -27,7 +27,7 @@ int sprite_init(Sprite *this, Texture texture) {
   IF_NULL_RETURN(this, INIT_ERROR);
 
   this->texture = texture;
-  this->renderable.render = &render_sprite;
+  this->renderable.render = &sprite_render;
 
   return OK;
 }

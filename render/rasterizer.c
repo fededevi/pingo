@@ -145,7 +145,7 @@ int rasterizer_draw_transformed(Mat4 t, Renderer *r, Texture *src) {
 #ifdef FILTERING_BILINEAR
       Vec2i desPos = {x, y};
       Vec2f desPosF = (Vec2f){desPos.x + 0.5f, desPos.y + 0.5f};
-      Vec2f srcPosF = mat4Multiply(&desPosF, &inv);
+      Vec2f srcPosF = mat4MultiplyVec2(&desPosF, &inv);
 
       // TODO: Improve this check by precalculating start/end coord in loop with
       // line intersection We need to check if transformed coord are inside the
@@ -167,8 +167,8 @@ int rasterizer_draw_transformed(Mat4 t, Renderer *r, Texture *src) {
       Vec2i desPos = {x, y};
       Vec2f desPosF1 = (Vec2f){desPos.x + 0.25f, desPos.y + 0.25f};
       Vec2f desPosF2 = (Vec2f){desPos.x + 0.75f, desPos.y + 0.75f};
-      Vec2f srcPosF1 = mat4Multiply(&desPosF1, &inv);
-      Vec2f srcPosF2 = mat4Multiply(&desPosF2, &inv);
+      Vec2f srcPosF1 = mat4MultiplyVec2(&desPosF1, &inv);
+      Vec2f srcPosF2 = mat4MultiplyVec2(&desPosF2, &inv);
 
       if (srcPosF1.x < 0 && srcPosF2.x < 0)
         continue;

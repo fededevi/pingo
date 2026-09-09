@@ -18,11 +18,11 @@ endfunction()
 
 if(WIN32)
     add_pingo_example(win_window win32_window_backend
-        win32_window/windowbackend.c gdi32)
+        win32_window/window_backend.c gdi32)
 endif()
 
 # Needs no OS facilities beyond stdout, so it builds everywhere.
-add_pingo_example(terminal terminal_backend terminal/terminalbackend.c)
+add_pingo_example(terminal terminal_backend terminal/terminal_backend.c)
 
 # Needs linux/fb.h: Linux specifically, not merely a UNIX. NOT APPLE would
 # still wrongly include the BSDs.

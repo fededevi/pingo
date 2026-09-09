@@ -1,12 +1,12 @@
 #include "array.h"
 #include "state.h"
 
-int array_init(Array *this, size_t size, void *data) {
+int array_init(Array *this, size_t count, void *data) {
   IF_NULL_RETURN(this, INIT_ERROR);
 
-  this->size = size;
+  this->count = count;
 
-  if (size == 0) {
+  if (count == 0) {
     data = 0;
     return OK;
   }

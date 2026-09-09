@@ -14,8 +14,8 @@ int entity_render(void *this, Mat4 transform, Renderer *renderer) {
 
   Mat4 new_transform = mat4MultiplyM(&entity->transform, &transform);
 
-  for (size_t i = 0; i < entity->children_entities.size; i++) {
-    Entity *child_entity = &((Entity *)entity->children_entities.data)[i];
+  for (size_t i = 0; i < entity->children.count; i++) {
+    Entity *child_entity = &((Entity *)entity->children.data)[i];
     child_entity->renderable.render(child_entity, new_transform, renderer);
   }
 
@@ -33,7 +33,7 @@ int entity_init(Entity *this, Renderable *renderable, Mat4 transform) {
   this->transform = transform;
   this->visible = true;
 
-  array_init(&this->children_entities, 0, 0);
+  array_init(&this->children, 0, 0);
 
   return OK;
 }
@@ -48,7 +48,7 @@ int entity_init_children(Entity *this, Renderable *renderable, Mat4 transform,
   this->transform = transform;
   this->visible = true;
 
-  array_init(&this->children_entities, children_count, children);
+  array_init(&this->children, children_count, children);
 
   return OK;
 }

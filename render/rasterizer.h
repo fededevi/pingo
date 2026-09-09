@@ -16,9 +16,21 @@
  * the source image and makes an average of those values.
  */
 
+/*
+ * NEAREST is the one that is finished. Of the others:
+ *
+ *  - BILINEAR does not build: it calls a frameReadBilinear that was never
+ *    written.
+ *  - ANISOTROPIC and ANISOTROPICX2 build, but average a single channel and
+ *    construct their Pixel from one initializer, so they assume
+ *    PINGO_PIXEL_UINT8 and drop colour silently in any other format.
+ *
+ * Only one may be defined at a time: the blocks in rasterizer.c declare the
+ * same locals.
+ */
 #define FILTERING_NEAREST
-// #define FILTERING_BILINEAR
-// #define FILTERING_ANISOTROPIC
+// #define FILTERING_BILINEAR    // unfinished, see above
+// #define FILTERING_ANISOTROPIC // single-channel only, see above
 // #define FILTERING_ANISOTROPICX2
 
 int rasterizer_draw_pixel_perfect(Vec2i off, Renderer *r, Texture *src);

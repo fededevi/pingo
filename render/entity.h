@@ -11,7 +11,7 @@ typedef struct {
   Renderable *content;
   Mat4 transform;
   bool visible;
-  Array children_entities;
+  Array children;
 } Entity;
 
 extern int entity_init(Entity *this, Renderable *renderable, Mat4 transform);
