@@ -120,6 +120,14 @@ int object_render(void *this, Mat4 m, Renderer *r) {
   const float halfX = scrSize.x * 0.5f;
   const float halfY = scrSize.y * 0.5f;
 
+  // Fixed for the whole object, so the sampler need not re-derive it for
+  // every textured pixel - and the general path's code stays out of the
+  // innermost loop.
+  const Texture *tex = (o->material != 0) ? o->material->texture : 0;
+  const int tex_pow2 = (tex != 0) && texture_is_pow2(tex);
+  const int tex_w_mask = (tex != 0) ? tex->size.x - 1 : 0;
+  const int tex_h_mask = (tex != 0) ? tex->size.y - 1 : 0;
+
   for (int i = 0; i < o->mesh->index_count; i += 3) {
     const Vec3f *ver1 = &o->mesh->positions[o->mesh->pos_indices[i + 0]];
     const Vec3f *ver2 = &o->mesh->positions[o->mesh->pos_indices[i + 1]];
@@ -320,8 +328,10 @@ int object_render(void *this, Mat4 m, Renderer *r) {
           const float textCoordx = (w0 * tca.x + w1 * tcb.x + w2 * tcc.x) * w;
           const float textCoordy = (w0 * tca.y + w1 * tcb.y + w2 * tcc.y) * w;
 
-          Pixel text = texture_read_uv(o->material->texture,
-                                     (Vec2f){textCoordx, textCoordy});
+          const Vec2f uv = {textCoordx, textCoordy};
+          Pixel text =
+              tex_pow2 ? texture_read_uv_pow2(tex, uv, tex_w_mask, tex_h_mask)
+                       : texture_read_uv(o->material->texture, uv);
           texture_draw_index(&r->target.color, pixel_index,
                              use_shade_table
                                  ? pixel_mul_table(text, &shade)

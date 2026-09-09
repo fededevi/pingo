@@ -29,6 +29,29 @@ static inline void texture_draw_index(Texture *f, int index, Pixel color) {
 
 extern Pixel texture_read(Texture *f, Vec2i pos);
 
+/**
+ * Samples a power-of-two texture, given size-1 as masks.
+ *
+ * The caller decides once that the texture is power-of-two and computes the
+ * masks; doing it here meant two ands and two compares per textured pixel to
+ * re-establish something fixed for the whole object, and left the general
+ * path's code sitting in the innermost loop.
+ */
+static inline Pixel texture_read_uv_pow2(const Texture *f, Vec2f pos,
+                                         int w_mask, int h_mask) {
+  // Two's complement makes the mask wrap negatives without a correction step.
+  const int sx = (int)(pos.x * (w_mask + 1)) & w_mask;
+  const int sy = (int)(pos.y * (h_mask + 1)) & h_mask;
+  return f->pixels[sx + sy * (w_mask + 1)];
+}
+
+/** True when both dimensions are powers of two, so masking can be used. */
+static inline int texture_is_pow2(const Texture *f) {
+  const int w = f->size.x;
+  const int h = f->size.y;
+  return (w & (w - 1)) == 0 && (h & (h - 1)) == 0;
+}
+
 // Inline for the same reason as pixel_mul: one call per textured pixel.
 static inline Pixel texture_read_uv(Texture *f, Vec2f pos) {
   const int w = f->size.x;
