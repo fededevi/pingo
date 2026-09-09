@@ -108,6 +108,22 @@ libX11 and libjpeg are probed at configure time and the examples needing them
 skipped with a message, so any environment builds whatever it can without being
 told what it has.
 
+### Link it statically
+
+Build with `-DBUILD_SHARED_LIBS=OFF`. It is worth about 17% of the render time,
+and the reason is worth knowing: the rasterizer's inner loop and the pixel write
+it calls per pixel are in different translation units, so the call only
+disappears if the compiler can optimize across both. A shared library has to
+keep its exported functions replaceable at load time, so it may not inline them
+however much link-time optimization can see — the call, and the reloads the
+optimizer must assume around it, stay in the innermost loop. A static archive
+has no such obligation.
+
+Link-time optimization is what actually removes the call, and it is on by
+default in the optimized build types wherever the toolchain reports support for
+it (`PINGO_ENABLE_LTO`). On a shared build it is nearly free and nearly
+pointless; static is where it pays.
+
 `cmake --install <build dir> --prefix <dir>` installs the libraries, headers and
 a package config, so another project can `find_package(pingo)` and link
 `pingo::pingo_render`.
