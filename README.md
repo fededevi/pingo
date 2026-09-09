@@ -99,7 +99,8 @@ suite — and stops at the first failure. There are three presets:
 |--------|-----------|------------------|
 | `default` | `Release` | every library, example and test the host can build |
 | `debug` | `Debug` | the same, unoptimized |
-| `freestanding` | `Release` | the libraries alone, static, for a target with no OS |
+| `shared` | `Release` | the same, as shared libraries - see below |
+| `freestanding` | `Release` | the libraries alone, for a target with no OS |
 
 `freestanding` is what a microcontroller build looks like, and takes its cross
 compiler from `CC` and `CFLAGS`.
@@ -117,7 +118,8 @@ told what it has.
 
 ### Link it statically
 
-Build with `-DBUILD_SHARED_LIBS=OFF`. It is worth about 17% of the render time,
+This is the default, and the `shared` preset is the one that opts out. It is
+worth about 19% of the render time,
 and the reason is worth knowing: the rasterizer's inner loop and the pixel write
 it calls per pixel are in different translation units, so the call only
 disappears if the compiler can optimize across both. A shared library has to

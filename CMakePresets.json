@@ -11,13 +11,24 @@
       "hidden": true,
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_SHARED_LIBS": "OFF"
+      },
+      "description": "Static by default. A shared library must keep its exported functions interposable, so link-time optimization may not inline them - measured at 19% of the render time. Static is also what a freestanding target needs, so it is the configuration worth testing and benchmarking. Use the shared preset for ABI coverage."
     },
     {
       "name": "default",
       "inherits": "base",
       "displayName": "Release, everything the machine can build"
+    },
+    {
+      "name": "shared",
+      "inherits": "base",
+      "displayName": "Release, shared libraries",
+      "description": "Covers the shared-library build; slower, see base.",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": "ON"
+      }
     },
     {
       "name": "debug",
@@ -251,6 +262,10 @@
       "targets": [
         "pingo_libraries"
       ]
+    },
+    {
+      "name": "shared",
+      "configurePreset": "shared"
     }
   ],
   "testPresets": [
@@ -348,6 +363,13 @@
     {
       "name": "arch-m68k",
       "configurePreset": "arch-m68k",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "shared",
+      "configurePreset": "shared",
       "output": {
         "outputOnFailure": true
       }
@@ -615,6 +637,23 @@
         {
           "type": "build",
           "name": "arch-riscv32"
+        }
+      ]
+    },
+    {
+      "name": "shared",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "shared"
+        },
+        {
+          "type": "build",
+          "name": "shared"
+        },
+        {
+          "type": "test",
+          "name": "shared"
         }
       ]
     }
