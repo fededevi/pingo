@@ -29,7 +29,7 @@ extern Mat3 mat3Scale(Vec2f s) {
   return (Mat3){{p, 0, 0, 0, q, 0, 0, 0, 1}};
 }
 
-Vec2f mat3Multiply(Vec2f *v, Mat3 *t) {
+Vec2f mat3Multiply(const Vec2f *v, const Mat3 *t) {
   F_TYPE a =
       v->x * t->elements[0] + v->y * t->elements[1] + 1.0 * t->elements[2];
   F_TYPE b =
@@ -39,9 +39,9 @@ Vec2f mat3Multiply(Vec2f *v, Mat3 *t) {
   return (Vec2f){a, b};
 }
 
-Mat3 mat3MultiplyM(Mat3 *m1, Mat3 *m2) {
-  F_TYPE *a = m2->elements;
-  F_TYPE *b = m1->elements;
+Mat3 mat3MultiplyM(const Mat3 *m1, const Mat3 *m2) {
+  const F_TYPE *a = m2->elements;
+  const F_TYPE *b = m1->elements;
 
   // Fast path for identity matrix multiplication
   if (a[0] == 1.0f && a[1] == 0.0f && a[2] == 0.0f && a[3] == 0.0f &&
@@ -70,15 +70,15 @@ Mat3 mat3MultiplyM(Mat3 *m1, Mat3 *m2) {
   return out;
 }
 
-F_TYPE mat3Determinant(Mat3 *mat) {
-  F_TYPE *m = mat->elements;
+F_TYPE mat3Determinant(const Mat3 *mat) {
+  const F_TYPE *m = mat->elements;
   return m[0] * (m[4] * m[8] - m[5] * m[7]) -
          m[3] * (m[3] * m[8] - m[5] * m[6]) +
          m[6] * (m[3] * m[7] - m[4] * m[6]);
 }
 
-Mat3 mat3Inverse(Mat3 *v) {
-  F_TYPE *b = v->elements;
+Mat3 mat3Inverse(const Mat3 *v) {
+  const F_TYPE *b = v->elements;
 
   // Fast path for identity matrix
   if (b[0] == 1.0f && b[1] == 0.0f && b[2] == 0.0f && b[3] == 0.0f &&
@@ -154,7 +154,7 @@ extern Mat3 mat3Complete(Vec2f origin, Vec2f translation, Vec2f scale,
   return m;
 }
 
-int mat3IsOnlyTranslation(Mat3 *m) {
+int mat3IsOnlyTranslation(const Mat3 *m) {
   if (m->elements[0] != 1.0)
     return 0;
   if (m->elements[1] != 0.0)
@@ -174,7 +174,7 @@ int mat3IsOnlyTranslation(Mat3 *m) {
   return 1;
 }
 
-int mat3IsOnlyTranslationDoubled(Mat3 *m) {
+int mat3IsOnlyTranslationDoubled(const Mat3 *m) {
   if (m->elements[0] != 2.0)
     return 0;
   if (m->elements[1] != 0.0)

@@ -37,13 +37,13 @@ extern Mat3 mat3Rotate(F_TYPE theta);
 extern Mat3 mat3Scale(Vec2f s);
 
 // Multiply 2 component vector b 3x3 matrix
-extern Vec2f mat3Multiply(Vec2f *v, Mat3 *t);
+extern Vec2f mat3Multiply(const Vec2f *v, const Mat3 *t);
 
 // Multiply 3x3 matrix with 3x3 matrix (v*t)
-extern Mat3 mat3MultiplyM(Mat3 *v, Mat3 *t);
+extern Mat3 mat3MultiplyM(const Mat3 *m1, const Mat3 *m2);
 
 // Calculate homogeneous inverse of matrix
-extern Mat3 mat3Inverse(Mat3 *v);
+extern Mat3 mat3Inverse(const Mat3 *v);
 
 /* Calculate a complete matrix transformation with translation rotation and
  * scale working as expected Rotation and scaled are applied in reference to the
@@ -53,15 +53,15 @@ extern Mat3 mat3Complete(Vec2f origin, Vec2f translation, Vec2f scale,
                          F_TYPE rotation);
 
 // Calculate determinant of matrix
-extern F_TYPE mat3Determinant(Mat3 *m);
+extern F_TYPE mat3Determinant(const Mat3 *m);
 
 // If a matrix has only translation some optimization can be done during
 // rendering.
-extern int mat3IsOnlyTranslation(Mat3 *m);
+extern int mat3IsOnlyTranslation(const Mat3 *m);
 
 // If a matrix has only translation and doubles the size some optimization can
 // be done during rendering.
-extern int mat3IsOnlyTranslationDoubled(Mat3 *m);
+extern int mat3IsOnlyTranslationDoubled(const Mat3 *m);
 
 #ifdef __cplusplus
 }

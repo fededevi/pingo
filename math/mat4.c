@@ -148,7 +148,7 @@ extern Mat4 mat4Scale(Vec3f s) {
   }};
 }
 
-Vec2f mat4MultiplyVec2(Vec2f *v, Mat4 *t) {
+Vec2f mat4MultiplyVec2(const Vec2f *v, const Mat4 *t) {
   F_TYPE a = v->x * t->elements[0] + v->y * t->elements[1] +
              1.0 * t->elements[2] + 1.0 * t->elements[3];
   F_TYPE b = v->x * t->elements[4] + v->y * t->elements[5] +
@@ -156,7 +156,7 @@ Vec2f mat4MultiplyVec2(Vec2f *v, Mat4 *t) {
   return (Vec2f){a, b};
 }
 
-Vec3f mat4MultiplyVec3(Vec3f *v, Mat4 *t) {
+Vec3f mat4MultiplyVec3(const Vec3f *v, const Mat4 *t) {
   F_TYPE a = v->x * t->elements[0] + v->y * t->elements[1] +
              v->z * t->elements[2] + 1.0 * t->elements[3];
   F_TYPE b = v->x * t->elements[4] + v->y * t->elements[5] +
@@ -164,18 +164,6 @@ Vec3f mat4MultiplyVec3(Vec3f *v, Mat4 *t) {
   F_TYPE c = v->x * t->elements[8] + v->y * t->elements[9] +
              v->z * t->elements[10] + 1.0 * t->elements[11];
   return (Vec3f){a, b, c};
-}
-
-Vec4f mat4MultiplyVec4(const Vec4f *v, const Mat4 *t) {
-  F_TYPE a = v->x * t->elements[0] + v->y * t->elements[1] +
-             v->z * t->elements[2] + v->w * t->elements[3];
-  F_TYPE b = v->x * t->elements[4] + v->y * t->elements[5] +
-             v->z * t->elements[6] + v->w * t->elements[7];
-  F_TYPE c = v->x * t->elements[8] + v->y * t->elements[9] +
-             v->z * t->elements[10] + v->w * t->elements[11];
-  F_TYPE d = v->x * t->elements[12] + v->y * t->elements[13] +
-             v->z * t->elements[14] + v->w * t->elements[15];
-  return (Vec4f){a, b, c, d};
 }
 
 Vec4f mat4MultiplyVec4in(const Vec4f *v, const Mat4 *t) {
@@ -265,7 +253,7 @@ Mat4 mat4MultiplyM(const Mat4 *m1, const Mat4 *m2) {
 }
 
 F_TYPE mat4Determinant(Mat4 *mat) {
-  F_TYPE *a = mat->elements;
+  const F_TYPE *a = mat->elements;
   F_TYPE a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3], a10 = a[4], a11 = a[5],
          a12 = a[6], a13 = a[7], a20 = a[8], a21 = a[9], a22 = a[10],
          a23 = a[11], a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
@@ -287,8 +275,8 @@ F_TYPE mat4Determinant(Mat4 *mat) {
   return b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 }
 
-Mat4 mat4Inverse(Mat4 *mat) {
-  F_TYPE *m = mat->elements;
+Mat4 mat4Inverse(const Mat4 *mat) {
+  const F_TYPE *m = mat->elements;
 
   // Fast path for identity matrix
   if (m[0] == 1.0f && m[1] == 0.0f && m[2] == 0.0f && m[3] == 0.0f &&
