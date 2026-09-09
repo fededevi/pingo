@@ -51,6 +51,11 @@ int object_render(void *this, Mat4 m, Renderer *r) {
   Mat4 v = mat4Inverse(&r->camera_view);
   Mat4 p = r->camera_projection;
 
+  // Fetched once rather than two or three times per pixel. It is the same
+  // pointer every time, but the call is opaque to the optimizer, which then
+  // has to assume each one may invalidate everything held in registers.
+  PingoDepth *const zeta = r->backend->getZetaBuffer(r, r->backend);
+
   for (int i = 0; i < o->mesh->indexes_count; i += 3) {
     const Vec3f *ver1 = &o->mesh->positions[o->mesh->pos_indices[i + 0]];
     const Vec3f *ver2 = &o->mesh->positions[o->mesh->pos_indices[i + 1]];
@@ -201,20 +206,10 @@ int object_render(void *this, Mat4 m, Renderer *r) {
         if (depth < -1.0f || depth > 1.0f)
           continue;
 
-        // Early Z-test (configurable optimization)
-        int pixel_index = x + y * scrSize.x;
-        if (r->enable_early_z_test) {
-          if (depth_check(r->backend->getZetaBuffer(r, r->backend), pixel_index,
-                          depth))
-            continue;
-        } else {
-          if (depth_check(r->backend->getZetaBuffer(r, r->backend), pixel_index,
-                          depth))
-            continue;
-        }
-
-        depth_write(r->backend->getZetaBuffer(r, r->backend), pixel_index,
-                    depth);
+        const int pixel_index = x + y * scrSize.x;
+        if (depth_check(zeta, pixel_index, depth))
+          continue;
+        depth_write(zeta, pixel_index, depth);
 
         if (o->material != 0) {
           // Texture lookup

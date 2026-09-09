@@ -35,6 +35,11 @@ elseif(MSVC)
     )
 endif()
 
+# Code generation only: LTO, section GC and optional host tuning. Each is
+# probed first, so a toolchain that lacks one is told and carries on.
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+include(PingoOptimizations)
+
 # include(CTest) rather than a bare enable_testing(): it enables testing, and
 # additionally writes DartConfiguration.tcl, which `ctest -T test` (the
 # dashboard mode the VS Code CMake Tools extension uses) warns about when

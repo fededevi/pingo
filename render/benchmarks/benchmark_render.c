@@ -137,12 +137,31 @@ static int measure(const char *name, int frames, int width, int height,
       mat4Perspective(1, 200.0, (float)width / (float)height, 0.6);
   renderer.camera_view = mat4Translate((Vec3f){0, 0, 0});
 
-  // The scene spins, so the timing reflects a range of orientations rather
-  // than one lucky set of triangle slopes.
+  // A sphere's silhouette does not change as it turns, so spinning it varies
+  // the triangle slopes without changing the pixel count. A flat quad is the
+  // opposite: rotating it takes it edge-on and then behind its own cull, so
+  // the cost per frame would fall away as the run got longer. Hence the quad
+  // is held still - it is a fill-rate case, and its orientation is the point.
+  const int spin = (rings != 0);
+  Mat4 translation = mat4Translate((Vec3f){0, 0, -distance});
+
+  // Untimed warmup: it faults in the buffers and lets the clock leave its
+  // idle state, both of which otherwise land entirely on the first frames and
+  // made short runs look several times slower per frame than long ones.
+  const int warmup = frames < 10 ? frames : frames / 10 + 1;
+  for (int i = 0; i < warmup; i++) {
+    Mat4 rotation = mat4RotateY(spin ? 0.01f * (float)i : 0.0f);
+    root.transform = mat4MultiplyM(&rotation, &translation);
+    if (renderer_render(&renderer) != OK) {
+      fprintf(stderr, "  renderer_render failed\n");
+      memory_backend_free(&backend);
+      return 1;
+    }
+  }
+
   const clock_t start = clock();
   for (int i = 0; i < frames; i++) {
-    Mat4 rotation = mat4RotateY(0.01f * (float)i);
-    Mat4 translation = mat4Translate((Vec3f){0, 0, -distance});
+    Mat4 rotation = mat4RotateY(spin ? 0.01f * (float)i : 0.0f);
     root.transform = mat4MultiplyM(&rotation, &translation);
     if (renderer_render(&renderer) != OK) {
       fprintf(stderr, "  renderer_render failed\n");
