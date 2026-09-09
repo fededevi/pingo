@@ -1,6 +1,15 @@
 #include "object.h"
 #include "backend.h"
 #include "depth.h"
+
+#include <stdbool.h>
+
+// Rows at least this wide get their exact span solved for; narrower rows just
+// test each pixel. Tunable so the trade-off can be measured rather than
+// guessed - see the comment at the loop.
+#ifndef PINGO_SPAN_CLIP_MIN_WIDTH
+#define PINGO_SPAN_CLIP_MIN_WIDTH 16
+#endif
 #include "math/fun.h"
 #include "math/mat4.h"
 #include "mesh.h"
@@ -37,6 +46,46 @@ static int frustum_cull_triangle(Vec4f a, Vec4f b, Vec4f c) {
     return 1;
 
   return 0; // Not culled
+}
+
+// Integer division rounding toward minus infinity and toward plus infinity.
+// C truncates toward zero, which is the wrong direction for half the signs
+// that come up when solving an edge equation for its zero crossing.
+static inline int32_t div_floor(int32_t a, int32_t b) {
+  int32_t q = a / b;
+  if (a % b != 0 && ((a < 0) != (b < 0))) {
+    q--;
+  }
+  return q;
+}
+
+static inline int32_t div_ceil(int32_t a, int32_t b) {
+  int32_t q = a / b;
+  if (a % b != 0 && ((a < 0) == (b < 0))) {
+    q++;
+  }
+  return q;
+}
+
+// Narrows [*lo, *hi] to the offsets where w + d * step >= 0 holds. Returns
+// false when the edge excludes the whole row.
+static inline bool span_clip(int32_t w, int32_t step, int32_t *lo,
+                            int32_t *hi) {
+  if (step == 0) {
+    return w >= 0;
+  }
+  if (step > 0) {
+    const int32_t bound = div_ceil(-w, step);
+    if (bound > *lo) {
+      *lo = bound;
+    }
+  } else {
+    const int32_t bound = div_floor(-w, step);
+    if (bound < *hi) {
+      *hi = bound;
+    }
+  }
+  return *lo <= *hi;
 }
 
 int object_render(void *this, Mat4 m, Renderer *r) {
@@ -196,12 +245,32 @@ int object_render(void *this, Mat4 m, Renderer *r) {
 
     for (int16_t y = minY; y < maxY;
          y++, w0_row += B12, w1_row += B20, w2_row += B01) {
-      int32_t w0 = w0_row;
-      int32_t w1 = w1_row;
-      int32_t w2 = w2_row;
+      // Solve for the run of x on this row where all three edge functions are
+      // non-negative, instead of walking the whole bounding box and rejecting
+      // most of it. Each edge is linear in x, so its sign change is one
+      // division; a triangle covers about half its bounding box, so this is
+      // half the iterations.
+      int32_t lo = 0;
+      int32_t hi = maxX - minX - 1;
+      // Only worth it once the row is wide enough to repay three integer
+      // divisions. Below that the per-pixel sign test is cheaper, which is the
+      // common case for a densely tessellated mesh.
+      if (hi >= PINGO_SPAN_CLIP_MIN_WIDTH) {
+        if (!span_clip(w0_row, A12, &lo, &hi) ||
+            !span_clip(w1_row, A20, &lo, &hi) ||
+            !span_clip(w2_row, A01, &lo, &hi) || lo > hi) {
+          continue;
+        }
+      }
 
-      for (int32_t x = minX; x < maxX; x++, w0 += A12, w1 += A20, w2 += A01) {
-        // Early rejection using bitwise OR (optimization)
+      int32_t w0 = w0_row + lo * A12;
+      int32_t w1 = w1_row + lo * A20;
+      int32_t w2 = w2_row + lo * A01;
+
+      for (int32_t x = minX + lo; x <= minX + hi;
+           x++, w0 += A12, w1 += A20, w2 += A01) {
+        // The span bounds are exact, so this is only a guard against an edge
+        // case in the arithmetic above rather than the primary rejection.
         if ((w0 | w1 | w2) < 0)
           continue;
 
@@ -210,9 +279,8 @@ int object_render(void *this, Mat4 m, Renderer *r) {
           continue;
 
         const int pixel_index = x + y * scrSize.x;
-        if (depth_check(zeta, pixel_index, depth))
+        if (!depth_test_and_write(zeta, pixel_index, depth))
           continue;
-        depth_write(zeta, pixel_index, depth);
 
         if (o->material != 0) {
           // Texture lookup
@@ -221,18 +289,20 @@ int object_render(void *this, Mat4 m, Renderer *r) {
           if (interpInvW == 0) {
             continue;
           }
-          const float textCoordx =
-              (w0 * tca.x + w1 * tcb.x + w2 * tcc.x) / interpInvW;
-          const float textCoordy =
-              (w0 * tca.y + w1 * tcb.y + w2 * tcc.y) / interpInvW;
+          // One reciprocal and two multiplies, rather than dividing twice by
+          // the same value. A float division is an order of magnitude dearer
+          // than a multiply, and this is per textured pixel.
+          const float w = 1.0f / interpInvW;
+          const float textCoordx = (w0 * tca.x + w1 * tcb.x + w2 * tcc.x) * w;
+          const float textCoordy = (w0 * tca.y + w1 * tcb.y + w2 * tcc.y) * w;
 
           Pixel text = texture_readF(o->material->texture,
                                      (Vec2f){textCoordx, textCoordy});
-          texture_draw(&r->framebuffer, (Vec2i){x, y},
-                       pixelMul(text, diffuseLight));
+          texture_draw_index(&r->framebuffer, pixel_index,
+                             pixelMul(text, diffuseLight));
         } else {
-          texture_draw(&r->framebuffer, (Vec2i){x, y},
-                       pixelMul(pixelFromUInt8(255), diffuseLight));
+          texture_draw_index(&r->framebuffer, pixel_index,
+                             pixelMul(pixelFromUInt8(255), diffuseLight));
         }
       }
     }
