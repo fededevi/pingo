@@ -5,6 +5,10 @@
 
 // A Renderable that records what it was called with, so traversal can be
 // asserted without rendering anything.
+//
+// Nodes are driven through renderable.render rather than by naming the render
+// function: that is how the renderer reaches them, it keeps those functions
+// file-local, and it checks the vtable wiring at the same time.
 typedef struct {
   Renderable renderable;
   int calls;
@@ -48,17 +52,17 @@ int test_transform(void) {
   TEST_ASSERT(node.visible, "visible by default");
   TEST_ASSERT_EQ_INT(1, node.child_count, "one child stored inline");
   TEST_ASSERT(node.children[0] == (Renderable *)&child, "the child is stored");
-  TEST_ASSERT(node.renderable.render == &transform_render, "vtable wired");
+  TEST_ASSERT(node.renderable.render != NULL, "vtable wired");
 
   // A single child is reached, with the concatenated transform.
   Mat4 parent = mat4Translate((Vec3f){1, 2, 3});
-  TEST_ASSERT(transform_render(&node, parent, &renderer) == OK, "render");
+  TEST_ASSERT(node.renderable.render(&node, parent, &renderer) == OK, "render");
   TEST_ASSERT_EQ_INT(1, child.calls, "child was rendered");
 
   // visible = false prunes the whole subtree.
   child.calls = 0;
   node.visible = false;
-  TEST_ASSERT(transform_render(&node, parent, &renderer) == OK, "hidden ok");
+  TEST_ASSERT(node.renderable.render(&node, parent, &renderer) == OK, "hidden ok");
   TEST_ASSERT_EQ_INT(0, child.calls, "hidden node renders nothing");
   node.visible = true;
 
@@ -67,7 +71,7 @@ int test_transform(void) {
   TEST_ASSERT(transform_init(&group, NULL, mat4Identity()) == OK,
               "NULL content init");
   TEST_ASSERT_EQ_INT(0, group.child_count, "no children");
-  TEST_ASSERT(transform_render(&group, parent, &renderer) == OK,
+  TEST_ASSERT(group.renderable.render(&group, parent, &renderer) == OK,
               "empty group renders without crashing");
 
   // Several children, in order, each getting the same transform.
@@ -86,7 +90,7 @@ int test_transform(void) {
   // The probes share one order array; give them a common cursor.
   a.order_index = b.order_index = c.order_index = 0;
   (void)index;
-  TEST_ASSERT(transform_render(&multi, parent, &renderer) == OK, "multi render");
+  TEST_ASSERT(multi.renderable.render(&multi, parent, &renderer) == OK, "multi render");
   TEST_ASSERT_EQ_INT(1, a.calls, "first child rendered");
   TEST_ASSERT_EQ_INT(1, b.calls, "second child rendered");
   TEST_ASSERT_EQ_INT(1, c.calls, "third child rendered");
@@ -96,7 +100,7 @@ int test_transform(void) {
   a.calls = c.calls = 0;
   Transform holed;
   transform_init_children(&holed, mat4Identity(), with_hole, 3);
-  TEST_ASSERT(transform_render(&holed, parent, &renderer) == OK,
+  TEST_ASSERT(holed.renderable.render(&holed, parent, &renderer) == OK,
               "NULL child skipped");
   TEST_ASSERT_EQ_INT(1, a.calls, "child before the hole rendered");
   TEST_ASSERT_EQ_INT(1, c.calls, "child after the hole rendered");
@@ -111,7 +115,7 @@ int test_transform(void) {
   c.calls = 0;
   Transform bad;
   transform_init_children(&bad, mat4Identity(), failing, 3);
-  TEST_ASSERT(transform_render(&bad, parent, &renderer) != OK,
+  TEST_ASSERT(bad.renderable.render(&bad, parent, &renderer) != OK,
               "child error propagates");
   TEST_ASSERT_EQ_INT(0, c.calls, "traversal stopped at the failure");
 

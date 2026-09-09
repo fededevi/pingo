@@ -4,7 +4,7 @@
 #include "renderer.h"
 #include "state.h"
 
-int sprite_render(void *_sprite, Mat4 transform, Renderer *renderer) {
+static int sprite_render(void *_sprite, Mat4 transform, Renderer *renderer) {
   IF_NULL_RETURN(_sprite, INIT_ERROR);
   IF_NULL_RETURN(renderer, INIT_ERROR);
 

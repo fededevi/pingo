@@ -3,7 +3,7 @@
 #include "state.h"
 #include <stddef.h>
 
-int transform_render(void *this, Mat4 parent, Renderer *renderer) {
+static int transform_render(void *this, Mat4 parent, Renderer *renderer) {
   Transform *node = this;
   IF_NULL_RETURN(node, RENDER_ERROR);
   IF_NULL_RETURN(renderer, RENDER_ERROR);

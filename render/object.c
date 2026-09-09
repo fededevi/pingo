@@ -96,7 +96,7 @@ static inline bool span_clip(int32_t w, int32_t step, int32_t *lo,
   return *lo <= *hi;
 }
 
-int object_render(void *this, Mat4 m, Renderer *r) {
+static int object_render(void *this, Mat4 m, Renderer *r) {
   Object *o = this;
 
   IF_NULL_RETURN(o, RENDER_ERROR);
