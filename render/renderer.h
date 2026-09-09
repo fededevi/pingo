@@ -2,13 +2,16 @@
 
 #include "fwd.h"
 #include "pixel.h"
+#include "target.h"
 #include "texture.h"
 #include <stdbool.h>
 
 struct Renderer {
   Renderable *root_renderable;
 
-  Texture framebuffer;
+  /** Colour and depth together; the backend supplies it. */
+  RenderTarget target;
+
   Pixel clear_color;
   bool clear;
 
@@ -17,10 +20,11 @@ struct Renderer {
 
   Backend *backend;
 
-  // Rendering optimizations
+  // Rendering optimizations. There is no early-Z flag: the depth test has
+  // always run before the texture lookup, and the flag that claimed to
+  // control it ran identical code in both branches.
   bool enable_backface_culling;
   bool enable_frustum_culling;
-  bool enable_early_z_test;
 };
 
 extern int renderer_render(Renderer *);
@@ -32,5 +36,4 @@ extern int renderer_set_root_renderable(Renderer *renderer, Renderable *root);
 // Optimization configuration functions
 extern void renderer_enable_backface_culling(Renderer *renderer, bool enable);
 extern void renderer_enable_frustum_culling(Renderer *renderer, bool enable);
-extern void renderer_enable_early_z_test(Renderer *renderer, bool enable);
 extern void renderer_set_all_optimizations(Renderer *renderer, bool enable);

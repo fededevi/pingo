@@ -1,4 +1,6 @@
 #include "linux_window_backend.h"
+#include "render/state.h"
+#include "render/target.h"
 
 #include "example/common/example_backend.h"
 
@@ -15,8 +17,9 @@
 Vec4i rect;
 Vec2i totalSize;
 
-PingoDepth *zetaBuffer;
-Pixel *frameBuffer;
+static PingoDepth *zetaBuffer;
+static Pixel *frameBuffer;
+static RenderTarget target;
 
 Display *dis = 0;
 int screen;
@@ -103,7 +106,7 @@ void afterRender(Renderer *ren, Backend *backend) {
     img = create_ximage(dis, visual, totalSize.x, totalSize.y);
   }
 
-  texture_flip_vertically(&ren->framebuffer);
+  texture_flip_vertically(&ren->target.color);
   XEvent event;
   XNextEvent(dis, &event);
   XClearArea(dis, win, 0, 0, 1, 1, true);
@@ -111,18 +114,10 @@ void afterRender(Renderer *ren, Backend *backend) {
   XFlush(dis);
 }
 
-Pixel *getFrameBuffer(Renderer *ren, Backend *backend) {
+static RenderTarget *lw_get_target(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
-
-  return frameBuffer;
-}
-
-PingoDepth *getZetaBuffer(Renderer *ren, Backend *backend) {
-  (void)ren;
-  (void)backend;
-
-  return zetaBuffer;
+  return &target;
 }
 
 PgError linuxWindowBackendInit(LinuxWindowBackend *this, Vec2i size) {
@@ -137,8 +132,7 @@ PgError linuxWindowBackendInit(LinuxWindowBackend *this, Vec2i size) {
   this->backend.init = &init;
   this->backend.beforeRender = &beforeRender;
   this->backend.afterRender = &afterRender;
-  this->backend.getFrameBuffer = &getFrameBuffer;
-  this->backend.getZetaBuffer = &getZetaBuffer;
+  this->backend.getTarget = &lw_get_target;
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 
@@ -153,6 +147,10 @@ PgError linuxWindowBackendInit(LinuxWindowBackend *this, Vec2i size) {
   }
 
   RETURN_IF_ERROR(init_x());
+
+  if (render_target_init(&target, size, frameBuffer, zetaBuffer) != OK) {
+    return pg_fail(PG_INVALID_ARGUMENT, "colour and depth buffers");
+  }
 
   return PG_SUCCESS;
 }

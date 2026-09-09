@@ -1,4 +1,5 @@
 #include "jpeg_backend.h"
+#include "render/target.h"
 
 #include "example/common/example_backend.h"
 
@@ -14,8 +15,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-PingoDepth *zetaBuffer;
-Pixel *frameBuffer;
+static PingoDepth *zetaBuffer;
+static Pixel *frameBuffer;
+static RenderTarget target;
 Vec2i imageSize;
 
 void jpbe_init(Renderer *ren, Backend *backend, Vec4i _rect) {
@@ -29,16 +31,10 @@ void jpbe_beforeRender(Renderer *ren, Backend *backend) {
   (void)backend;
 }
 
-Pixel *jpbe_getFrameBuffer(Renderer *ren, Backend *backend) {
+static RenderTarget *jpbe_get_target(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
-  return frameBuffer;
-}
-
-PingoDepth *jpbe_getZetaBuffer(Renderer *ren, Backend *backend) {
-  (void)ren;
-  (void)backend;
-  return zetaBuffer;
+  return &target;
 }
 
 void jpbe_afterRender(Renderer *ren, Backend *backend) {
@@ -130,8 +126,7 @@ PgError jpeg_backend_init(JpegBackend *this, Vec2i size, const char *filename) {
   this->backend.init = &jpbe_init;
   this->backend.beforeRender = &jpbe_beforeRender;
   this->backend.afterRender = &jpbe_afterRender;
-  this->backend.getFrameBuffer = &jpbe_getFrameBuffer;
-  this->backend.getZetaBuffer = &jpbe_getZetaBuffer;
+  this->backend.getTarget = &jpbe_get_target;
 
   // Zeroed so a failure part way through leaves destroy_backend safe pointers
   // to free rather than whatever malloc happened to return.
@@ -154,6 +149,10 @@ PgError jpeg_backend_init(JpegBackend *this, Vec2i size, const char *filename) {
   frameBuffer = malloc(pixels * sizeof(Pixel));
   if (frameBuffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate frame buffer");
+  }
+
+  if (render_target_init(&target, size, frameBuffer, zetaBuffer) != OK) {
+    return pg_fail(PG_INVALID_ARGUMENT, "colour and depth buffers");
   }
 
   return PG_SUCCESS;

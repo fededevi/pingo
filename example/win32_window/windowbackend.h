@@ -4,6 +4,7 @@
 #include "math/vec2.h"
 #include "math/vec4.h"
 #include "render/backend.h"
+#include "render/target.h"
 #include "render/depth.h"
 #include "render/pixel.h"
 
@@ -11,6 +12,7 @@
 
 typedef struct {
   Backend backend;
+  RenderTarget target;
   Vec2i size;
   Vec4i rect;
 

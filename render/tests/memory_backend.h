@@ -2,6 +2,7 @@
 
 #include "math/vec2.h"
 #include "render/backend.h"
+#include "render/target.h"
 #include "render/depth.h"
 #include "render/pixel.h"
 
@@ -14,6 +15,7 @@
  */
 typedef struct MemoryBackend {
   Backend backend;
+  RenderTarget target;
   Vec2i size;
   Pixel *frame;
   PingoDepth *depth;

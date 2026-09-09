@@ -12,7 +12,7 @@ Vec2i vec2iClamp(Vec2i in, Vec2i min, Vec2i max) {
 }
 
 int rasterizer_draw_pixel_perfect(Vec2i off, Renderer *r, Texture *src) {
-  Texture des = r->framebuffer;
+  Texture des = r->target.color;
 
   // Transform coords on destination (it is only translation so it is easy)
   Vec2f a = (Vec2f){off.x, off.y};
@@ -47,7 +47,7 @@ int rasterizer_draw_pixel_perfect(Vec2i off, Renderer *r, Texture *src) {
 
 int rasterizer_draw_pixel_perfect_doubled(Vec2i off, Renderer *r,
                                           Texture *src) {
-  Texture des = r->framebuffer;
+  Texture des = r->target.color;
 
   // Transform coords on destination (double the size of the frame)
   Vec2f a = (Vec2f){off.x, off.y};
@@ -88,7 +88,7 @@ int rasterizer_draw_pixel_perfect_doubled(Vec2i off, Renderer *r,
 }
 
 int rasterizer_draw_transformed(Mat4 t, Renderer *r, Texture *src) {
-  Texture des = r->framebuffer;
+  Texture des = r->target.color;
 
   Mat4 inv = mat4Inverse(&t);
 

@@ -134,14 +134,12 @@ void library_benchmark_cleanup(LibraryBenchmark *lb) {
 
 double library_benchmark_run_with_config(LibraryBenchmark *lb, double duration,
                                          bool backface, bool frustum,
-                                         bool early_z,
                                          const char *config_name) {
   printf("Testing %s...\n", config_name);
 
   // Configure optimizations
   renderer_enable_backface_culling(&lb->renderer, backface);
   renderer_enable_frustum_culling(&lb->renderer, frustum);
-  renderer_enable_early_z_test(&lb->renderer, early_z);
 
   // Reset counters
   lb->frame_count = 0;
@@ -202,37 +200,27 @@ void library_benchmark_compare_optimizations(LibraryBenchmark *lb) {
 
   // Test different optimization combinations
   double fps_none = library_benchmark_run_with_config(
-      lb, test_duration, false, false, false, "No Optimizations");
+      lb, test_duration, false, false, "No Optimizations");
 
   double fps_backface = library_benchmark_run_with_config(
-      lb, test_duration, true, false, false, "Backface Culling Only");
-
-  double fps_early_z = library_benchmark_run_with_config(
-      lb, test_duration, false, false, true, "Early Z-Test Only");
+      lb, test_duration, true, false, "Backface Culling Only");
 
   double fps_frustum = library_benchmark_run_with_config(
-      lb, test_duration, false, true, false, "Frustum Culling Only");
+      lb, test_duration, false, true, "Frustum Culling Only");
 
   double fps_all = library_benchmark_run_with_config(
-      lb, test_duration, true, true, true, "All Optimizations");
-
-  double fps_best = library_benchmark_run_with_config(
-      lb, test_duration, true, false, true,
-      "Best Combination (Backface + Early Z)");
+      lb, test_duration, true, true, "All Optimizations");
 
   // Results summary
   printf("\n=== Library Performance Results ===\n");
   printf("No Optimizations:       %.2f FPS (baseline)\n", fps_none);
   printf("Backface Culling:       %.2f FPS (+%.1f%%)\n", fps_backface,
          ((fps_backface - fps_none) / fps_none) * 100.0);
-  printf("Early Z-Test:           %.2f FPS (+%.1f%%)\n", fps_early_z,
-         ((fps_early_z - fps_none) / fps_none) * 100.0);
   printf("Frustum Culling:        %.2f FPS (+%.1f%%)\n", fps_frustum,
          ((fps_frustum - fps_none) / fps_none) * 100.0);
   printf("All Optimizations:      %.2f FPS (+%.1f%%)\n", fps_all,
          ((fps_all - fps_none) / fps_none) * 100.0);
-  printf("Best Combination:       %.2f FPS (+%.1f%%)\n", fps_best,
-         ((fps_best - fps_none) / fps_none) * 100.0);
+
   printf("=====================================\n");
 }
 

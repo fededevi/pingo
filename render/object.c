@@ -102,16 +102,15 @@ int object_render(void *this, Mat4 m, Renderer *r) {
   IF_NULL_RETURN(o, RENDER_ERROR);
   IF_NULL_RETURN(r, RENDER_ERROR);
 
-  const Vec2i scrSize = r->framebuffer.size;
+  const Vec2i scrSize = r->target.color.size;
 
   // VIEW MATRIX
   Mat4 v = mat4Inverse(&r->camera_view);
   Mat4 p = r->camera_projection;
 
-  // Fetched once rather than two or three times per pixel. It is the same
-  // pointer every time, but the call is opaque to the optimizer, which then
-  // has to assume each one may invalidate everything held in registers.
-  PingoDepth *const zeta = r->backend->getZetaBuffer(r, r->backend);
+  // Read from the target rather than fetched through the backend: it used to
+  // be an opaque call made two or three times per pixel.
+  PingoDepth *const zeta = r->target.depth;
 
   // All loop-invariant, and none of it can be hoisted by the compiler: these
   // are opaque cross-translation-unit calls, so it has to assume every one of
@@ -214,10 +213,10 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     int32_t maxX = MAX(MAX(a_s.x, b_s.x), c_s.x);
     int32_t maxY = MAX(MAX(a_s.y, b_s.y), c_s.y);
 
-    minX = MIN(MAX(minX, 0), r->framebuffer.size.x);
-    minY = MIN(MAX(minY, 0), r->framebuffer.size.y);
-    maxX = MIN(MAX(maxX, 0), r->framebuffer.size.x);
-    maxY = MIN(MAX(maxY, 0), r->framebuffer.size.y);
+    minX = MIN(MAX(minX, 0), r->target.color.size.x);
+    minY = MIN(MAX(minY, 0), r->target.color.size.y);
+    maxX = MIN(MAX(maxX, 0), r->target.color.size.x);
+    maxY = MIN(MAX(maxY, 0), r->target.color.size.y);
 
     // Barycentric coordinates at minX/minY corner
     Vec2i minTriangle = {minX, minY};
@@ -323,12 +322,12 @@ int object_render(void *this, Mat4 m, Renderer *r) {
 
           Pixel text = texture_readF(o->material->texture,
                                      (Vec2f){textCoordx, textCoordy});
-          texture_draw_index(&r->framebuffer, pixel_index,
+          texture_draw_index(&r->target.color, pixel_index,
                              use_shade_table
                                  ? pixelMulTable(text, &shade)
                                  : pixelMul(text, diffuseLight));
         } else {
-          texture_draw_index(&r->framebuffer, pixel_index, flat_color);
+          texture_draw_index(&r->target.color, pixel_index, flat_color);
         }
       }
     }

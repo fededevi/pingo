@@ -1,6 +1,7 @@
 #include "memory_backend.h"
 
 #include "render/renderer.h"
+#include "render/state.h"
 
 #include <stdlib.h>
 
@@ -22,14 +23,9 @@ static void mb_after_render(Renderer *renderer, Backend *backend) {
   (void)backend;
 }
 
-static Pixel *mb_get_frame_buffer(Renderer *renderer, Backend *backend) {
+static RenderTarget *mb_get_target(Renderer *renderer, Backend *backend) {
   (void)renderer;
-  return ((MemoryBackend *)backend)->frame;
-}
-
-static PingoDepth *mb_get_zeta_buffer(Renderer *renderer, Backend *backend) {
-  (void)renderer;
-  return ((MemoryBackend *)backend)->depth;
+  return &((MemoryBackend *)backend)->target;
 }
 
 int memory_backend_init(MemoryBackend *this, Vec2i size) {
@@ -41,14 +37,18 @@ int memory_backend_init(MemoryBackend *this, Vec2i size) {
   this->backend.init = &mb_init;
   this->backend.beforeRender = &mb_before_render;
   this->backend.afterRender = &mb_after_render;
-  this->backend.getFrameBuffer = &mb_get_frame_buffer;
-  this->backend.getZetaBuffer = &mb_get_zeta_buffer;
+  this->backend.getTarget = &mb_get_target;
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 
   this->frame = calloc(pixels, sizeof(Pixel));
   this->depth = calloc(pixels, sizeof(PingoDepth));
   if (this->frame == NULL || this->depth == NULL) {
+    memory_backend_free(this);
+    return 1;
+  }
+
+  if (render_target_init(&this->target, size, this->frame, this->depth) != OK) {
     memory_backend_free(this);
     return 1;
   }

@@ -14,5 +14,6 @@ typedef struct Material Material;
 typedef struct Mesh Mesh;
 typedef struct PingoDepth PingoDepth;
 typedef struct Pixel Pixel;
+typedef struct RenderTarget RenderTarget;
 typedef struct Renderer Renderer;
 typedef struct Texture Texture;

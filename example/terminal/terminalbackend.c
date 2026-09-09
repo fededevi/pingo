@@ -1,4 +1,6 @@
 #include "terminalbackend.h"
+#include "render/state.h"
+#include "render/target.h"
 
 #include "example/common/example_backend.h"
 
@@ -17,8 +19,9 @@
 #endif
 
 Vec2i totalSize;
-PingoDepth *zetaBuffer;
-Pixel *frameBuffer;
+static PingoDepth *zetaBuffer;
+static Pixel *frameBuffer;
+static RenderTarget target;
 
 // This backend writes ANSI escapes and one UTF-8 character. A Windows console
 // interprets neither by default, so both have to be switched on; on every
@@ -87,16 +90,10 @@ void terminal_backend_afterRender(Renderer *ren, Backend *backend) {
   }
 }
 
-Pixel *terminal_backend_getFrameBuffer(Renderer *ren, Backend *backend) {
+static RenderTarget *terminal_backend_get_target(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
-  return frameBuffer;
-}
-
-PingoDepth *terminal_backend_getZetaBuffer(Renderer *ren, Backend *backend) {
-  (void)ren;
-  (void)backend;
-  return zetaBuffer;
+  return &target;
 }
 
 PgError terminal_backend_init(TerminalBackend *this, Vec2i size) {
@@ -113,8 +110,7 @@ PgError terminal_backend_init(TerminalBackend *this, Vec2i size) {
   this->backend.init = &terminal_backend_init_backend;
   this->backend.beforeRender = &terminal_backend_beforeRender;
   this->backend.afterRender = &terminal_backend_afterRender;
-  this->backend.getFrameBuffer = &terminal_backend_getFrameBuffer;
-  this->backend.getZetaBuffer = &terminal_backend_getZetaBuffer;
+  this->backend.getTarget = &terminal_backend_get_target;
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 
@@ -126,6 +122,10 @@ PgError terminal_backend_init(TerminalBackend *this, Vec2i size) {
   frameBuffer = malloc(pixels * sizeof(Pixel));
   if (frameBuffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate frame buffer");
+  }
+
+  if (render_target_init(&target, size, frameBuffer, zetaBuffer) != OK) {
+    return pg_fail(PG_INVALID_ARGUMENT, "colour and depth buffers");
   }
 
   return PG_SUCCESS;

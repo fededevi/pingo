@@ -11,6 +11,8 @@
 
 #include "render/renderer.h"
 #include "windowbackend.h"
+#include "render/state.h"
+#include "render/target.h"
 
 #include "example/common/example_backend.h"
 
@@ -28,6 +30,10 @@ static LRESULT CALLBACK wnd_proc(HWND hwnd, UINT msg, WPARAM w_param,
   default:
     return DefWindowProc(hwnd, msg, w_param, l_param);
   }
+  if (render_target_init(&thiss->target, size, thiss->frame_buffer, thiss->zeta_buffer) != OK) {
+    return pg_fail(PG_INVALID_ARGUMENT, "render target");
+  }
+
   return 0;
 }
 
@@ -104,14 +110,9 @@ static void after_render(Renderer *ren, Backend *backend) {
   }
 }
 
-static Pixel *get_frame_buffer(Renderer *ren, Backend *backend) {
+static RenderTarget *get_target(Renderer *ren, Backend *backend) {
   (void)ren;
-  return ((WindowBackend *)backend)->frame_buffer;
-}
-
-static PingoDepth *get_zeta_buffer(Renderer *ren, Backend *backend) {
-  (void)ren;
-  return ((WindowBackend *)backend)->zeta_buffer;
+  return &((WindowBackend *)backend)->target;
 }
 
 PgError window_backend_init(WindowBackend *thiss, Vec2i size) {
@@ -128,8 +129,7 @@ PgError window_backend_init(WindowBackend *thiss, Vec2i size) {
   thiss->backend.init = init;
   thiss->backend.beforeRender = before_render;
   thiss->backend.afterRender = after_render;
-  thiss->backend.getFrameBuffer = get_frame_buffer;
-  thiss->backend.getZetaBuffer = get_zeta_buffer;
+  thiss->backend.getTarget = get_target;
 
   thiss->size = size;
 

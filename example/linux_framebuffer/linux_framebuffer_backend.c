@@ -1,4 +1,6 @@
 #include "linux_framebuffer_backend.h"
+#include "render/state.h"
+#include "render/target.h"
 
 #include "example/common/example_backend.h"
 // Needed for the complete types: render/fwd.h only forward-declares
@@ -22,6 +24,7 @@
 static Vec2i totalSize;
 static PingoDepth *zetaBuffer;
 static Pixel *frameBuffer; // the mmap'd framebuffer
+static RenderTarget target;
 static Pixel *renderBuffer;
 static size_t mappedBytes;
 static int framebufferFd = -1;
@@ -50,18 +53,10 @@ void afterRender(Renderer *ren, Backend *backend) {
          (size_t)totalSize.x * (size_t)totalSize.y * sizeof(Pixel));
 }
 
-Pixel *getFrameBuffer(Renderer *ren, Backend *backend) {
+static RenderTarget *lfb_get_target(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
-
-  return renderBuffer;
-}
-
-PingoDepth *getZetaBuffer(Renderer *ren, Backend *backend) {
-  (void)ren;
-  (void)backend;
-
-  return zetaBuffer;
+  return &target;
 }
 
 // Opens the framebuffer and checks it is laid out the way afterRender assumes.
@@ -135,8 +130,7 @@ PgError linux_framebuffer_backend_init(LinuxFramebufferBackend *this,
   this->backend.init = &init;
   this->backend.beforeRender = &beforeRender;
   this->backend.afterRender = &afterRender;
-  this->backend.getFrameBuffer = &getFrameBuffer;
-  this->backend.getZetaBuffer = &getZetaBuffer;
+  this->backend.getTarget = &lfb_get_target;
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 
@@ -151,6 +145,10 @@ PgError linux_framebuffer_backend_init(LinuxFramebufferBackend *this,
   }
 
   RETURN_IF_ERROR(map_framebuffer(size));
+
+  if (render_target_init(&target, size, frameBuffer, zetaBuffer) != OK) {
+    return pg_fail(PG_INVALID_ARGUMENT, "colour and depth buffers");
+  }
 
   return PG_SUCCESS;
 }
