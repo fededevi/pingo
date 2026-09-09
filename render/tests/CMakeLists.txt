@@ -17,7 +17,7 @@ target_link_libraries(render_tests PRIVATE pingo_memory_backend)
 target_compile_definitions(render_tests PRIVATE
     PINGO_REFERENCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/references")
 
-set(PINGO_RENDER_SCENES empty triangle cube no-uv)
+set(PINGO_RENDER_SCENES empty triangle cube no-uv group)
 
 foreach(scene IN LISTS PINGO_RENDER_SCENES)
     add_test(NAME render.${scene} COMMAND render_tests ${scene})

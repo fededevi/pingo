@@ -8,5 +8,7 @@ typedef struct Sprite {
   Texture texture;
 } Sprite;
 
+PINGO_ASSERT_RENDERABLE_FIRST(Sprite);
+
 extern int sprite_init(Sprite *this, Texture texture);
 extern int sprite_randomize(Sprite *this);

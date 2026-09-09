@@ -5,31 +5,40 @@
 #include <stddef.h>
 
 /**
- * A transform with something under it.
+ * A transform applied to whatever hangs under it, with a visibility toggle.
  *
- * `content` is what this node draws and may be NULL, which makes the entity a
- * pure grouping node - a transform applied to its children and nothing else.
- * Every scene graph needs those, and requiring content meant wrapping a
- * transform around a dummy just to group.
+ * That is its whole job: an Object is a mesh and a material and has no
+ * position, a Sprite is a texture and has no position, and this is what gives
+ * either one a place in the world. Composing these is what makes the scene a
+ * tree, since an Entity is itself a Renderable and so can be a child.
  *
- * `children` is an array of Renderable pointers, the same type as `content`,
- * so any drawable can be a child. It used to be a contiguous Entity array
- * behind an untyped Array, which meant an Object had to be wrapped in an
- * Entity before it could be a child.
+ * There is one list, `children`. An earlier version had both a single
+ * `content` and a separate list, because the list could only hold Entities
+ * and so could not hold an Object directly; now that it holds Renderable
+ * pointers the two were the same mechanism twice. `one` is storage for the
+ * single-child case so that entity_init does not force the caller to declare
+ * a one-element array for what is by far the common use.
  *
- * Neither array nor content is owned: the caller keeps them alive.
+ * Nothing here is owned: the caller keeps the children alive.
  */
-typedef struct {
+typedef struct Entity {
+  // Must stay first: callers cast an Entity * to Renderable *.
   Renderable renderable;
-  Renderable *content;
+
   Mat4 transform;
   bool visible;
+
   Renderable **children;
   size_t child_count;
+
+  Renderable *one[1];
 } Entity;
 
+PINGO_ASSERT_RENDERABLE_FIRST(Entity);
+
+/** One child, stored inline. `renderable` may be NULL for a bare group. */
 extern int entity_init(Entity *this, Renderable *renderable, Mat4 transform);
 
-extern int entity_init_children(Entity *this, Renderable *renderable,
-                                Mat4 transform, Renderable **children,
-                                size_t child_count);
+/** Any number of children, whose array the caller owns. */
+extern int entity_init_children(Entity *this, Mat4 transform,
+                                Renderable **children, size_t child_count);

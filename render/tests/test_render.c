@@ -182,11 +182,73 @@ static void build_no_uv(Renderer *renderer) {
   mesh.tex_indices = NULL;
 }
 
+
+static Vec3f tri2_positions[3];
+static uint16_t tri2_indices[3];
+static Mesh mesh2;
+static Object object2;
+static Entity child_a;
+static Entity child_b;
+static Renderable *group_children[2];
+
+// A group with no content of its own, two children reached through the
+// multi-child path, and a non-black clear colour. Each of those was
+// unreachable in the other scenes: entity_init's single-child shortcut covers
+// content, and every scene cleared to black.
+static void build_group(Renderer *renderer) {
+  init_checker_texture();
+
+  tri_positions[0] = (Vec3f){-1.0f, -0.8f, 0.0f};
+  tri_positions[1] = (Vec3f){0.0f, -0.8f, 0.0f};
+  tri_positions[2] = (Vec3f){-0.5f, 0.6f, 0.0f};
+  tri_coords[0] = (Vec2f){0.0f, 0.0f};
+  tri_coords[1] = (Vec2f){1.0f, 0.0f};
+  tri_coords[2] = (Vec2f){0.5f, 1.0f};
+  tri_indices[0] = 0;
+  tri_indices[1] = 1;
+  tri_indices[2] = 2;
+  mesh.index_count = 3;
+  mesh.pos_indices = tri_indices;
+  mesh.tex_indices = tri_indices;
+  mesh.positions = tri_positions;
+  mesh.tex_coords = tri_coords;
+  object_init(&object, &mesh, &material);
+
+  tri2_positions[0] = (Vec3f){0.2f, -0.6f, 0.0f};
+  tri2_positions[1] = (Vec3f){1.0f, -0.6f, 0.0f};
+  tri2_positions[2] = (Vec3f){0.6f, 0.5f, 0.0f};
+  tri2_indices[0] = 0;
+  tri2_indices[1] = 1;
+  tri2_indices[2] = 2;
+  mesh2.index_count = 3;
+  mesh2.pos_indices = tri2_indices;
+  mesh2.tex_indices = tri2_indices;
+  mesh2.positions = tri2_positions;
+  mesh2.tex_coords = tri_coords;
+  object_init(&object2, &mesh2, &material);
+
+  entity_init(&child_a, (Renderable *)&object, mat4Translate((Vec3f){0, 0, -2.5f}));
+  entity_init(&child_b, (Renderable *)&object2, mat4Translate((Vec3f){0, 0, -2.5f}));
+  group_children[0] = (Renderable *)&child_a;
+  group_children[1] = (Renderable *)&child_b;
+
+  entity_init_children(&root, mat4Identity(), group_children, 2);
+  renderer_set_root_renderable(renderer, (Renderable *)&root);
+
+  renderer->clear = true;
+  renderer->clear_color = pixel_from_rgba(0, 40, 80, 255);
+
+  renderer->camera.projection =
+      mat4Perspective(1, 50.0, (float)WIDTH / (float)HEIGHT, 0.6);
+  renderer->camera.view = mat4Translate((Vec3f){0, 0, 0});
+}
+
 static const Scene scenes[] = {
     {"empty", build_empty},
     {"triangle", build_triangle},
     {"cube", build_cube},
     {"no-uv", build_no_uv},
+    {"group", build_group},
 };
 static const size_t scene_count = sizeof(scenes) / sizeof(scenes[0]);
 

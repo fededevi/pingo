@@ -9,4 +9,6 @@ typedef struct Object {
   Material *material;
 } Object;
 
+PINGO_ASSERT_RENDERABLE_FIRST(Object);
+
 extern int object_init(Object *this, Mesh *mesh, Material *material);
