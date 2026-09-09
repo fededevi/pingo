@@ -78,7 +78,42 @@ struct Pixel {
 
 // Interface
 extern Pixel pixelRandom();
-extern Pixel pixelFromUInt8(uint8_t);
 extern uint8_t pixelToUInt8(Pixel *);
 extern Pixel pixelFromRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-extern Pixel pixelMul(Pixel p, float f);
+
+// Inline: the rasterizer calls both of these once per pixel it draws, and out
+// of line that is a call the optimizer cannot see through unless link-time
+// optimization is available and the build is static. A profile put pixelMul at
+// 19% of the run over 195 million calls.
+#ifdef PINGO_PIXEL_UINT8
+static inline Pixel pixelFromUInt8(uint8_t g) { return (Pixel){g}; }
+static inline Pixel pixelMul(Pixel p, float f) { return (Pixel){p.g * f}; }
+#endif
+
+#ifdef PINGO_PIXEL_RGB888
+static inline Pixel pixelFromUInt8(uint8_t g) { return (Pixel){g, g, g}; }
+static inline Pixel pixelMul(Pixel p, float f) {
+  return (Pixel){p.r * f, p.g * f, p.b * f};
+}
+#endif
+
+#ifdef PINGO_PIXEL_RGBA8888
+static inline Pixel pixelFromUInt8(uint8_t g) { return (Pixel){g, g, g, 255}; }
+static inline Pixel pixelMul(Pixel p, float f) {
+  return (Pixel){p.r * f, p.g * f, p.b * f, p.a};
+}
+#endif
+
+#ifdef PINGO_PIXEL_BGRA8888
+static inline Pixel pixelFromUInt8(uint8_t g) { return (Pixel){g, g, g, 255}; }
+static inline Pixel pixelMul(Pixel p, float f) {
+  return (Pixel){p.b * f, p.g * f, p.r * f, p.a};
+}
+#endif
+
+#ifdef PINGO_PIXEL_RGB565
+static inline Pixel pixelFromUInt8(uint8_t g) { return (Pixel){g, g, g}; }
+static inline Pixel pixelMul(Pixel p, float f) {
+  return (Pixel){p.red * f, p.green * f, p.blue * f};
+}
+#endif

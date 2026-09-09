@@ -230,6 +230,11 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     // screen space and divides at the end. The previous code divided by NDC z
     // instead, which is not proportional to w, so texture coordinates barely
     // varied across a surface receding from the camera.
+    // Fixed for the whole triangle: diffuseLight does not vary per pixel, so
+    // computing this inside the loop repeated the same work for every pixel of
+    // an untextured mesh - and two of the four shipped meshes are untextured.
+    const Pixel flat_color = pixelMul(pixelFromUInt8(255), diffuseLight);
+
     float invAw = 0, invBw = 0, invCw = 0;
     if (o->material != 0 && aw != 0 && bw != 0 && cw != 0) {
       invAw = 1.0f / aw;
@@ -301,8 +306,7 @@ int object_render(void *this, Mat4 m, Renderer *r) {
           texture_draw_index(&r->framebuffer, pixel_index,
                              pixelMul(text, diffuseLight));
         } else {
-          texture_draw_index(&r->framebuffer, pixel_index,
-                             pixelMul(pixelFromUInt8(255), diffuseLight));
+          texture_draw_index(&r->framebuffer, pixel_index, flat_color);
         }
       }
     }
