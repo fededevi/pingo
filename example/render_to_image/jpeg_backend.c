@@ -15,8 +15,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-static PingoDepth *zetaBuffer;
-static Pixel *frameBuffer;
+static PingoDepth *depth_buffer;
+static Pixel *frame_buffer;
 static RenderTarget target;
 Vec2i imageSize;
 
@@ -83,7 +83,7 @@ void jpbe_afterRender(Renderer *ren, Backend *backend) {
   JSAMPROW row_pointer[1] = {row};
   while (cinfo.next_scanline < cinfo.image_height) {
     const Pixel *src =
-        &frameBuffer[(imageSize.y - 1 - (int)cinfo.next_scanline) *
+        &frame_buffer[(imageSize.y - 1 - (int)cinfo.next_scanline) *
                      imageSize.x];
     for (int x = 0; x < imageSize.x; x++) {
       row[x * 3 + 0] = src[x].r;
@@ -124,9 +124,9 @@ PgError jpeg_backend_init(JpegBackend *this, Vec2i size, const char *filename) {
   }
 
   this->backend.init = &jpbe_init;
-  this->backend.beforeRender = &jpbe_beforeRender;
-  this->backend.afterRender = &jpbe_afterRender;
-  this->backend.getTarget = &jpbe_get_target;
+  this->backend.before_render = &jpbe_beforeRender;
+  this->backend.after_render = &jpbe_afterRender;
+  this->backend.get_target = &jpbe_get_target;
 
   // Zeroed so a failure part way through leaves destroy_backend safe pointers
   // to free rather than whatever malloc happened to return.
@@ -141,17 +141,17 @@ PgError jpeg_backend_init(JpegBackend *this, Vec2i size, const char *filename) {
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 
-  zetaBuffer = malloc(pixels * sizeof(PingoDepth));
-  if (zetaBuffer == NULL) {
+  depth_buffer = malloc(pixels * sizeof(PingoDepth));
+  if (depth_buffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate depth buffer");
   }
 
-  frameBuffer = malloc(pixels * sizeof(Pixel));
-  if (frameBuffer == NULL) {
+  frame_buffer = malloc(pixels * sizeof(Pixel));
+  if (frame_buffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate frame buffer");
   }
 
-  if (render_target_init(&target, size, frameBuffer, zetaBuffer) != OK) {
+  if (render_target_init(&target, size, frame_buffer, depth_buffer) != OK) {
     return pg_fail(PG_INVALID_ARGUMENT, "colour and depth buffers");
   }
 
@@ -183,10 +183,10 @@ void destroy_backend(Backend *backend) {
   if (jpegBackend != NULL) {
     free(jpegBackend->jpegFilename);
   }
-  free(zetaBuffer);
-  zetaBuffer = NULL;
-  free(frameBuffer);
-  frameBuffer = NULL;
+  free(depth_buffer);
+  depth_buffer = NULL;
+  free(frame_buffer);
+  frame_buffer = NULL;
   free(jpegBackend);
 }
 

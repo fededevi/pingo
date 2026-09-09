@@ -17,8 +17,8 @@
 Vec4i rect;
 Vec2i totalSize;
 
-static PingoDepth *zetaBuffer;
-static Pixel *frameBuffer;
+static PingoDepth *depth_buffer;
+static Pixel *frame_buffer;
 static RenderTarget target;
 
 Display *dis = 0;
@@ -61,13 +61,13 @@ void init(Renderer *ren, Backend *backend, Vec4i _rect) {
   // returns void and so has no way to report a failure.
 }
 
-void beforeRender(Renderer *ren, Backend *backend) {
+void before_render(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
 }
 
 XImage *create_ximage(Display *display, Visual *visual, int width, int height) {
-  return XCreateImage(display, visual, 24, ZPixmap, 0, (char *)&frameBuffer[0],
+  return XCreateImage(display, visual, 24, ZPixmap, 0, (char *)&frame_buffer[0],
                       width, height, 32, 0);
 }
 
@@ -84,7 +84,7 @@ void texture_flip_vertically(Texture *f) {
   }
 
   // Copy the entire buffer to the temporary buffer
-  memcpy(tempBuffer, f->frameBuffer, bufferSize);
+  memcpy(tempBuffer, f->pixels, bufferSize);
 
   // Flip the entire buffer vertically
   for (int y = 0; y < f->size.y; ++y) {
@@ -92,14 +92,14 @@ void texture_flip_vertically(Texture *f) {
     int bottomIndex = (f->size.y - y - 1) * f->size.x;
 
     // Copy from the temporary buffer back to the texture buffer
-    memcpy(f->frameBuffer + bottomIndex, tempBuffer + topIndex,
+    memcpy(f->pixels + bottomIndex, tempBuffer + topIndex,
            f->size.x * sizeof(Pixel));
   }
 
   free(tempBuffer); // Free the temporary buffer
 }
 
-void afterRender(Renderer *ren, Backend *backend) {
+void after_render(Renderer *ren, Backend *backend) {
   (void)backend;
 
   if (!img) {
@@ -120,7 +120,7 @@ static RenderTarget *lw_get_target(Renderer *ren, Backend *backend) {
   return &target;
 }
 
-PgError linuxWindowBackendInit(LinuxWindowBackend *this, Vec2i size) {
+PgError linux_window_backend_init(LinuxWindowBackend *this, Vec2i size) {
   if (this == NULL) {
     return pg_fail(PG_INVALID_ARGUMENT, "backend must not be NULL");
   }
@@ -130,25 +130,25 @@ PgError linuxWindowBackendInit(LinuxWindowBackend *this, Vec2i size) {
 
   totalSize = size;
   this->backend.init = &init;
-  this->backend.beforeRender = &beforeRender;
-  this->backend.afterRender = &afterRender;
-  this->backend.getTarget = &lw_get_target;
+  this->backend.before_render = &before_render;
+  this->backend.after_render = &after_render;
+  this->backend.get_target = &lw_get_target;
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 
-  zetaBuffer = malloc(pixels * sizeof(PingoDepth));
-  if (zetaBuffer == NULL) {
+  depth_buffer = malloc(pixels * sizeof(PingoDepth));
+  if (depth_buffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate depth buffer");
   }
 
-  frameBuffer = malloc(pixels * sizeof(Pixel));
-  if (frameBuffer == NULL) {
+  frame_buffer = malloc(pixels * sizeof(Pixel));
+  if (frame_buffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate frame buffer");
   }
 
   RETURN_IF_ERROR(init_x());
 
-  if (render_target_init(&target, size, frameBuffer, zetaBuffer) != OK) {
+  if (render_target_init(&target, size, frame_buffer, depth_buffer) != OK) {
     return pg_fail(PG_INVALID_ARGUMENT, "colour and depth buffers");
   }
 
@@ -165,7 +165,7 @@ PgError create_backend(Vec2i size, Backend **out) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate window backend");
   }
 
-  PgError error = linuxWindowBackendInit(lwb, size);
+  PgError error = linux_window_backend_init(lwb, size);
   if (pg_failed(error)) {
     destroy_backend((Backend *)lwb);
     return error;
@@ -186,10 +186,10 @@ void destroy_backend(Backend *backend) {
     dis = NULL;
   }
 
-  free(zetaBuffer);
-  zetaBuffer = NULL;
-  free(frameBuffer);
-  frameBuffer = NULL;
+  free(depth_buffer);
+  depth_buffer = NULL;
+  free(frame_buffer);
+  frame_buffer = NULL;
   free(backend);
 }
 

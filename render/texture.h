@@ -9,12 +9,12 @@
 
 struct Texture {
   Vec2i size;
-  Pixel *frameBuffer;
+  Pixel *pixels;
 };
 
 extern int texture_init(Texture *f, Vec2i size, Pixel *);
 
-extern int texture_init_rgbafile(Texture *f, Vec2i size, char *filename);
+extern int texture_init_rgba_file(Texture *f, Vec2i size, char *filename);
 
 extern Renderable texture_as_renderable(Texture *s);
 
@@ -24,13 +24,13 @@ extern void texture_draw(Texture *f, Vec2i pos, Pixel color);
 // depth buffer. Going back through x and y makes texture_draw recompute
 // x + y * width, a multiply per pixel drawn, for a result already known.
 static inline void texture_draw_index(Texture *f, int index, Pixel color) {
-  f->frameBuffer[index] = color;
+  f->pixels[index] = color;
 }
 
 extern Pixel texture_read(Texture *f, Vec2i pos);
 
-// Inline for the same reason as pixelMul: one call per textured pixel.
-static inline Pixel texture_readF(Texture *f, Vec2f pos) {
+// Inline for the same reason as pixel_mul: one call per textured pixel.
+static inline Pixel texture_read_uv(Texture *f, Vec2f pos) {
   const int w = f->size.x;
   const int h = f->size.y;
 
@@ -44,12 +44,12 @@ static inline Pixel texture_readF(Texture *f, Vec2f pos) {
   // division, and two's complement makes it land non-negative unaided. Every
   // texture in the project is power-of-two; the general path is for the rest.
   if ((w & (w - 1)) == 0 && (h & (h - 1)) == 0) {
-    return f->frameBuffer[(sx & (w - 1)) + (sy & (h - 1)) * w];
+    return f->pixels[(sx & (w - 1)) + (sy & (h - 1)) * w];
   }
 
   sx %= w;
   sy %= h;
   const uint16_t x = (uint16_t)(sx < 0 ? sx + w : sx);
   const uint16_t y = (uint16_t)(sy < 0 ? sy + h : sy);
-  return f->frameBuffer[x + y * (uint32_t)w];
+  return f->pixels[x + y * (uint32_t)w];
 }

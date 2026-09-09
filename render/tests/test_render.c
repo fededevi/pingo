@@ -57,10 +57,10 @@ static Object object;
 static Entity root;
 
 static void init_checker_texture(void) {
-  checker[0] = pixelFromRGBA(255, 255, 255, 255);
-  checker[1] = pixelFromRGBA(60, 60, 60, 255);
-  checker[2] = pixelFromRGBA(60, 60, 60, 255);
-  checker[3] = pixelFromRGBA(255, 255, 255, 255);
+  checker[0] = pixel_from_rgba(255, 255, 255, 255);
+  checker[1] = pixel_from_rgba(60, 60, 60, 255);
+  checker[2] = pixel_from_rgba(60, 60, 60, 255);
+  checker[3] = pixel_from_rgba(255, 255, 255, 255);
   texture_init(&texture, (Vec2i){2, 2}, checker);
   material_init(&material, &texture);
 }
@@ -68,11 +68,11 @@ static void init_checker_texture(void) {
 // Nothing drawn: exercises the clear path on its own.
 static void build_empty(Renderer *renderer) {
   init_checker_texture();
-  mesh.indexes_count = 0;
+  mesh.index_count = 0;
   mesh.pos_indices = NULL;
   mesh.tex_indices = NULL;
   mesh.positions = NULL;
-  mesh.textCoord = NULL;
+  mesh.tex_coords = NULL;
   object_init(&object, &mesh, &material);
   entity_init(&root, (Renderable *)&object, mat4Identity());
   renderer_set_root_renderable(renderer, (Renderable *)&root);
@@ -100,11 +100,11 @@ static void build_triangle(Renderer *renderer) {
   tri_indices[1] = 1;
   tri_indices[2] = 2;
 
-  mesh.indexes_count = 3;
+  mesh.index_count = 3;
   mesh.pos_indices = tri_indices;
   mesh.tex_indices = tri_indices;
   mesh.positions = tri_positions;
-  mesh.textCoord = tri_coords;
+  mesh.tex_coords = tri_coords;
 
   object_init(&object, &mesh, &material);
   entity_init(&root, (Renderable *)&object,
@@ -154,11 +154,11 @@ static void build_cube(Renderer *renderer) {
     }
   }
 
-  mesh.indexes_count = n;
+  mesh.index_count = n;
   mesh.pos_indices = cube_pos_indices;
   mesh.tex_indices = cube_tex_indices;
   mesh.positions = cube_positions;
-  mesh.textCoord = cube_coords;
+  mesh.tex_coords = cube_coords;
 
   object_init(&object, &mesh, &material);
 
@@ -178,7 +178,7 @@ static void build_cube(Renderer *renderer) {
 // so any such mesh crashed the renderer rather than drawing untextured.
 static void build_no_uv(Renderer *renderer) {
   build_triangle(renderer);
-  mesh.textCoord = NULL;
+  mesh.tex_coords = NULL;
   mesh.tex_indices = NULL;
 }
 

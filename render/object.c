@@ -120,7 +120,7 @@ int object_render(void *this, Mat4 m, Renderer *r) {
   const float halfX = scrSize.x * 0.5f;
   const float halfY = scrSize.y * 0.5f;
 
-  for (int i = 0; i < o->mesh->indexes_count; i += 3) {
+  for (int i = 0; i < o->mesh->index_count; i += 3) {
     const Vec3f *ver1 = &o->mesh->positions[o->mesh->pos_indices[i + 0]];
     const Vec3f *ver2 = &o->mesh->positions[o->mesh->pos_indices[i + 1]];
     const Vec3f *ver3 = &o->mesh->positions[o->mesh->pos_indices[i + 2]];
@@ -174,7 +174,7 @@ int object_render(void *this, Mat4 m, Renderer *r) {
 
     // Backface culling (configurable)
     if (r->enable_backface_culling) {
-      float clocking = isClockWise(a.x, a.y, b.x, b.y, c.x, c.y);
+      float clocking = isClockwise(a.x, a.y, b.x, b.y, c.x, c.y);
       if (clocking >= 0)
         continue;
     }
@@ -196,11 +196,11 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     // A mesh need not carry texture coordinates - teapot and pingo do not.
     // Checking only the material dereferenced NULL for those, so every such
     // mesh crashed the renderer instead of drawing untextured.
-    if (o->material != 0 && o->mesh->textCoord != 0 &&
+    if (o->material != 0 && o->mesh->tex_coords != 0 &&
         o->mesh->tex_indices != 0) {
-      tca = o->mesh->textCoord[o->mesh->tex_indices[i + 0]];
-      tcb = o->mesh->textCoord[o->mesh->tex_indices[i + 1]];
-      tcc = o->mesh->textCoord[o->mesh->tex_indices[i + 2]];
+      tca = o->mesh->tex_coords[o->mesh->tex_indices[i + 0]];
+      tcb = o->mesh->tex_coords[o->mesh->tex_indices[i + 1]];
+      tcc = o->mesh->tex_coords[o->mesh->tex_indices[i + 2]];
     }
 
     // Compute Screen coordinates (optimized)
@@ -244,7 +244,7 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     // Fixed for the whole triangle: diffuseLight does not vary per pixel, so
     // computing this inside the loop repeated the same work for every pixel of
     // an untextured mesh - and two of the four shipped meshes are untextured.
-    const Pixel flat_color = pixelMul(pixelFromUInt8(255), diffuseLight);
+    const Pixel flat_color = pixel_mul(pixel_from_uint8(255), diffuseLight);
 
     PixelShadeTable shade;
     const int use_shade_table =
@@ -320,12 +320,12 @@ int object_render(void *this, Mat4 m, Renderer *r) {
           const float textCoordx = (w0 * tca.x + w1 * tcb.x + w2 * tcc.x) * w;
           const float textCoordy = (w0 * tca.y + w1 * tcb.y + w2 * tcc.y) * w;
 
-          Pixel text = texture_readF(o->material->texture,
+          Pixel text = texture_read_uv(o->material->texture,
                                      (Vec2f){textCoordx, textCoordy});
           texture_draw_index(&r->target.color, pixel_index,
                              use_shade_table
-                                 ? pixelMulTable(text, &shade)
-                                 : pixelMul(text, diffuseLight));
+                                 ? pixel_mul_table(text, &shade)
+                                 : pixel_mul(text, diffuseLight));
         } else {
           texture_draw_index(&r->target.color, pixel_index, flat_color);
         }

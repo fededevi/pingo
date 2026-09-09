@@ -30,7 +30,7 @@ static LRESULT CALLBACK wnd_proc(HWND hwnd, UINT msg, WPARAM w_param,
   default:
     return DefWindowProc(hwnd, msg, w_param, l_param);
   }
-  if (render_target_init(&thiss->target, size, thiss->frame_buffer, thiss->zeta_buffer) != OK) {
+  if (render_target_init(&this->target, size, this->frame_buffer, this->depth_buffer) != OK) {
     return pg_fail(PG_INVALID_ARGUMENT, "render target");
   }
 
@@ -115,8 +115,8 @@ static RenderTarget *get_target(Renderer *ren, Backend *backend) {
   return &((WindowBackend *)backend)->target;
 }
 
-PgError window_backend_init(WindowBackend *thiss, Vec2i size) {
-  if (thiss == NULL) {
+PgError window_backend_init(WindowBackend *this, Vec2i size) {
+  if (this == NULL) {
     return pg_fail(PG_INVALID_ARGUMENT, "backend must not be NULL");
   }
   if (size.x <= 0 || size.y <= 0) {
@@ -126,22 +126,22 @@ PgError window_backend_init(WindowBackend *thiss, Vec2i size) {
   printf("[Init] Initializing window backend with size %d x %d\n", size.x,
          size.y);
 
-  thiss->backend.init = init;
-  thiss->backend.beforeRender = before_render;
-  thiss->backend.afterRender = after_render;
-  thiss->backend.getTarget = get_target;
+  this->backend.init = init;
+  this->backend.before_render = before_render;
+  this->backend.after_render = after_render;
+  this->backend.get_target = get_target;
 
-  thiss->size = size;
+  this->size = size;
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 
-  thiss->zeta_buffer = malloc(pixels * sizeof(PingoDepth));
-  if (thiss->zeta_buffer == NULL) {
+  this->depth_buffer = malloc(pixels * sizeof(PingoDepth));
+  if (this->depth_buffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate depth buffer");
   }
 
-  thiss->copy_buffer = malloc(pixels * sizeof(COLORREF));
-  if (thiss->copy_buffer == NULL) {
+  this->copy_buffer = malloc(pixels * sizeof(COLORREF));
+  if (this->copy_buffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate copy buffer");
   }
 
@@ -157,21 +157,21 @@ PgError window_backend_init(WindowBackend *thiss, Vec2i size) {
   if (screen_dc == NULL) {
     return pg_fail(PG_BACKEND, "GetDC for the screen");
   }
-  thiss->mem_dc = CreateCompatibleDC(screen_dc);
+  this->mem_dc = CreateCompatibleDC(screen_dc);
   ReleaseDC(NULL, screen_dc);
-  if (thiss->mem_dc == NULL) {
+  if (this->mem_dc == NULL) {
     return pg_fail(PG_BACKEND, "CreateCompatibleDC");
   }
 
-  thiss->dib_bitmap = CreateDIBSection(thiss->mem_dc, &bmi, DIB_RGB_COLORS,
-                                       &thiss->dib_bits, NULL, 0);
-  if (thiss->dib_bitmap == NULL || thiss->dib_bits == NULL) {
+  this->dib_bitmap = CreateDIBSection(this->mem_dc, &bmi, DIB_RGB_COLORS,
+                                       &this->dib_bits, NULL, 0);
+  if (this->dib_bitmap == NULL || this->dib_bits == NULL) {
     return pg_fail(PG_BACKEND, "CreateDIBSection");
   }
-  SelectObject(thiss->mem_dc, thiss->dib_bitmap);
-  thiss->frame_buffer = (Pixel *)thiss->dib_bits;
+  SelectObject(this->mem_dc, this->dib_bitmap);
+  this->frame_buffer = (Pixel *)this->dib_bits;
 
-  if (win_main(GetModuleHandle(NULL), SW_SHOWNORMAL, thiss) == NULL) {
+  if (win_main(GetModuleHandle(NULL), SW_SHOWNORMAL, this) == NULL) {
     return pg_fail(PG_BACKEND, "create the window");
   }
 
@@ -223,7 +223,7 @@ void destroy_backend(Backend *backend) {
   // Was `free(wb->depth_buffer)`, a field that does not exist - this file did
   // not compile. frame_buffer is not freed: it points into the DIB section,
   // which DeleteObject already released.
-  free(wb->zeta_buffer);
+  free(wb->depth_buffer);
   free(wb->copy_buffer);
   free(wb);
 }

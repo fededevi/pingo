@@ -34,7 +34,7 @@ Pixel *create_test_texture(Vec2i size) {
       unsigned char b = checker ? (y % 256) : (x % 256);
       unsigned char a = 255;
 
-      image[index] = pixelFromRGBA(r, g, b, a);
+      image[index] = pixel_from_rgba(r, g, b, a);
     }
   }
 
@@ -71,7 +71,7 @@ void visual_benchmark_init(VisualBenchmark *vb, int width, int height) {
   entity_init(&vb->root_entity, (Renderable *)&vb->object, mat4Identity());
 
   // Initialize backend
-  linuxWindowBackendInit(&vb->backend, vb->window_size);
+  linux_window_backend_init(&vb->backend, vb->window_size);
 
   // Initialize renderer
   renderer_init(&vb->renderer, vb->window_size, (Backend *)&vb->backend);
@@ -158,10 +158,10 @@ void visual_benchmark_display_stats(VisualBenchmark *vb) {
          (vb->avg_transform_time / (1.0 / vb->fps)) * 100.0);
   printf("  Render Time: %.4f ms (%.1f%%)\n", vb->avg_render_time * 1000.0,
          (vb->avg_render_time / (1.0 / vb->fps)) * 100.0);
-  printf("\nTriangles per Frame: %d\n", viking_mesh.indexes_count / 3);
+  printf("\nTriangles per Frame: %d\n", viking_mesh.index_count / 3);
   printf("Triangles per Second: %.0f\n",
-         (viking_mesh.indexes_count / 3) * vb->fps);
-  printf("Vertices per Second: %.0f\n", viking_mesh.indexes_count * vb->fps);
+         (viking_mesh.index_count / 3) * vb->fps);
+  printf("Vertices per Second: %.0f\n", viking_mesh.index_count * vb->fps);
   printf("==========================================\n\n");
 }
 

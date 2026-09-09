@@ -103,10 +103,10 @@ int main(int argc, char **argv) {
     return 2;
   }
 
-  checker[0] = pixelFromRGBA(255, 255, 255, 255);
-  checker[1] = pixelFromRGBA(60, 60, 60, 255);
-  checker[2] = pixelFromRGBA(60, 60, 60, 255);
-  checker[3] = pixelFromRGBA(255, 255, 255, 255);
+  checker[0] = pixel_from_rgba(255, 255, 255, 255);
+  checker[1] = pixel_from_rgba(60, 60, 60, 255);
+  checker[2] = pixel_from_rgba(60, 60, 60, 255);
+  checker[3] = pixel_from_rgba(255, 255, 255, 255);
   texture_init(&texture, (Vec2i){2, 2}, checker);
   material_init(&material, &texture);
 

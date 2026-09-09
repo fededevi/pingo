@@ -142,7 +142,7 @@ static const uint16_t indices[3000] = {
 };
 
 Mesh pingo_mesh = {
-.indexes_count = 3000,
+.index_count = 3000,
 .pos_indices = &indices[0],
 .positions = &vertices[0],
 };

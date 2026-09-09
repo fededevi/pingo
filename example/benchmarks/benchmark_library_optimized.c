@@ -53,7 +53,7 @@ Pixel *create_test_texture(Vec2i size) {
     for (int x = 0; x < size.x; x++) {
       int index = y * size.x + x;
       unsigned char intensity = ((x ^ y) & 0x10) ? 255 : 128;
-      image[index] = pixelFromRGBA(intensity, intensity, intensity, 255);
+      image[index] = pixel_from_rgba(intensity, intensity, intensity, 255);
     }
   }
   return image;
@@ -67,7 +67,7 @@ void library_benchmark_init(LibraryBenchmark *lb, int width, int height) {
   lb->window_size = (Vec2i){width, height};
 
   // Initialize backend and renderer first
-  linuxWindowBackendInit(&lb->backend, lb->window_size);
+  linux_window_backend_init(&lb->backend, lb->window_size);
   renderer_init(&lb->renderer, lb->window_size, (Backend *)&lb->backend);
 
   // Setup camera
@@ -173,7 +173,7 @@ double library_benchmark_run_with_config(LibraryBenchmark *lb, double duration,
     }
 
     // Present the frame
-    lb->backend.backend.afterRender(&lb->renderer, &lb->backend.backend);
+    lb->backend.backend.after_render(&lb->renderer, &lb->backend.backend);
 
     lb->frame_count++;
     elapsed = benchmark_end(&lb->frame_timer);

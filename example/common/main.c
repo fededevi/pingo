@@ -94,7 +94,7 @@ static PgError load_texture(const char *filename, Vec2i size, Pixel **out) {
         free(image);
         return error;
       }
-      image[y * size.x + x] = pixelFromRGBA(rgba[0], rgba[1], rgba[2], rgba[3]);
+      image[y * size.x + x] = pixel_from_rgba(rgba[0], rgba[1], rgba[2], rgba[3]);
     }
   }
 

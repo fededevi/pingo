@@ -24,8 +24,8 @@ typedef struct {
   HDC mem_dc;
 
   Pixel *frame_buffer;
-  PingoDepth *zeta_buffer;
+  PingoDepth *depth_buffer;
   COLORREF *copy_buffer;
 } WindowBackend;
 
-PgError window_backend_init(WindowBackend *thiss, Vec2i size);
+PgError window_backend_init(WindowBackend *this, Vec2i size);

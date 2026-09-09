@@ -35,9 +35,9 @@ int memory_backend_init(MemoryBackend *this, Vec2i size) {
 
   this->size = size;
   this->backend.init = &mb_init;
-  this->backend.beforeRender = &mb_before_render;
-  this->backend.afterRender = &mb_after_render;
-  this->backend.getTarget = &mb_get_target;
+  this->backend.before_render = &mb_before_render;
+  this->backend.after_render = &mb_after_render;
+  this->backend.get_target = &mb_get_target;
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 

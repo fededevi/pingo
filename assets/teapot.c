@@ -3470,7 +3470,7 @@ static const uint16_t indexes[teapot_vertices] = {
 };
 
 Mesh mesh_teapot = {
-    .indexes_count = teapot_vertices,
+    .index_count = teapot_vertices,
     .positions = &positions[0],
     .pos_indices = &indexes[0]
 };

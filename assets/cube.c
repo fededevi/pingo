@@ -42,10 +42,10 @@ static const uint16_t i[36] = {
 
 
 Mesh mesh_cube = {
-    .indexes_count = 36,
+    .index_count = 36,
     .pos_indices = &i[0],
     .tex_indices = &i[0],
     .positions = &ver[0],
-    .textCoord = &tex[0]
+    .tex_coords = &tex[0]
 };
 

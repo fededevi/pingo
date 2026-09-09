@@ -22,8 +22,8 @@
 #define FRAMEBUFFER_DEVICE "/dev/fb0"
 
 static Vec2i totalSize;
-static PingoDepth *zetaBuffer;
-static Pixel *frameBuffer; // the mmap'd framebuffer
+static PingoDepth *depth_buffer;
+static Pixel *frame_buffer; // the mmap'd framebuffer
 static RenderTarget target;
 static Pixel *renderBuffer;
 static size_t mappedBytes;
@@ -40,16 +40,16 @@ void init(Renderer *ren, Backend *backend, Vec4i _rect) {
   // create_backend instead, and allocated there so failures can be reported.
 }
 
-void beforeRender(Renderer *ren, Backend *backend) {
+void before_render(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
 }
 
-void afterRender(Renderer *ren, Backend *backend) {
+void after_render(Renderer *ren, Backend *backend) {
   (void)ren;
   (void)backend;
 
-  memcpy(frameBuffer, renderBuffer,
+  memcpy(frame_buffer, renderBuffer,
          (size_t)totalSize.x * (size_t)totalSize.y * sizeof(Pixel));
 }
 
@@ -59,7 +59,7 @@ static RenderTarget *lfb_get_target(Renderer *ren, Backend *backend) {
   return &target;
 }
 
-// Opens the framebuffer and checks it is laid out the way afterRender assumes.
+// Opens the framebuffer and checks it is laid out the way after_render assumes.
 static PgError map_framebuffer(Vec2i size) {
   framebufferFd = open(FRAMEBUFFER_DEVICE, O_RDWR);
   if (framebufferFd < 0) {
@@ -96,7 +96,7 @@ static PgError map_framebuffer(Vec2i size) {
                         "Ask for a size that fits the screen.");
   }
 
-  // afterRender blits the render buffer in one memcpy, which is only correct
+  // after_render blits the render buffer in one memcpy, which is only correct
   // when the framebuffer rows are exactly as wide as ours. Rather than
   // silently producing a skewed image, say so.
   if (finfo.line_length != (unsigned)size.x * sizeof(Pixel)) {
@@ -107,10 +107,10 @@ static PgError map_framebuffer(Vec2i size) {
   }
 
   mappedBytes = (size_t)size.x * (size_t)size.y * sizeof(Pixel);
-  frameBuffer = mmap(NULL, mappedBytes, PROT_READ | PROT_WRITE, MAP_SHARED,
+  frame_buffer = mmap(NULL, mappedBytes, PROT_READ | PROT_WRITE, MAP_SHARED,
                      framebufferFd, 0);
-  if (frameBuffer == MAP_FAILED) {
-    frameBuffer = NULL;
+  if (frame_buffer == MAP_FAILED) {
+    frame_buffer = NULL;
     return pg_fail_errno(PG_IO, "mmap " FRAMEBUFFER_DEVICE);
   }
 
@@ -128,14 +128,14 @@ PgError linux_framebuffer_backend_init(LinuxFramebufferBackend *this,
 
   totalSize = size;
   this->backend.init = &init;
-  this->backend.beforeRender = &beforeRender;
-  this->backend.afterRender = &afterRender;
-  this->backend.getTarget = &lfb_get_target;
+  this->backend.before_render = &before_render;
+  this->backend.after_render = &after_render;
+  this->backend.get_target = &lfb_get_target;
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 
-  zetaBuffer = malloc(pixels * sizeof(PingoDepth));
-  if (zetaBuffer == NULL) {
+  depth_buffer = malloc(pixels * sizeof(PingoDepth));
+  if (depth_buffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate depth buffer");
   }
 
@@ -146,7 +146,7 @@ PgError linux_framebuffer_backend_init(LinuxFramebufferBackend *this,
 
   RETURN_IF_ERROR(map_framebuffer(size));
 
-  if (render_target_init(&target, size, frameBuffer, zetaBuffer) != OK) {
+  if (render_target_init(&target, size, frame_buffer, depth_buffer) != OK) {
     return pg_fail(PG_INVALID_ARGUMENT, "colour and depth buffers");
   }
 
@@ -174,17 +174,17 @@ PgError create_backend(Vec2i size, Backend **out) {
 }
 
 void destroy_backend(Backend *backend) {
-  if (frameBuffer != NULL) {
-    munmap(frameBuffer, mappedBytes);
-    frameBuffer = NULL;
+  if (frame_buffer != NULL) {
+    munmap(frame_buffer, mappedBytes);
+    frame_buffer = NULL;
   }
   if (framebufferFd >= 0) {
     close(framebufferFd);
     framebufferFd = -1;
   }
 
-  free(zetaBuffer);
-  zetaBuffer = NULL;
+  free(depth_buffer);
+  depth_buffer = NULL;
   free(renderBuffer);
   renderBuffer = NULL;
   free(backend);

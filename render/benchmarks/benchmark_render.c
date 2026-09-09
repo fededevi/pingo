@@ -78,11 +78,11 @@ static int build_sphere(Mesh *mesh, int rings, int segments) {
     }
   }
 
-  mesh->indexes_count = n;
+  mesh->index_count = n;
   mesh->pos_indices = indices;
   mesh->tex_indices = indices;
   mesh->positions = positions;
-  mesh->textCoord = coords;
+  mesh->tex_coords = coords;
   return n / 3;
 }
 
@@ -93,11 +93,11 @@ static const Vec2f quad_uv[4] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 static const uint16_t quad_idx[6] = {0, 1, 2, 0, 2, 3};
 
 static int build_quad(Mesh *mesh) {
-  mesh->indexes_count = 6;
+  mesh->index_count = 6;
   mesh->pos_indices = quad_idx;
   mesh->tex_indices = quad_idx;
   mesh->positions = quad_pos;
-  mesh->textCoord = quad_uv;
+  mesh->tex_coords = quad_uv;
   return 2;
 }
 
@@ -192,10 +192,10 @@ int main(int argc, char **argv) {
     return 2;
   }
 
-  checker[0] = pixelFromRGBA(255, 255, 255, 255);
-  checker[1] = pixelFromRGBA(60, 60, 60, 255);
-  checker[2] = pixelFromRGBA(60, 60, 60, 255);
-  checker[3] = pixelFromRGBA(255, 255, 255, 255);
+  checker[0] = pixel_from_rgba(255, 255, 255, 255);
+  checker[1] = pixel_from_rgba(60, 60, 60, 255);
+  checker[2] = pixel_from_rgba(60, 60, 60, 255);
+  checker[3] = pixel_from_rgba(255, 255, 255, 255);
 
   printf("=== Pingo render benchmark: %d frames per case ===\n", frames);
   printf("  %-14s %-9s %10s %8s %14s %10s %13s %11s\n", "scene", "size",

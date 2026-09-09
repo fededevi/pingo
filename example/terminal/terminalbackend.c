@@ -19,8 +19,8 @@
 #endif
 
 Vec2i totalSize;
-static PingoDepth *zetaBuffer;
-static Pixel *frameBuffer;
+static PingoDepth *depth_buffer;
+static Pixel *frame_buffer;
 static RenderTarget target;
 
 // This backend writes ANSI escapes and one UTF-8 character. A Windows console
@@ -68,7 +68,7 @@ void terminal_backend_afterRender(Renderer *ren, Backend *backend) {
     for (int x = 0; x < totalSize.x; x++) {
       // Normalize pixel intensity to [0, 1]
       double normalValue =
-          pixelToUInt8(&frameBuffer[x + y * totalSize.x]) / 255.0;
+          pixel_to_uint8(&frame_buffer[x + y * totalSize.x]) / 255.0;
 
       // Apply contrast curve
       // normalValue = (normalValue + 0.1) / 1.2;
@@ -108,23 +108,23 @@ PgError terminal_backend_init(TerminalBackend *this, Vec2i size) {
 
   totalSize = size;
   this->backend.init = &terminal_backend_init_backend;
-  this->backend.beforeRender = &terminal_backend_beforeRender;
-  this->backend.afterRender = &terminal_backend_afterRender;
-  this->backend.getTarget = &terminal_backend_get_target;
+  this->backend.before_render = &terminal_backend_beforeRender;
+  this->backend.after_render = &terminal_backend_afterRender;
+  this->backend.get_target = &terminal_backend_get_target;
 
   const size_t pixels = (size_t)size.x * (size_t)size.y;
 
-  zetaBuffer = malloc(pixels * sizeof(PingoDepth));
-  if (zetaBuffer == NULL) {
+  depth_buffer = malloc(pixels * sizeof(PingoDepth));
+  if (depth_buffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate depth buffer");
   }
 
-  frameBuffer = malloc(pixels * sizeof(Pixel));
-  if (frameBuffer == NULL) {
+  frame_buffer = malloc(pixels * sizeof(Pixel));
+  if (frame_buffer == NULL) {
     return pg_fail(PG_OUT_OF_MEMORY, "allocate frame buffer");
   }
 
-  if (render_target_init(&target, size, frameBuffer, zetaBuffer) != OK) {
+  if (render_target_init(&target, size, frame_buffer, depth_buffer) != OK) {
     return pg_fail(PG_INVALID_ARGUMENT, "colour and depth buffers");
   }
 
@@ -152,10 +152,10 @@ PgError create_backend(Vec2i size, Backend **out) {
 }
 
 void destroy_backend(Backend *backend) {
-  free(zetaBuffer);
-  zetaBuffer = NULL;
-  free(frameBuffer);
-  frameBuffer = NULL;
+  free(depth_buffer);
+  depth_buffer = NULL;
+  free(frame_buffer);
+  frame_buffer = NULL;
   free(backend);
 }
 

@@ -35,7 +35,7 @@ int sprite_init(Sprite *this, Texture texture) {
 int sprite_randomize(Sprite *this) {
   for (int x = 0; x < this->texture.size.x; x++)
     for (int y = 0; y < this->texture.size.y; y++)
-      texture_draw(&this->texture, (Vec2i){x, y}, pixelRandom());
+      texture_draw(&this->texture, (Vec2i){x, y}, pixel_random());
 
   return OK;
 }

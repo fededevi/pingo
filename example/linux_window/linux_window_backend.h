@@ -10,4 +10,4 @@ typedef struct {
   Vec2i size;
 } LinuxWindowBackend;
 
-PgError linuxWindowBackendInit(LinuxWindowBackend *thiss, Vec2i size);
+PgError linux_window_backend_init(LinuxWindowBackend *this, Vec2i size);

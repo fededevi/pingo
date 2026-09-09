@@ -16,10 +16,11 @@ a **backend** supplies it, and Pingo only fills it in.
 
 One frame of `renderer_render()`:
 
-1. Clear the depth buffer (and the framebuffer, if `clear` is set).
-2. Ask the backend for the framebuffer and depth buffer, and call `beforeRender`.
+1. Ask the backend for its render target — a colour surface plus the depth
+   buffer that belongs to it — and call `before_render`.
+2. Clear the depth buffer, and the colour surface if `clear` is set.
 3. Walk the scene graph from `root_renderable` with an identity transform.
-4. Call `afterRender`, which is where the backend presents the pixels.
+4. Call `after_render`, which is where the backend presents the pixels.
 
 The scene graph is built from one interface — a struct whose first member is a
 render function pointer:
@@ -67,9 +68,14 @@ after a deliberate change by running the test executable with
 
 ## Backends
 
-A backend is five function pointers — `init`, `beforeRender`, `afterRender`,
-`getFrameBuffer`, `getZetaBuffer`. Port Pingo somewhere new by implementing
-those and handing the struct to `renderer_init()`.
+A backend is four function pointers — `init`, `before_render`, `after_render`
+and `get_target`. Port Pingo somewhere new by implementing those and handing
+the struct to `renderer_init()`.
+
+`get_target` returns a `RenderTarget`: a `Texture` to draw into and a depth
+buffer with one entry per pixel of it. They travel together so their sizes
+cannot disagree — a `Texture` on its own is any 2D surface, which is what a
+source image and a sprite are.
 
 | Example | Output | Needs |
 |---------|--------|-------|

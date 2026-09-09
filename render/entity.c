@@ -19,7 +19,7 @@ int entity_render(void *this, Mat4 transform, Renderer *renderer) {
     child_entity->renderable.render(child_entity, new_transform, renderer);
   }
 
-  Renderable *renderable = entity->entity_renderable;
+  Renderable *renderable = entity->content;
 
   return renderable->render(renderable, new_transform, renderer);
 };
@@ -28,7 +28,7 @@ int entity_init(Entity *this, Renderable *renderable, Mat4 transform) {
   IF_NULL_RETURN(this, INIT_ERROR);
   IF_NULL_RETURN(renderable, INIT_ERROR);
 
-  this->entity_renderable = renderable;
+  this->content = renderable;
   this->renderable.render = &entity_render;
   this->transform = transform;
   this->visible = true;
@@ -43,7 +43,7 @@ int entity_init_children(Entity *this, Renderable *renderable, Mat4 transform,
   IF_NULL_RETURN(this, INIT_ERROR);
   IF_NULL_RETURN(renderable, INIT_ERROR);
 
-  this->entity_renderable = renderable;
+  this->content = renderable;
   this->renderable.render = &entity_render;
   this->transform = transform;
   this->visible = true;

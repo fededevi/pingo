@@ -28,7 +28,7 @@ Pixel *loadTexture(char *filename, Vec2i size) {
       fread(&g, 1, 1, file);
       fread(&b, 1, 1, file);
       fread(&a, 1, 1, file);
-      image[i * 1024 + j] = pixelFromRGBA(r, g, b, a);
+      image[i * 1024 + j] = pixel_from_rgba(r, g, b, a);
     }
   }
   fclose(file);
@@ -53,7 +53,7 @@ int main() {
 
   Vec2i size = {640, 480};
   LinuxWindowBackend backend;
-  linuxWindowBackendInit(&backend, size);
+  linux_window_backend_init(&backend, size);
 
   Renderer renderer;
   renderer_init(&renderer, size, (Backend *)&backend);

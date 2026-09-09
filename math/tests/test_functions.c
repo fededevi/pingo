@@ -34,14 +34,14 @@ int test_functions(void) {
   int edge_result3 = edgeFunction(&a, &b, &e);
   TEST_ASSERT(edge_result3 == 0, "edgeFunction failed for collinear points");
 
-  // Test isClockWise
-  float clockwise_result = isClockWise(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f);
+  // Test isClockwise
+  float clockwise_result = isClockwise(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f);
   TEST_ASSERT(clockwise_result < 0,
-              "isClockWise failed for counter-clockwise triangle");
+              "isClockwise failed for counter-clockwise triangle");
 
-  float clockwise_result2 = isClockWise(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f);
+  float clockwise_result2 = isClockwise(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f);
   TEST_ASSERT(clockwise_result2 < 0,
-              "isClockWise failed for clockwise triangle");
+              "isClockwise failed for clockwise triangle");
 
   // Test orient2d
   Vec2i a_int = {0, 0};

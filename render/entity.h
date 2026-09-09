@@ -8,7 +8,7 @@
 /// position by the renderer
 typedef struct {
   Renderable renderable;
-  Renderable *entity_renderable;
+  Renderable *content;
   Mat4 transform;
   bool visible;
   Array children_entities;
