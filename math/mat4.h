@@ -23,10 +23,10 @@ Mat4 mat4RotateZ(F_TYPE phi);
 Vec2f mat4MultiplyVec2(Vec2f *v, Mat4 *t);
 Vec3f mat4MultiplyVec3(Vec3f *v, Mat4 *t);
 
-Vec4f mat4MultiplyVec4(Vec4f *v, Mat4 *t);
-Vec4f mat4MultiplyVec4in(Vec4f *v, Mat4 *t);
+Vec4f mat4MultiplyVec4(const Vec4f *v, const Mat4 *t);
+Vec4f mat4MultiplyVec4in(const Vec4f *v, const Mat4 *t);
 
-Mat4 mat4MultiplyM(Mat4 *m1, Mat4 *m2);
+Mat4 mat4MultiplyM(const Mat4 *m1, const Mat4 *m2);
 Mat4 mat4Inverse(Mat4 *mat);
 Mat4 mat4Scale(Vec3f s);
 

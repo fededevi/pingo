@@ -56,6 +56,14 @@ int object_render(void *this, Mat4 m, Renderer *r) {
   // has to assume each one may invalidate everything held in registers.
   PingoDepth *const zeta = r->backend->getZetaBuffer(r, r->backend);
 
+  // All loop-invariant, and none of it can be hoisted by the compiler: these
+  // are opaque cross-translation-unit calls, so it has to assume every one of
+  // them could return something different or touch memory.
+  const Mat4 vm = mat4MultiplyM(&v, &m);
+  const Vec3f light = vec3Normalize((Vec3f){-8, 5, 5});
+  const float halfX = scrSize.x * 0.5f;
+  const float halfY = scrSize.y * 0.5f;
+
   for (int i = 0; i < o->mesh->indexes_count; i += 3) {
     const Vec3f *ver1 = &o->mesh->positions[o->mesh->pos_indices[i + 0]];
     const Vec3f *ver2 = &o->mesh->positions[o->mesh->pos_indices[i + 1]];
@@ -79,8 +87,6 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     Vec4f b = {ver2->x, ver2->y, ver2->z, 1};
     Vec4f c = {ver3->x, ver3->y, ver3->z, 1};
 
-    Mat4 vm = mat4MultiplyM(&v, &m);
-
     a = mat4MultiplyVec4(&a, &vm);
     b = mat4MultiplyVec4(&b, &vm);
     c = mat4MultiplyVec4(&c, &vm);
@@ -95,9 +101,8 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     Vec3f na = vec3fsubV(a3, b3);
     Vec3f nb = vec3fsubV(a3, c3);
     Vec3f normal = vec3Normalize(vec3Cross(na, nb));
-    Vec3f light = vec3Normalize((Vec3f){-8, 5, 5});
-    float diffuseLight = (1.0 + vec3Dot(normal, light)) * 0.5;
-    diffuseLight = MIN(1.0, MAX(diffuseLight, 0));
+    float diffuseLight = (1.0f + vec3Dot(normal, light)) * 0.5f;
+    diffuseLight = MIN(1.0f, MAX(diffuseLight, 0.0f));
 
     a = mat4MultiplyVec4(&a, &p);
     b = mat4MultiplyVec4(&b, &p);
@@ -139,8 +144,6 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     }
 
     // Compute Screen coordinates (optimized)
-    float halfX = scrSize.x * 0.5f;
-    float halfY = scrSize.y * 0.5f;
     Vec2i a_s = {(int)(a.x * halfX + halfX), (int)(a.y * halfY + halfY)};
     Vec2i b_s = {(int)(b.x * halfX + halfX), (int)(b.y * halfY + halfY)};
     Vec2i c_s = {(int)(c.x * halfX + halfX), (int)(c.y * halfY + halfY)};
@@ -161,7 +164,7 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     int32_t area = orient2d(a_s, b_s, c_s);
     if (area == 0)
       continue;
-    float areaInverse = 1.0 / area;
+    const float areaInverse = 1.0f / (float)area;
 
     int32_t A01 = (a_s.y - b_s.y); // Barycentric coordinates steps
     int32_t B01 = (b_s.x - a_s.x); // Barycentric coordinates steps

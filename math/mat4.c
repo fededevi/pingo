@@ -166,7 +166,7 @@ Vec3f mat4MultiplyVec3(Vec3f *v, Mat4 *t) {
   return (Vec3f){a, b, c};
 }
 
-Vec4f mat4MultiplyVec4(Vec4f *v, Mat4 *t) {
+Vec4f mat4MultiplyVec4(const Vec4f *v, const Mat4 *t) {
   F_TYPE a = v->x * t->elements[0] + v->y * t->elements[1] +
              v->z * t->elements[2] + v->w * t->elements[3];
   F_TYPE b = v->x * t->elements[4] + v->y * t->elements[5] +
@@ -178,7 +178,7 @@ Vec4f mat4MultiplyVec4(Vec4f *v, Mat4 *t) {
   return (Vec4f){a, b, c, d};
 }
 
-Vec4f mat4MultiplyVec4in(Vec4f *v, Mat4 *t) {
+Vec4f mat4MultiplyVec4in(const Vec4f *v, const Mat4 *t) {
   F_TYPE a = v->x * t->elements[0] + v->y * t->elements[4] +
              v->z * t->elements[8] + 1.0 * t->elements[12];
   F_TYPE b = v->x * t->elements[1] + v->y * t->elements[5] +
@@ -190,9 +190,9 @@ Vec4f mat4MultiplyVec4in(Vec4f *v, Mat4 *t) {
   return (Vec4f){a, b, c, d};
 }
 
-Mat4 mat4MultiplyM(Mat4 *m1, Mat4 *m2) {
-  F_TYPE *a = m2->elements;
-  F_TYPE *b = m1->elements;
+Mat4 mat4MultiplyM(const Mat4 *m1, const Mat4 *m2) {
+  const F_TYPE *a = m2->elements;
+  const F_TYPE *b = m1->elements;
 
   // Fast path for identity matrix multiplication
   if (a[0] == 1.0f && a[1] == 0.0f && a[2] == 0.0f && a[3] == 0.0f &&
