@@ -307,7 +307,14 @@ int object_render(void *this, Mat4 m, Renderer *r) {
           continue;
 
         float depth = -(w0 * a.z + w1 * b.z + w2 * c.z) * areaInverse;
-        if (depth < -1.0f || depth > 1.0f)
+        // Lower bound 0, not -1. depth_test_and_write casts this to an
+        // unsigned type, which is undefined for a negative value, and the
+        // old bound admitted [-1, 0). Nothing in the tests or the shipped
+        // meshes ever produced a negative depth - instrumenting every write
+        // across all eight scenes counted zero - so this rejects nothing that
+        // used to be drawn, and makes the cast unreachable for negatives
+        // rather than merely unreached.
+        if (depth < 0.0f || depth > 1.0f)
           continue;
 
         const int pixel_index = x + y * scrSize.x;

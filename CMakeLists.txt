@@ -84,6 +84,20 @@ add_subdirectory(render)
 add_subdirectory(assets)
 add_subdirectory(example)
 
+# Regenerating references by hand missed a suite once: the assets images
+# drifted for several commits while staying inside the comparison tolerance,
+# so nothing failed. This refreshes every golden image there is.
+add_custom_target(update_references)
+foreach(t render_tests asset_tests)
+    if(TARGET ${t})
+        add_custom_command(TARGET update_references POST_BUILD
+            COMMAND ${t} --write-references
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Rewriting golden images from ${t}")
+        add_dependencies(update_references ${t})
+    endif()
+endforeach()
+
 # A freestanding build cannot link the tests or examples, so it needs a way to
 # ask for the libraries alone without knowing which of them exist.
 add_custom_target(pingo_libraries)

@@ -62,9 +62,10 @@ library's tests:
 
 The renderer's tests draw into memory at 64x48 and compare the result against
 committed PPM references, so they run on every platform - including the
-cross-compiled ones, where no window backend exists. Regenerate the references
-after a deliberate change by running the test executable with
-`--write-references`.
+cross-compiled ones, where no window backend exists. Regenerate them all after
+a deliberate change with `cmake --build <dir> --target update_references`; the
+comparison tolerates a few differing pixels, so a suite refreshed by hand and
+another left behind will both keep passing while they drift apart.
 
 ## Backends
 
