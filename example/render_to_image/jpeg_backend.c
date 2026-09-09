@@ -70,11 +70,33 @@ void jpbe_afterRender(Renderer *ren, Backend *backend) {
 
   jpeg_start_compress(&cinfo, TRUE);
 
-  JSAMPROW row_pointer[1];
+  // libjpeg is told three components, but a Pixel is not three bytes and its
+  // channels are not in R,G,B order - handing it the framebuffer directly made
+  // it read 3/4 of each row, skewing every subsequent one. That is what the
+  // vertical striping in the output was. Row 0 is also the bottom of the
+  // framebuffer, so the rows are emitted in reverse.
+  JSAMPLE *row = malloc((size_t)imageSize.x * 3);
+  if (row == NULL) {
+    PgError error = pg_fail(PG_OUT_OF_MEMORY, "allocate a JPEG scanline");
+    pg_error_report(error, stderr);
+    jpeg_destroy_compress(&cinfo);
+    fclose(jpegFile);
+    exit(EXIT_FAILURE);
+  }
+
+  JSAMPROW row_pointer[1] = {row};
   while (cinfo.next_scanline < cinfo.image_height) {
-    row_pointer[0] = (JSAMPROW)&frameBuffer[cinfo.next_scanline * imageSize.x];
+    const Pixel *src =
+        &frameBuffer[(imageSize.y - 1 - (int)cinfo.next_scanline) *
+                     imageSize.x];
+    for (int x = 0; x < imageSize.x; x++) {
+      row[x * 3 + 0] = src[x].r;
+      row[x * 3 + 1] = src[x].g;
+      row[x * 3 + 2] = src[x].b;
+    }
     jpeg_write_scanlines(&cinfo, row_pointer, 1);
   }
+  free(row);
 
   jpeg_finish_compress(&cinfo);
   jpeg_destroy_compress(&cinfo);

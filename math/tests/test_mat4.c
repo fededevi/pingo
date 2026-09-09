@@ -153,7 +153,13 @@ int test_mat4(void) {
   F_TYPE near_val = mat4NearFromProjection(perspective);
   F_TYPE far_val = mat4FarFromProjection(perspective);
   TEST_ASSERT_FLOAT_EQ(0.1f, near_val, 0.001f);
-  TEST_ASSERT_FLOAT_EQ(100.0f, far_val, 0.001f);
+  // far comes out of elements[10] as -C / (2 * (A - 1)), and with near << far
+  // that A is only just above 1, so the subtraction cancels most of the
+  // mantissa: one ULP of difference in A moves the result by ~1e-4 relative.
+  // near does not go through that cancellation and stays exact. Asserting
+  // tighter than this demands bit-identical rounding across architectures,
+  // which m68k does not provide.
+  TEST_ASSERT_FLOAT_EQ(100.0f, far_val, 0.05f);
 
   // Round-trip a second projection with different planes, so the extraction
   // cannot pass by returning the values the case above happens to use.

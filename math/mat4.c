@@ -3,6 +3,7 @@
 #include "vec3.h"
 #include "vec4.h"
 
+#include <float.h>
 #include <math.h>
 #include <stdint.h>
 
@@ -433,9 +434,12 @@ F_TYPE mat4FarFromProjection(Mat4 mat) {
   F_TYPE A = mat.elements[10];
   F_TYPE C = mat.elements[14];
 
-  // A tends to 1 as far tends to infinity, so A == 1 is an infinite far plane.
+  // A tends to 1 as far tends to infinity, so A == 1 is an infinite far
+  // plane. FLT_MAX stands in for it rather than INFINITY, which is a C99
+  // math.h macro that the smaller embedded libcs do not all define - msp430's
+  // does not, and this library is meant to build there.
   if (A == 1)
-    return INFINITY;
+    return FLT_MAX;
 
   return -C / (2 * (A - 1));
 }

@@ -3,7 +3,7 @@
 file(GLOB_RECURSE render_src CONFIGURE_DEPENDS *.c)
 list(FILTER render_src EXCLUDE REGEX "/tests/")
 
-add_library(pingo_render SHARED ${render_src})
+add_library(pingo_render ${render_src})
 
 target_include_directories(pingo_render PUBLIC
     # Sources refer to each other both as "pixel.h" and as "render/pixel.h".

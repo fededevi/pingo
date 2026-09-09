@@ -3,7 +3,7 @@
 file(GLOB_RECURSE math_src CONFIGURE_DEPENDS *.c)
 list(FILTER math_src EXCLUDE REGEX "/tests/")
 
-add_library(pingo_math SHARED ${math_src})
+add_library(pingo_math ${math_src})
 
 target_include_directories(pingo_math PUBLIC
     # Sources refer to each other both as "vec3.h" and as "math/vec3.h".

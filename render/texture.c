@@ -24,8 +24,13 @@ Pixel texture_read(Texture *f, Vec2i pos) {
 }
 
 Pixel texture_readF(Texture *f, Vec2f pos) {
-  uint16_t x = (uint16_t)(pos.x * f->size.x) % f->size.x;
-  uint16_t y = (uint16_t)(pos.y * f->size.y) % f->size.y;
+  // Converting a negative float to an unsigned type is undefined, and the
+  // interpolated coordinate can go negative just outside a triangle, so the
+  // wrap happens in signed arithmetic before the cast.
+  int sx = (int)(pos.x * f->size.x) % f->size.x;
+  int sy = (int)(pos.y * f->size.y) % f->size.y;
+  uint16_t x = (uint16_t)(sx < 0 ? sx + f->size.x : sx);
+  uint16_t y = (uint16_t)(sy < 0 ? sy + f->size.y : sy);
   uint32_t index = x + y * f->size.x;
   Pixel value = f->frameBuffer[index];
   return value;

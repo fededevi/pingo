@@ -52,15 +52,19 @@ int object_render(void *this, Mat4 m, Renderer *r) {
   Mat4 p = r->camera_projection;
 
   for (int i = 0; i < o->mesh->indexes_count; i += 3) {
-    Vec3f *ver1 = &o->mesh->positions[o->mesh->pos_indices[i + 0]];
-    Vec3f *ver2 = &o->mesh->positions[o->mesh->pos_indices[i + 1]];
-    Vec3f *ver3 = &o->mesh->positions[o->mesh->pos_indices[i + 2]];
+    const Vec3f *ver1 = &o->mesh->positions[o->mesh->pos_indices[i + 0]];
+    const Vec3f *ver2 = &o->mesh->positions[o->mesh->pos_indices[i + 1]];
+    const Vec3f *ver3 = &o->mesh->positions[o->mesh->pos_indices[i + 2]];
 
     Vec2f tca = {0, 0};
     Vec2f tcb = {0, 0};
     Vec2f tcc = {0, 0};
 
-    if (o->material != 0) {
+    // A mesh need not carry texture coordinates - teapot and pingo do not.
+    // Checking only the material dereferenced NULL for those, so every such
+    // mesh crashed the renderer instead of drawing untextured.
+    if (o->material != 0 && o->mesh->textCoord != 0 &&
+        o->mesh->tex_indices != 0) {
       tca = o->mesh->textCoord[o->mesh->tex_indices[i + 0]];
       tcb = o->mesh->textCoord[o->mesh->tex_indices[i + 1]];
       tcc = o->mesh->textCoord[o->mesh->tex_indices[i + 2]];
@@ -101,6 +105,12 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     // Triangle is completely behind camera
     if (a.z > 0 && b.z > 0 && c.z > 0)
       continue;
+
+    // Clip-space w, kept because the perspective divide just below replaces
+    // it with 1 and the texture interpolation needs it.
+    const float aw = a.w;
+    const float bw = b.w;
+    const float cw = c.w;
 
     // convert to device coordinates by perspective division
     a.x /= a.w;
@@ -159,13 +169,21 @@ int object_render(void *this, Mat4 m, Renderer *r) {
     int32_t w1_row = orient2d(c_s, a_s, minTriangle);
     int32_t w2_row = orient2d(a_s, b_s, minTriangle);
 
-    if (o->material != 0 && a.z != 0 && b.z != 0 && c.z != 0) {
-      tca.x /= a.z;
-      tca.y /= a.z;
-      tcb.x /= b.z;
-      tcb.y /= b.z;
-      tcc.x /= c.z;
-      tcc.y /= c.z;
+    // Perspective-correct texturing interpolates u/w, v/w and 1/w linearly in
+    // screen space and divides at the end. The previous code divided by NDC z
+    // instead, which is not proportional to w, so texture coordinates barely
+    // varied across a surface receding from the camera.
+    float invAw = 0, invBw = 0, invCw = 0;
+    if (o->material != 0 && aw != 0 && bw != 0 && cw != 0) {
+      invAw = 1.0f / aw;
+      invBw = 1.0f / bw;
+      invCw = 1.0f / cw;
+      tca.x *= invAw;
+      tca.y *= invAw;
+      tcb.x *= invBw;
+      tcb.y *= invBw;
+      tcc.x *= invCw;
+      tcc.y *= invCw;
     }
 
     for (int16_t y = minY; y < maxY;
@@ -201,10 +219,14 @@ int object_render(void *this, Mat4 m, Renderer *r) {
         if (o->material != 0) {
           // Texture lookup
 
-          float textCoordx =
-              -(w0 * tca.x + w1 * tcb.x + w2 * tcc.x) * areaInverse * depth;
-          float textCoordy =
-              -(w0 * tca.y + w1 * tcb.y + w2 * tcc.y) * areaInverse * depth;
+          const float interpInvW = w0 * invAw + w1 * invBw + w2 * invCw;
+          if (interpInvW == 0) {
+            continue;
+          }
+          const float textCoordx =
+              (w0 * tca.x + w1 * tcb.x + w2 * tcc.x) / interpInvW;
+          const float textCoordy =
+              (w0 * tca.y + w1 * tcb.y + w2 * tcc.y) / interpInvW;
 
           Pixel text = texture_readF(o->material->texture,
                                      (Vec2f){textCoordx, textCoordy});

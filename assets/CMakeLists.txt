@@ -1,8 +1,16 @@
 # Generated mesh data tables (viking, cube, teapot, pingo).
 
-file(GLOB_RECURSE assets_src CONFIGURE_DEPENDS *.c)
+# viking's texture coordinates are a single 60 KB array, which a 16-bit
+# address space cannot represent, so there is nothing to build there.
+if(CMAKE_SIZEOF_VOID_P LESS 4)
+    message(STATUS "16-bit target - skipping the mesh tables")
+    return()
+endif()
 
-add_library(pingo_assets SHARED ${assets_src})
+file(GLOB_RECURSE assets_src CONFIGURE_DEPENDS *.c)
+list(FILTER assets_src EXCLUDE REGEX "/tests/")
+
+add_library(pingo_assets ${assets_src})
 
 target_include_directories(pingo_assets PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
@@ -21,3 +29,5 @@ install(TARGETS pingo_assets
 install(DIRECTORY ./
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/pingo/assets
     FILES_MATCHING PATTERN "*.h")
+
+add_subdirectory(tests)

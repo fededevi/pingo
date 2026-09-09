@@ -5,7 +5,9 @@
 function(add_pingo_example exe backend_lib backend_src)
     get_filename_component(backend_dir "${backend_src}" DIRECTORY)
 
-    add_library(${backend_lib} SHARED ${backend_src})
+    # No SHARED: platforms without dynamic linking (bare metal) must still
+    # be able to configure, and BUILD_SHARED_LIBS decides everywhere else.
+    add_library(${backend_lib} ${backend_src})
     target_link_libraries(${backend_lib} PUBLIC pingo_render ${ARGN})
     target_include_directories(${backend_lib} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/${backend_dir})

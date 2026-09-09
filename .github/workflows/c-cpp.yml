@@ -8,15 +8,8 @@ on:
 
 jobs:
 
-  # One job for every architecture and compiler. They all run the same preset;
-  # what differs is only what the host provides, which is why the compiler
-  # comes from the environment rather than from the project.
-  #
-  # The cross entries need no sysroot juggling: qemu-user registers binfmt
-  # handlers, so ctest executes the foreign test binaries as if they were
-  # native. A cross runner also has neither libX11 nor libjpeg, so those
-  # entries double as coverage of the build with both optional dependencies
-  # absent, and armhf covers a 32-bit target.
+  # Every entry runs the same preset; only what the host provides differs, so
+  # the compiler, generator and sysroot all come from the matrix.
   build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.runs-on }}
@@ -24,98 +17,153 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Desktops and servers; the baseline everything else is compared against.
           - name: linux-x86_64-gcc
             runs-on: ubuntu-latest
             cc: gcc
             packages: libx11-dev libxext-dev libjpeg-dev
 
+          # The same hardware under a second compiler.
           - name: linux-x86_64-clang
             runs-on: ubuntu-latest
             cc: clang
             packages: clang libx11-dev libxext-dev libjpeg-dev
 
+          # Apple Silicon: arm64 with AppleClang and Mach-O.
           - name: macos
             runs-on: macos-latest
             cc: clang
 
+          # Cross entries need only their triple: compiler, sysroot and package
+          # names all follow from it, and none of them has libX11 or libjpeg.
+
+          # ARMv8-A: phones, Raspberry Pi 3 and up, Graviton servers.
           - name: linux-aarch64
             runs-on: ubuntu-latest
-            cc: aarch64-linux-gnu-gcc
-            sysroot: /usr/aarch64-linux-gnu
-            packages: gcc-aarch64-linux-gnu qemu-user-static binfmt-support
-            qemu: true
+            triple: aarch64-linux-gnu
 
+          # RV64: SiFive and StarFive Linux boards.
           - name: linux-riscv64
             runs-on: ubuntu-latest
-            cc: riscv64-linux-gnu-gcc
-            sysroot: /usr/riscv64-linux-gnu
-            packages: gcc-riscv64-linux-gnu qemu-user-static binfmt-support
-            qemu: true
+            triple: riscv64-linux-gnu
 
+          # ARMv7-A with an FPU, in ARM mode: Raspberry Pi 2/3, BeagleBone.
           - name: linux-armhf
             runs-on: ubuntu-latest
-            cc: arm-linux-gnueabihf-gcc
-            sysroot: /usr/arm-linux-gnueabihf
-            packages: gcc-arm-linux-gnueabihf qemu-user-static binfmt-support
-            qemu: true
+            triple: arm-linux-gnueabihf
 
+          # Thumb-2 executed for real, not just compiled: Cortex-M3/M4/M7,
+          # so STM32, nRF52 and RP2040.
+          - name: linux-arm-thumb
+            runs-on: ubuntu-latest
+            triple: arm-linux-gnueabihf
+            cflags: -mthumb
+
+          # No FPU, so floats go through libgcc: Cortex-M0/M0+/M3 and ARMv5.
+          - name: linux-arm-softfloat
+            runs-on: ubuntu-latest
+            triple: arm-linux-gnueabi
+
+          # IBM Z mainframes: 64-bit big-endian.
           - name: linux-s390x
             runs-on: ubuntu-latest
-            cc: s390x-linux-gnu-gcc
-            sysroot: /usr/s390x-linux-gnu
-            packages: gcc-s390x-linux-gnu qemu-user-static binfmt-support
-            qemu: true
+            triple: s390x-linux-gnu
 
+          # Sun/Oracle SPARC; traps on unaligned access instead of fixing it up.
           - name: linux-sparc64
             runs-on: ubuntu-latest
-            cc: sparc64-linux-gnu-gcc
-            sysroot: /usr/sparc64-linux-gnu
-            packages: gcc-sparc64-linux-gnu qemu-user-static binfmt-support
-            qemu: true
+            triple: sparc64-linux-gnu
+
+          # MIPS32 big-endian: routers, PIC32MX and PIC32MZ.
+          - name: linux-mips
+            runs-on: ubuntu-latest
+            triple: mips-linux-gnu
+
+          # MIPS32 little-endian: Ingenic SoCs, set-top boxes.
+          - name: linux-mipsel
+            runs-on: ubuntu-latest
+            triple: mipsel-linux-gnu
+
+          # MIPS64: Loongson.
+          - name: linux-mips64el
+            runs-on: ubuntu-latest
+            triple: mips64el-linux-gnuabi64
+
+          # PowerPC 32 big-endian: older Macs, NXP e300 embedded parts.
+          - name: linux-powerpc
+            runs-on: ubuntu-latest
+            triple: powerpc-linux-gnu
+
+          # POWER8 and POWER9 servers.
+          - name: linux-powerpc64le
+            runs-on: ubuntu-latest
+            triple: powerpc64le-linux-gnu
+
+          # 68k: Amiga and Atari, and ColdFire microcontrollers.
+          - name: linux-m68k
+            runs-on: ubuntu-latest
+            triple: m68k-linux-gnu
+
+          # Freestanding, compile only: no Linux toolchain exists for these.
+          # RV32IMAC covers ESP32-C3, GD32VF103 and CH32V.
+          - name: baremetal-riscv32
+            runs-on: ubuntu-latest
+            cc: riscv64-unknown-elf-gcc
+            cflags: -march=rv32imac -mabi=ilp32 --specs=picolibc.specs
+            packages: gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf
+            baremetal: true
+
+          # TI MSP430: 16-bit int, and the meshes cannot fit its address space
+          # (viking's texture coordinates alone are one 60 KB array).
+          - name: baremetal-msp430
+            runs-on: ubuntu-22.04
+            cc: msp430-gcc
+            cflags: -mmcu=msp430f5529
+            packages: gcc-msp430 msp430-libc
+            baremetal: true
+
+          # x86-64 Windows and the PE/COFF ABI; MinGW is not the default
+          # generator, hence the explicit one.
+          - name: windows-mingw
+            runs-on: windows-latest
+            cc: gcc
+            generator: MinGW Makefiles
+
+    env:
+      CC: ${{ matrix.cc || format('{0}-gcc', matrix.triple) }}
+      CMAKE_GENERATOR: ${{ matrix.generator }}
+      CFLAGS: ${{ matrix.cflags }}
+      # The cross libc lives in /usr/<triple>, not /lib, and qemu needs
+      # pointing at it or nothing starts.
+      QEMU_LD_PREFIX: ${{ matrix.triple && format('/usr/{0}', matrix.triple) || '' }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install packages
-      if: matrix.packages
+      if: matrix.packages || matrix.triple
       run: |
+        pkgs="${{ matrix.packages }}"
+        if [ -n "${{ matrix.triple }}" ]; then
+          pkgs="$pkgs gcc-${{ matrix.triple }} qemu-user-static binfmt-support"
+        fi
         sudo apt-get update
-        sudo apt-get install -y ${{ matrix.packages }}
+        sudo apt-get install -y $pkgs
 
-    # Without this the cross-built binaries are handed to the shell, which
-    # tries to parse the ELF as a script. qemu-user-static ships the binfmt
-    # definitions but does not activate them; update-binfmts does, and unlike
-    # docker/setup-qemu-action it covers every architecture qemu supports
-    # rather than Docker's platform list, which excludes sparc64.
+    # qemu-user-static ships the binfmt definitions but leaves them inactive,
+    # and without them the foreign binaries get handed to the shell.
     - name: Register qemu binfmt handlers
-      if: matrix.qemu
+      if: matrix.triple
       run: |
         sudo update-binfmts --enable
         update-binfmts --display | grep -c enabled
 
     - name: Build and test
-      env:
-        CC: ${{ matrix.cc }}
-        # qemu resolves the target's dynamic loader and libc under here. The
-        # cross packages install them to /usr/<triple>, not /lib, so without
-        # this every cross-built test fails to start.
-        QEMU_LD_PREFIX: ${{ matrix.sysroot }}
+      if: ${{ !matrix.baremetal }}
       run: cmake --workflow --preset default
 
-  # Separate only because it needs choco rather than apt, and a generator that
-  # is not the platform default.
-  windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Install MinGW-w64
-      run: |
-        choco install mingw -y
-        echo "C:\\tools\\mingw64\\bin" >> $GITHUB_PATH
-
-    - name: Build and test
-      env:
-        CC: gcc
-        CMAKE_GENERATOR: MinGW Makefiles
-      run: cmake --workflow --preset default
+    # The preset holds what is true of every freestanding build; the matrix
+    # supplies only the compiler and its flags.
+    - name: Build the libraries (compile only, nothing is run)
+      if: ${{ matrix.baremetal }}
+      run: cmake --workflow --preset freestanding

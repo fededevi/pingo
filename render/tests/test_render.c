@@ -15,6 +15,7 @@
  * moves far more than that.
  */
 
+#include "golden.h"
 #include "memory_backend.h"
 
 #include "render/entity.h"
@@ -33,10 +34,10 @@
 #define HEIGHT 48
 #define PIXEL_COUNT (WIDTH * HEIGHT)
 
-// Per-channel difference treated as noise rather than a change.
-#define CHANNEL_TOLERANCE 2
-// Pixels allowed to differ beyond that, for the edge-coverage flips above.
-#define MAX_DIFFERING_PIXELS (PIXEL_COUNT / 200) // 0.5%, i.e. 15 of 3072
+
+
+
+
 
 typedef struct {
   const char *name;
@@ -172,99 +173,34 @@ static void build_cube(Renderer *renderer) {
   renderer->camera_view = mat4Translate((Vec3f){0, 0, 0});
 }
 
+// A mesh carrying no texture coordinates, which several shipped assets do.
+// object_render used to dereference tex_indices whenever a material was set,
+// so any such mesh crashed the renderer rather than drawing untextured.
+static void build_no_uv(Renderer *renderer) {
+  build_triangle(renderer);
+  mesh.textCoord = NULL;
+  mesh.tex_indices = NULL;
+}
+
 static const Scene scenes[] = {
     {"empty", build_empty},
     {"triangle", build_triangle},
     {"cube", build_cube},
+    {"no-uv", build_no_uv},
 };
 static const size_t scene_count = sizeof(scenes) / sizeof(scenes[0]);
 
-// ---------------------------------------------------------------------------
-// PPM handling. Binary P6, so the references open in any image viewer.
-// ---------------------------------------------------------------------------
-
-// Row 0 of the framebuffer is the bottom of the image, so this flips while
-// converting - otherwise every reference would open upside down.
-static void to_rgb(const Pixel *frame, unsigned char *rgb) {
-  for (int i = 0; i < PIXEL_COUNT; i++) {
-    const int x = i % WIDTH;
-    const int y = i / WIDTH;
-    Pixel p = frame[(HEIGHT - 1 - y) * WIDTH + x];
-#ifdef PINGO_PIXEL_UINT8
-    rgb[i * 3 + 0] = p.g;
-    rgb[i * 3 + 1] = p.g;
-    rgb[i * 3 + 2] = p.g;
-#else
-    rgb[i * 3 + 0] = p.r;
-    rgb[i * 3 + 1] = p.g;
-    rgb[i * 3 + 2] = p.b;
-#endif
-  }
-}
-
-static int write_ppm(const char *path, const unsigned char *rgb) {
-  FILE *f = fopen(path, "wb");
-  if (f == NULL) {
-    fprintf(stderr, "  cannot write %s\n", path);
-    return 1;
-  }
-  fprintf(f, "P6\n%d %d\n255\n", WIDTH, HEIGHT);
-  size_t written = fwrite(rgb, 1, PIXEL_COUNT * 3, f);
-  if (fclose(f) != 0 || written != PIXEL_COUNT * 3) {
-    fprintf(stderr, "  short write to %s\n", path);
-    return 1;
-  }
-  return 0;
-}
-
-// Reads a P6 of exactly our dimensions. Deliberately strict: a reference that
-// does not match the test's expectations is a broken reference, not a pass.
-static int read_ppm(const char *path, unsigned char *rgb) {
-  FILE *f = fopen(path, "rb");
-  if (f == NULL) {
-    fprintf(stderr, "  cannot open reference %s\n", path);
-    fprintf(stderr, "  run this executable with --write-references first\n");
-    return 1;
-  }
-
-  int w = 0, h = 0, maxval = 0;
-  if (fscanf(f, "P6 %d %d %d", &w, &h, &maxval) != 3) {
-    fprintf(stderr, "  %s is not a binary PPM\n", path);
-    fclose(f);
-    return 1;
-  }
-  if (w != WIDTH || h != HEIGHT || maxval != 255) {
-    fprintf(stderr, "  %s is %dx%d maxval %d, expected %dx%d maxval 255\n",
-            path, w, h, maxval, WIDTH, HEIGHT);
-    fclose(f);
-    return 1;
-  }
-  fgetc(f); // the single whitespace byte before the data
-
-  size_t read = fread(rgb, 1, PIXEL_COUNT * 3, f);
-  fclose(f);
-  if (read != PIXEL_COUNT * 3) {
-    fprintf(stderr, "  %s holds %zu bytes of pixel data, expected %d\n", path,
-            read, PIXEL_COUNT * 3);
-    return 1;
-  }
-  return 0;
-}
-
-// ---------------------------------------------------------------------------
-
-static int render_scene(const Scene *scene, unsigned char *rgb) {
-  MemoryBackend backend;
-  if (memory_backend_init(&backend, (Vec2i){WIDTH, HEIGHT}) != 0) {
+// The caller owns the backend so the framebuffer outlives the comparison.
+static int render_scene(const Scene *scene, MemoryBackend *backend) {
+  if (memory_backend_init(backend, (Vec2i){WIDTH, HEIGHT}) != 0) {
     fprintf(stderr, "  could not allocate the %dx%d buffers\n", WIDTH, HEIGHT);
     return 1;
   }
 
   Renderer renderer;
   if (renderer_init(&renderer, (Vec2i){WIDTH, HEIGHT},
-                    (Backend *)&backend) != OK) {
+                    (Backend *)backend) != OK) {
     fprintf(stderr, "  renderer_init failed\n");
-    memory_backend_free(&backend);
     return 1;
   }
 
@@ -272,49 +208,10 @@ static int render_scene(const Scene *scene, unsigned char *rgb) {
 
   if (renderer_render(&renderer) != OK) {
     fprintf(stderr, "  renderer_render failed\n");
-    memory_backend_free(&backend);
     return 1;
   }
 
-  to_rgb(backend.frame, rgb);
-  memory_backend_free(&backend);
   return 0;
-}
-
-// Returns the number of pixels differing by more than CHANNEL_TOLERANCE, and
-// reports the worst offender to make a failure diagnosable.
-static int compare(const unsigned char *actual, const unsigned char *expected) {
-  int differing = 0;
-  int worst = 0;
-  int worst_index = -1;
-
-  for (int i = 0; i < PIXEL_COUNT; i++) {
-    int delta = 0;
-    for (int c = 0; c < 3; c++) {
-      int d = actual[i * 3 + c] - expected[i * 3 + c];
-      if (d < 0) {
-        d = -d;
-      }
-      if (d > delta) {
-        delta = d;
-      }
-    }
-    if (delta > CHANNEL_TOLERANCE) {
-      differing++;
-      if (delta > worst) {
-        worst = delta;
-        worst_index = i;
-      }
-    }
-  }
-
-  if (differing > 0) {
-    fprintf(stderr,
-            "  %d of %d pixels differ (allowed %d); worst delta %d at (%d, %d)\n",
-            differing, PIXEL_COUNT, MAX_DIFFERING_PIXELS, worst,
-            worst_index % WIDTH, worst_index / WIDTH);
-  }
-  return differing;
 }
 
 int main(int argc, char **argv) {
@@ -323,15 +220,6 @@ int main(int argc, char **argv) {
 
   if (argc > 2) {
     fprintf(stderr, "usage: %s [--write-references | <scene>]\n", argv[0]);
-    return 2;
-  }
-
-  unsigned char *actual = malloc(PIXEL_COUNT * 3);
-  unsigned char *expected = malloc(PIXEL_COUNT * 3);
-  if (actual == NULL || expected == NULL) {
-    fprintf(stderr, "out of memory\n");
-    free(actual);
-    free(expected);
     return 2;
   }
 
@@ -348,42 +236,40 @@ int main(int argc, char **argv) {
     char reference[512];
     snprintf(reference, sizeof(reference), "%s/%s.ppm", PINGO_REFERENCE_DIR,
              scene->name);
-
     printf("scene %s\n", scene->name);
 
-    if (render_scene(scene, actual) != 0) {
+    MemoryBackend backend;
+    if (render_scene(scene, &backend) != 0) {
+      memory_backend_free(&backend);
       failures++;
       continue;
     }
 
     if (writing) {
-      if (write_ppm(reference, actual) != 0) {
+      if (golden_write(reference, backend.frame, WIDTH, HEIGHT) != GOLDEN_OK) {
         failures++;
       } else {
         printf("  wrote %s\n", reference);
       }
+      memory_backend_free(&backend);
       continue;
     }
 
-    if (read_ppm(reference, expected) != 0) {
-      failures++;
-      continue;
-    }
-
-    const int differing = compare(actual, expected);
-    if (differing > MAX_DIFFERING_PIXELS) {
-      char actual_path[512];
-      snprintf(actual_path, sizeof(actual_path), "%s-actual.ppm", scene->name);
-      write_ppm(actual_path, actual);
-      fprintf(stderr, "  FAIL: wrote %s for comparison\n", actual_path);
-      failures++;
+    // The empty scene is deliberately blank, so it is the one case where a
+    // blank render is the expected result rather than a framing mistake.
+    const int require_content = strcmp(scene->name, "empty") != 0;
+    const GoldenResult result = golden_compare(reference, backend.frame, WIDTH,
+                                               HEIGHT, require_content);
+    if (result == GOLDEN_OK) {
+      printf("  ok\n");
     } else {
-      printf("  ok%s\n", differing ? " (within tolerance)" : "");
+      if (result == GOLDEN_MISMATCH) {
+        golden_write_actual(scene->name, backend.frame, WIDTH, HEIGHT);
+      }
+      failures++;
     }
+    memory_backend_free(&backend);
   }
-
-  free(actual);
-  free(expected);
 
   if (only != NULL && ran == 0) {
     fprintf(stderr, "no scene named '%s'\n", only);

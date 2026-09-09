@@ -2,9 +2,10 @@
 
 [![CI Build and Test](https://github.com/fededevi/pingo/workflows/CI%20Build%20and%20Test/badge.svg)](https://github.com/fededevi/pingo/actions)
 
-A small software 3D renderer in C. No GPU, no dynamic allocation in the library
-itself, and no dependencies beyond `libm` — so it runs anywhere from a desktop
-window to a microcontroller or a terminal.
+A small software 3D renderer in C. No GPU, no dynamic allocation and no
+dependencies beyond `libm`, so it runs anywhere from a desktop window to a
+microcontroller or a terminal. The libraries claim no memory of their own —
+all of it is the buffers and meshes you hand them.
 
 ![Example](/public/viking.png)
 
@@ -91,20 +92,22 @@ cmake --workflow --preset default   # configure, build, test
 Binaries land together in the preset's build directory. The examples read their
 texture relative to the working directory, so run them from there.
 
-Presets: `default` and `debug`. The presets build
-`Release`; a plain `cmake -B build -S .` uses whatever build type you ask for,
-including none. Configuring without optimization prints a note that the
-benchmarks will be measuring unoptimized code.
+`--workflow` runs three steps in order — configure, build, then the test
+suite — and stops at the first failure. There are three presets:
 
-`pingo_math`, `pingo_render` and the tests need nothing beyond `libm`. libX11
-and libjpeg are probed at configure time, and the examples needing them are
-skipped with a message if they're absent — so any environment builds whatever
-it can without being told what it has.
+| Preset | Build type | What it produces |
+|--------|-----------|------------------|
+| `default` | `Release` | every library, example and test the host can build |
+| `debug` | `Debug` | the same, unoptimized |
+| `freestanding` | `Release` | the libraries alone, static, for a target with no OS |
+
+`freestanding` is what a microcontroller build looks like, and takes its cross
+compiler from `CC` and `CFLAGS`.
+
+libX11 and libjpeg are probed at configure time and the examples needing them
+skipped with a message, so any environment builds whatever it can without being
+told what it has.
 
 `cmake --install <build dir> --prefix <dir>` installs the libraries, headers and
 a package config, so another project can `find_package(pingo)` and link
 `pingo::pingo_render`.
-
-## License
-
-CC0 1.0 Universal — public domain.

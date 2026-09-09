@@ -21,6 +21,10 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
 # CMAKE_INSTALL_INCLUDEDIR.
 include(GNUInstallDirs)
 
+# Shared by default, as before. Bare-metal targets cannot link a shared
+# library, so they configure with -DBUILD_SHARED_LIBS=OFF.
+option(BUILD_SHARED_LIBS "Build the libraries as shared objects" ON)
+
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Wpointer-arith)
 elseif(MSVC)
@@ -74,6 +78,14 @@ add_subdirectory(math)
 add_subdirectory(render)
 add_subdirectory(assets)
 add_subdirectory(example)
+
+# A freestanding build cannot link the tests or examples, so it needs a way to
+# ask for the libraries alone without knowing which of them exist.
+add_custom_target(pingo_libraries)
+add_dependencies(pingo_libraries pingo_math pingo_render)
+if(TARGET pingo_assets)
+    add_dependencies(pingo_libraries pingo_assets)
+endif()
 
 # ---------------------------------------------------------------------------
 # Package config, so the libraries are consumable via find_package(pingo).
