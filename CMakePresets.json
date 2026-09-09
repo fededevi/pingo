@@ -105,7 +105,8 @@
       "environment": {
         "CC": "sparc64-linux-gnu-gcc",
         "QEMU_LD_PREFIX": "/usr/sparc64-linux-gnu"
-      }
+      },
+      "description": "Builds, but nothing runs: qemu 6.2 segfaults on every sparc64 binary, static or dynamic, including a bare int main(){return 42;}. Nothing here can be fixed from this side - CI runs sparc64 green on a newer qemu."
     },
     {
       "name": "arch-mips",
@@ -159,6 +160,11 @@
       "environment": {
         "CC": "m68k-linux-gnu-gcc",
         "QEMU_LD_PREFIX": "/usr/m68k-linux-gnu"
+      },
+      "description": "Static, because qemu 6.2's m68k loader segfaults on any dynamically linked binary - a bare int main(){return 0;} included. Linked statically the whole suite passes, so the limitation is the emulator's ELF loader and nothing to do with the target itself.",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": "OFF",
+        "CMAKE_EXE_LINKER_FLAGS": "-static"
       }
     },
     {
