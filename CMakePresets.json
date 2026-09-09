@@ -36,6 +36,139 @@
         "CMAKE_TRY_COMPILE_TARGET_TYPE": "STATIC_LIBRARY",
         "BUILD_SHARED_LIBS": "OFF"
       }
+    },
+    {
+      "name": "cross",
+      "hidden": true,
+      "inherits": "base",
+      "description": "Parent for the cross presets. Each child sets only CC, and where needed CFLAGS. QEMU_LD_PREFIX points qemu at the cross libc in /usr/<triple>, without which a foreign binary finds no loader and cannot start."
+    },
+    {
+      "name": "arch-aarch64",
+      "inherits": "cross",
+      "displayName": "aarch64 (aarch64-linux-gnu)",
+      "environment": {
+        "CC": "aarch64-linux-gnu-gcc",
+        "QEMU_LD_PREFIX": "/usr/aarch64-linux-gnu"
+      }
+    },
+    {
+      "name": "arch-riscv64",
+      "inherits": "cross",
+      "displayName": "riscv64 (riscv64-linux-gnu)",
+      "environment": {
+        "CC": "riscv64-linux-gnu-gcc",
+        "QEMU_LD_PREFIX": "/usr/riscv64-linux-gnu"
+      }
+    },
+    {
+      "name": "arch-armhf",
+      "inherits": "cross",
+      "displayName": "armhf (arm-linux-gnueabihf)",
+      "environment": {
+        "CC": "arm-linux-gnueabihf-gcc",
+        "QEMU_LD_PREFIX": "/usr/arm-linux-gnueabihf"
+      }
+    },
+    {
+      "name": "arch-arm-thumb",
+      "inherits": "cross",
+      "displayName": "arm-thumb (arm-linux-gnueabihf)",
+      "environment": {
+        "CC": "arm-linux-gnueabihf-gcc",
+        "CFLAGS": "-mthumb",
+        "QEMU_LD_PREFIX": "/usr/arm-linux-gnueabihf"
+      }
+    },
+    {
+      "name": "arch-arm-softfloat",
+      "inherits": "cross",
+      "displayName": "arm-softfloat (arm-linux-gnueabi)",
+      "environment": {
+        "CC": "arm-linux-gnueabi-gcc",
+        "QEMU_LD_PREFIX": "/usr/arm-linux-gnueabi"
+      }
+    },
+    {
+      "name": "arch-s390x",
+      "inherits": "cross",
+      "displayName": "s390x (s390x-linux-gnu)",
+      "environment": {
+        "CC": "s390x-linux-gnu-gcc",
+        "QEMU_LD_PREFIX": "/usr/s390x-linux-gnu"
+      }
+    },
+    {
+      "name": "arch-sparc64",
+      "inherits": "cross",
+      "displayName": "sparc64 (sparc64-linux-gnu)",
+      "environment": {
+        "CC": "sparc64-linux-gnu-gcc",
+        "QEMU_LD_PREFIX": "/usr/sparc64-linux-gnu"
+      }
+    },
+    {
+      "name": "arch-mips",
+      "inherits": "cross",
+      "displayName": "mips (mips-linux-gnu)",
+      "environment": {
+        "CC": "mips-linux-gnu-gcc",
+        "QEMU_LD_PREFIX": "/usr/mips-linux-gnu"
+      }
+    },
+    {
+      "name": "arch-mipsel",
+      "inherits": "cross",
+      "displayName": "mipsel (mipsel-linux-gnu)",
+      "environment": {
+        "CC": "mipsel-linux-gnu-gcc",
+        "QEMU_LD_PREFIX": "/usr/mipsel-linux-gnu"
+      }
+    },
+    {
+      "name": "arch-mips64el",
+      "inherits": "cross",
+      "displayName": "mips64el (mips64el-linux-gnuabi64)",
+      "environment": {
+        "CC": "mips64el-linux-gnuabi64-gcc",
+        "QEMU_LD_PREFIX": "/usr/mips64el-linux-gnuabi64"
+      }
+    },
+    {
+      "name": "arch-powerpc",
+      "inherits": "cross",
+      "displayName": "powerpc (powerpc-linux-gnu)",
+      "environment": {
+        "CC": "powerpc-linux-gnu-gcc",
+        "QEMU_LD_PREFIX": "/usr/powerpc-linux-gnu"
+      }
+    },
+    {
+      "name": "arch-powerpc64le",
+      "inherits": "cross",
+      "displayName": "powerpc64le (powerpc64le-linux-gnu)",
+      "environment": {
+        "CC": "powerpc64le-linux-gnu-gcc",
+        "QEMU_LD_PREFIX": "/usr/powerpc64le-linux-gnu"
+      }
+    },
+    {
+      "name": "arch-m68k",
+      "inherits": "cross",
+      "displayName": "m68k (m68k-linux-gnu)",
+      "environment": {
+        "CC": "m68k-linux-gnu-gcc",
+        "QEMU_LD_PREFIX": "/usr/m68k-linux-gnu"
+      }
+    },
+    {
+      "name": "arch-riscv32",
+      "inherits": "freestanding",
+      "displayName": "riscv32 (freestanding)",
+      "environment": {
+        "CC": "riscv64-unknown-elf-gcc",
+        "CFLAGS": "-march=rv32imac -mabi=ilp32 --specs=picolibc.specs"
+      }
     }
   ],
   "buildPresets": [
@@ -53,12 +186,162 @@
       "targets": [
         "pingo_libraries"
       ]
+    },
+    {
+      "name": "arch-aarch64",
+      "configurePreset": "arch-aarch64"
+    },
+    {
+      "name": "arch-riscv64",
+      "configurePreset": "arch-riscv64"
+    },
+    {
+      "name": "arch-armhf",
+      "configurePreset": "arch-armhf"
+    },
+    {
+      "name": "arch-arm-thumb",
+      "configurePreset": "arch-arm-thumb"
+    },
+    {
+      "name": "arch-arm-softfloat",
+      "configurePreset": "arch-arm-softfloat"
+    },
+    {
+      "name": "arch-s390x",
+      "configurePreset": "arch-s390x"
+    },
+    {
+      "name": "arch-sparc64",
+      "configurePreset": "arch-sparc64"
+    },
+    {
+      "name": "arch-mips",
+      "configurePreset": "arch-mips"
+    },
+    {
+      "name": "arch-mipsel",
+      "configurePreset": "arch-mipsel"
+    },
+    {
+      "name": "arch-mips64el",
+      "configurePreset": "arch-mips64el"
+    },
+    {
+      "name": "arch-powerpc",
+      "configurePreset": "arch-powerpc"
+    },
+    {
+      "name": "arch-powerpc64le",
+      "configurePreset": "arch-powerpc64le"
+    },
+    {
+      "name": "arch-m68k",
+      "configurePreset": "arch-m68k"
+    },
+    {
+      "name": "arch-riscv32",
+      "configurePreset": "arch-riscv32",
+      "targets": [
+        "pingo_libraries"
+      ]
     }
   ],
   "testPresets": [
     {
       "name": "default",
       "configurePreset": "default",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-aarch64",
+      "configurePreset": "arch-aarch64",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-riscv64",
+      "configurePreset": "arch-riscv64",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-armhf",
+      "configurePreset": "arch-armhf",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-arm-thumb",
+      "configurePreset": "arch-arm-thumb",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-arm-softfloat",
+      "configurePreset": "arch-arm-softfloat",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-s390x",
+      "configurePreset": "arch-s390x",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-sparc64",
+      "configurePreset": "arch-sparc64",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-mips",
+      "configurePreset": "arch-mips",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-mipsel",
+      "configurePreset": "arch-mipsel",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-mips64el",
+      "configurePreset": "arch-mips64el",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-powerpc",
+      "configurePreset": "arch-powerpc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-powerpc64le",
+      "configurePreset": "arch-powerpc64le",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arch-m68k",
+      "configurePreset": "arch-m68k",
       "output": {
         "outputOnFailure": true
       }
@@ -92,6 +375,240 @@
         {
           "type": "build",
           "name": "freestanding"
+        }
+      ]
+    },
+    {
+      "name": "arch-aarch64",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-aarch64"
+        },
+        {
+          "type": "build",
+          "name": "arch-aarch64"
+        },
+        {
+          "type": "test",
+          "name": "arch-aarch64"
+        }
+      ]
+    },
+    {
+      "name": "arch-riscv64",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-riscv64"
+        },
+        {
+          "type": "build",
+          "name": "arch-riscv64"
+        },
+        {
+          "type": "test",
+          "name": "arch-riscv64"
+        }
+      ]
+    },
+    {
+      "name": "arch-armhf",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-armhf"
+        },
+        {
+          "type": "build",
+          "name": "arch-armhf"
+        },
+        {
+          "type": "test",
+          "name": "arch-armhf"
+        }
+      ]
+    },
+    {
+      "name": "arch-arm-thumb",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-arm-thumb"
+        },
+        {
+          "type": "build",
+          "name": "arch-arm-thumb"
+        },
+        {
+          "type": "test",
+          "name": "arch-arm-thumb"
+        }
+      ]
+    },
+    {
+      "name": "arch-arm-softfloat",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-arm-softfloat"
+        },
+        {
+          "type": "build",
+          "name": "arch-arm-softfloat"
+        },
+        {
+          "type": "test",
+          "name": "arch-arm-softfloat"
+        }
+      ]
+    },
+    {
+      "name": "arch-s390x",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-s390x"
+        },
+        {
+          "type": "build",
+          "name": "arch-s390x"
+        },
+        {
+          "type": "test",
+          "name": "arch-s390x"
+        }
+      ]
+    },
+    {
+      "name": "arch-sparc64",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-sparc64"
+        },
+        {
+          "type": "build",
+          "name": "arch-sparc64"
+        },
+        {
+          "type": "test",
+          "name": "arch-sparc64"
+        }
+      ]
+    },
+    {
+      "name": "arch-mips",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-mips"
+        },
+        {
+          "type": "build",
+          "name": "arch-mips"
+        },
+        {
+          "type": "test",
+          "name": "arch-mips"
+        }
+      ]
+    },
+    {
+      "name": "arch-mipsel",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-mipsel"
+        },
+        {
+          "type": "build",
+          "name": "arch-mipsel"
+        },
+        {
+          "type": "test",
+          "name": "arch-mipsel"
+        }
+      ]
+    },
+    {
+      "name": "arch-mips64el",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-mips64el"
+        },
+        {
+          "type": "build",
+          "name": "arch-mips64el"
+        },
+        {
+          "type": "test",
+          "name": "arch-mips64el"
+        }
+      ]
+    },
+    {
+      "name": "arch-powerpc",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-powerpc"
+        },
+        {
+          "type": "build",
+          "name": "arch-powerpc"
+        },
+        {
+          "type": "test",
+          "name": "arch-powerpc"
+        }
+      ]
+    },
+    {
+      "name": "arch-powerpc64le",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-powerpc64le"
+        },
+        {
+          "type": "build",
+          "name": "arch-powerpc64le"
+        },
+        {
+          "type": "test",
+          "name": "arch-powerpc64le"
+        }
+      ]
+    },
+    {
+      "name": "arch-m68k",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-m68k"
+        },
+        {
+          "type": "build",
+          "name": "arch-m68k"
+        },
+        {
+          "type": "test",
+          "name": "arch-m68k"
+        }
+      ]
+    },
+    {
+      "name": "arch-riscv32",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "arch-riscv32"
+        },
+        {
+          "type": "build",
+          "name": "arch-riscv32"
         }
       ]
     }

@@ -104,6 +104,13 @@ suite — and stops at the first failure. There are three presets:
 `freestanding` is what a microcontroller build looks like, and takes its cross
 compiler from `CC` and `CFLAGS`.
 
+There is also one `arch-*` preset per cross target — `cmake --list-presets=workflow`
+lists them. Each carries only its compiler and the sysroot qemu needs, so
+`cmake --workflow --preset arch-aarch64` configures, builds and runs the whole
+test suite on aarch64 through qemu's binfmt handler. `scripts/bench-all-arch.sh`
+walks all of them and prints one table, because `cmake --workflow` takes a
+single preset and preset conditions cannot tell whether a compiler is installed.
+
 libX11 and libjpeg are probed at configure time and the examples needing them
 skipped with a message, so any environment builds whatever it can without being
 told what it has.
