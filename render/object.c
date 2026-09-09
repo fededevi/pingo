@@ -287,12 +287,14 @@ int object_render(void *this, Mat4 m, Renderer *r) {
       // Only worth it once the row is wide enough to repay three integer
       // divisions. Below that the per-pixel sign test is cheaper, which is the
       // common case for a densely tessellated mesh.
+      int clipped = 0;
       if (hi >= PINGO_SPAN_CLIP_MIN_WIDTH) {
         if (!span_clip(w0_row, A12, &lo, &hi) ||
             !span_clip(w1_row, A20, &lo, &hi) ||
             !span_clip(w2_row, A01, &lo, &hi) || lo > hi) {
           continue;
         }
+        clipped = 1;
       }
 
       int32_t w0 = w0_row + lo * A12;
@@ -301,9 +303,13 @@ int object_render(void *this, Mat4 m, Renderer *r) {
 
       for (int32_t x = minX + lo; x <= minX + hi;
            x++, w0 += A12, w1 += A20, w2 += A01) {
-        // The span bounds are exact, so this is only a guard against an edge
-        // case in the arithmetic above rather than the primary rejection.
-        if ((w0 | w1 | w2) < 0)
+        // span_clip narrows the run to exactly the pixels where all three
+        // edge functions are non-negative, so on a clipped row this can never
+        // fire and testing it is waste. On a narrow row no clipping ran and it
+        // is the only coverage test there is. The condition is loop-invariant,
+        // which is what lets the compiler unswitch the loop rather than
+        // branch per pixel.
+        if (!clipped && (w0 | w1 | w2) < 0)
           continue;
 
         float depth = -(w0 * a.z + w1 * b.z + w2 * c.z) * areaInverse;
