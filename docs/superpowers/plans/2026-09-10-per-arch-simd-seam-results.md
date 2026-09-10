@@ -222,3 +222,34 @@ measurement stands.
 This is what bench-simd.sh first showed as a +10.6% regression on sphere
 40x40 against the reference: it ran immediately after Task 7 landed and the
 delta was the transform, not the span.
+
+## Final, as shipped
+
+`./scripts/bench-simd.sh`, eight interleaved rounds, core 2 locked at 2000 MHz,
+after the vertex transform was removed:
+
+| build | quad 320x240 | vs reference | sphere 40x40 | vs reference |
+|-------|-------------:|-------------:|-------------:|-------------:|
+| C reference (`-DPINGO_SIMD=off`) | 0.8413 | - | 0.7743 | - |
+| SSE2 (`default` preset) | 0.6337 | **-24.6%** | 0.7505 | -3.0% |
+| AVX2 hybrid (`avx2` preset) | 0.5502 | **-34.6%** | 0.7336 | -5.2% |
+
+Against the master baseline taken at the start (0.8692 / 0.7530), the default
+x86_64 build is 27% faster on the fill; the AVX2 build 37%, and 50% at 640x480.
+Tessellated meshes move a few percent, by design.
+
+Every binary in every table passes the same 23 tests against the same golden
+images, unmodified since before the work began.
+
+What the measurements decided, against what was planned:
+
+- The span ABI carries integer barycentrics, not float start-and-delta pairs -
+  the differential test rejected the plan's version on its first run.
+- The AVX2 build also carries SSE2 and dispatches on span length; pure AVX2 was
+  22% slower on short runs, which clipping produces far more often than the
+  gating threshold implies.
+- `vpgatherdd` stays; scalar loads were suspected and cleared.
+- The vertex transform is not vectorised; it measured slower under the
+  bit-identity constraint.
+- The avx2 preset disables FP contraction, or the C reference itself would
+  render differently from the default build.
