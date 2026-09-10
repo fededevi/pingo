@@ -41,6 +41,9 @@ targets); `sph` is a self-occluding sphere at 20x20 and 40x40 tessellation
 | 0 baseline (master) | 0.8692 | 3.4939 | 0.5621 | 0.7530 | 0.4% |
 | 1 span ABI + reference | 0.8720 | 3.4979 | 0.5600 | 0.7516 | 0.7% |
 | 2 object.c uses the seam | 0.8400 | 3.3761 | 0.5520 | 0.7450 | 0.6% |
+| 3 selection plumbing (ref) | 0.8404 | 3.3861 | 0.5541 | 0.7455 | 0.3% |
+| 4 SSE2 flat path | 0.8554 | 3.4360 | 0.5578 | 0.7466 | 0.4% |
+| 5 SSE2 textured path | 0.6361 | 2.4883 | 0.5596 | 0.7549 | 0.4% |
 
 ## Notes per row
 
@@ -75,3 +78,114 @@ Worth noting against the plan's prediction: this row was supposed to be flat,
 because the multiply-accumulate saving it promised had to be given up for
 bit-identity. It is not flat, for reasons that have nothing to do with the
 interpolants.
+
+**2 → 3: flat.** Plumbing only; the reference is still selected.
+
+**3 → 4: +1.8% on the fills, and that is not noise - it is a branch.** Every
+benchmark case is textured (`benchmark_render.c` always builds a material), so
+nothing exercises the flat path at all. The SSE2 routine tests `tex`, finds it
+set, and tail-calls the reference on every span; the extra test-and-jump is the
+whole effect. Task 4 bought the infrastructure, not the speed.
+
+**4 → 5: -26.8% on quad 320, -28.8% on quad 640; spheres inside noise.** This
+is the shape the spec predicted, and it is the check that the seam is wired
+correctly: the spheres are mostly rows under sixteen pixels, which never enter
+the span, so a uniform improvement would have meant the narrow-row path had
+been routed through by mistake. The gain is depth, coverage-free rasterisation
+and shading four pixels at a time; the texel fetch is still four scalar loads
+because SSE2 has no gather.
+
+## SSE2 against AVX2, interleaved
+
+The rows above were taken minutes apart, and this machine drifts about 2.5%
+between them even with the core locked - the SSE2 row re-measured at 0.6517
+after reading 0.6361. That is inside a two-build comparison, so the AVX2 number
+is taken interleaved: the two binaries alternate run by run for six rounds and
+each keeps its best.
+
+| case | SSE2 (default) | AVX2 (avx2 preset) | change |
+|------|---------------:|-------------------:|-------:|
+| quad 320x240 | 0.6325 | 0.5489 | -13.2% |
+| quad 640x480 | 2.4886 | 1.7407 | -30.1% |
+| sphere 20x20 | 0.5580 | 0.6802 | **+21.9%** |
+| sphere 40x40 | 0.7493 | 0.7344 | -2.0% |
+
+**The fills gain, sphere 20x20 loses, and the loss is real.** Six interleaved
+rounds reproduce it. That mesh has 800 large triangles at 320x240, so many rows
+do exceed sixteen pixels and enter the span - but as short runs of 16-40
+pixels, where AVX2's per-span setup and its `vpgatherdd` are not amortised.
+The plan said to try scalar loads first and keep the gather only if measured;
+that step was skipped, and the next row is the measurement it should have had.
+
+## Is it the gather? No.
+
+Three trees interleaved for six rounds: SSE2, AVX2 with `vpgatherdd`, and AVX2
+with the gather replaced by eight scalar loads through the frame.
+
+| case | SSE2 | AVX2 + gather | AVX2, scalar loads |
+|------|-----:|--------------:|-------------------:|
+| quad 320x240 | 0.6329 | **0.5490** | 0.6296 |
+| quad 640x480 | 2.4870 | **1.7410** | 2.0831 |
+| sphere 20x20 | 0.5576 | 0.6792 | 0.6835 |
+| sphere 40x40 | 0.7489 | 0.7351 | 0.7338 |
+
+**The hypothesis is falsified.** Scalar loads regress sphere 20x20 by the same
+22%, so the gather is not what is slow on short spans. And the gather is a real
+win on long ones - 16% faster than scalar loads on the 640x480 fill - so it
+stays.
+
+What remains is fixed per-span cost: thirteen splats, three eight-lane vector
+builds, an 832-byte frame, and eight-wide iterations that waste up to seven
+lanes on a seventeen-pixel run where four-wide wastes none. AVX2 pays for that
+only once a span is long enough to amortise it.
+
+**Decision: dispatch by span length, at compile time.** The avx2 build also
+carries `span_sse2.S`, and the inline dispatcher in `span.h` sends runs below
+`PINGO_AVX2_MIN_SPAN` to it. No function pointer - one compare on a value the
+caller already holds. The threshold is swept below rather than guessed.
+
+## The threshold sweep, and a wrong premise corrected
+
+Five trees interleaved for six rounds: SSE2, and the hybrid at
+`PINGO_AVX2_MIN_SPAN` of 16, 32, 64 and 128.
+
+| threshold | quad 320 | quad 640 | sphere 20 | sphere 40 |
+|-----------|---------:|---------:|----------:|----------:|
+| SSE2 only | 0.6331 | 2.4871 | 0.5581 | 0.7480 |
+| 16 | 0.5486 | 1.7394 | 0.5602 | 0.7321 |
+| **32** | 0.5488 | 1.7418 | **0.5502** | 0.7346 |
+| 64 | 0.5395 | 1.7393 | 0.5504 | 0.7342 |
+| 128 | 0.5318 | 1.7394 | 0.5510 | 0.7330 |
+
+Every hybrid threshold cures the sphere 20x20 regression. That looked wrong at
+first: a threshold of 16 seemed functionally identical to pure AVX2, because
+`object.c` only enters the seam when the row is at least sixteen wide. **The
+premise was false.** `clipped` is decided on the bounding-box row width, and
+`span_clip` then narrows the run - so a triangle tip crossing a wide row yields
+a covered run of one to fifteen pixels. Those are the spans where AVX2's fixed
+per-span cost dominates, and every threshold from 16 up routes them to SSE2.
+Confirmed by building HEAD's pure-AVX2 in a worktree and interleaving it
+against the 16-threshold hybrid: 0.6789 against 0.5595 on sphere 20x20, with
+the fills identical.
+
+**Threshold: 32.** Sphere 20x20 bottoms out there (0.5502), 16 is measurably
+worse (0.5602 - runs of 16-31 still favour SSE2), and above 32 nothing moves
+outside noise. The 3% spread on quad 320 between 32 and 128 is with identical
+routing - every full-width span goes to AVX2 regardless - so it is code layout
+or drift, not dispatch, and is the reason the loop heads are now aligned.
+
+## Where this leaves the numbers
+
+Against the master baseline, on the reserved core:
+
+| case | baseline | SSE2 (default) | AVX2 hybrid (avx2 preset) |
+|------|---------:|---------------:|--------------------------:|
+| quad 320x240 | 0.8692 | 0.6331 (-27%) | 0.5488 (-37%) |
+| quad 640x480 | 3.4939 | 2.4871 (-29%) | 1.7418 (-50%) |
+| sphere 20x20 | 0.5621 | 0.5581 (-1%) | 0.5502 (-2%) |
+| sphere 40x40 | 0.7530 | 0.7480 (-1%) | 0.7346 (-2%) |
+
+The shape is the one the spec predicted: fills gain, tessellated meshes barely
+move because their rows are mostly too narrow to enter the seam. Every row of
+every table above was produced by binaries that pass the same 23 tests against
+the same unmodified golden images.

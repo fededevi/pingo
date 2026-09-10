@@ -220,6 +220,18 @@ If a picture moves, the change is wrong.
 - Vertex transform in assembly - it must inline, so it stays intrinsics
 - The sparc64 toolchain problem, which is unrelated and documented separately
 
+## Amendment, from measurement
+
+The AVX2 build carries `span_sse2.S` as well, and the dispatcher in `span.h`
+chooses by run length: spans under `PINGO_AVX2_MIN_SPAN` (32, swept) go to
+SSE2. This was not in the original design. AVX2 alone measured 22% slower than
+SSE2 on sphere 20x20, because `span_clip` produces many covered runs shorter
+than the sixteen-pixel bounding-box threshold that gates it, and the eight-wide
+path's fixed per-span cost is not amortised there. The dispatch is still
+compile-time and still a direct call - one compare on a value the caller
+already holds - so the original decision stands in substance. Details and the
+numbers are in the results record beside the plan.
+
 ## Follow-up recorded, not done here
 
 `depth_test_and_write` multiplies by `(float)PINGO_DEPTH_MAX`, which for
