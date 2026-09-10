@@ -40,6 +40,11 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(PingoOptimizations)
 
+# Which hand-written span implementation this build uses. After
+# PingoOptimizations because it may enable_language(ASM), which should see the
+# compile options that module has already set.
+include(PingoSimd)
+
 # include(CTest) rather than a bare enable_testing(): it enables testing, and
 # additionally writes DartConfiguration.tcl, which `ctest -T test` (the
 # dashboard mode the VS Code CMake Tools extension uses) warns about when

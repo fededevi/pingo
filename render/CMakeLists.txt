@@ -5,6 +5,17 @@ list(FILTER render_src EXCLUDE REGEX "/(tests|benchmarks)/")
 
 add_library(pingo_render ${render_src})
 
+# The hand-written span, when this build selected one. PUBLIC on the compile
+# definition because span.h is installed and its inline dispatcher must resolve
+# the same way for consumers as it does here - otherwise a caller would inline
+# a call to a symbol this library does not export.
+if(NOT PINGO_SIMD_SELECTED STREQUAL "reference")
+    target_sources(pingo_render PRIVATE simd/span_${PINGO_SIMD_SELECTED}.S)
+    string(TOUPPER "${PINGO_SIMD_SELECTED}" _pingo_simd_upper)
+    target_compile_definitions(pingo_render
+        PUBLIC PINGO_SIMD_${_pingo_simd_upper}=1)
+endif()
+
 target_include_directories(pingo_render PUBLIC
     # Sources refer to each other both as "pixel.h" and as "render/pixel.h".
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
