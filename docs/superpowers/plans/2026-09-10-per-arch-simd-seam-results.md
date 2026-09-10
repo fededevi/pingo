@@ -40,6 +40,7 @@ targets); `sph` is a self-occluding sphere at 20x20 and 40x40 tessellation
 |-------|---------:|---------:|-------:|-------:|-------:|
 | 0 baseline (master) | 0.8692 | 3.4939 | 0.5621 | 0.7530 | 0.4% |
 | 1 span ABI + reference | 0.8720 | 3.4979 | 0.5600 | 0.7516 | 0.7% |
+| 2 object.c uses the seam | 0.8400 | 3.3761 | 0.5520 | 0.7450 | 0.6% |
 
 ## Notes per row
 
@@ -53,3 +54,24 @@ with one addition. They do not, because that simplification turned out not to
 be bit-identical - see the Task 1 commit. The ABI now recomputes each
 interpolant per pixel from exact integer barycentrics, which is the same
 arithmetic as before. Any speedup must come from the vector implementations.
+
+**1 → 2: -3.4% on quad 320, -3.5% on quad 640, with the arithmetic unchanged.**
+Every expression is bit-identical - the golden images did not move and were not
+regenerated - so none of this came from doing the maths differently. It came
+from work that was never arithmetic:
+
+- the covered path no longer evaluates `!clipped && (w0 | w1 | w2) < 0` once
+  per pixel to re-establish coverage `span_clip` already proved;
+- the narrow-row condition lost its `clipped` term, so it is one test rather
+  than two;
+- `o->material != 0` is hoisted out of the pixel loop into the reference's
+  two-loop split, instead of being branched on per pixel.
+
+The spheres improved about 1%, which is the expected shape: they are mostly
+rows under sixteen pixels, so they never take the covered path and gain only
+from the simplified condition.
+
+Worth noting against the plan's prediction: this row was supposed to be flat,
+because the multiply-accumulate saving it promised had to be given up for
+bit-identity. It is not flat, for reasons that have nothing to do with the
+interpolants.
