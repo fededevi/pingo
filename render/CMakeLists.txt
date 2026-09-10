@@ -16,6 +16,16 @@ if(NOT PINGO_SIMD_SELECTED STREQUAL "reference")
         PUBLIC PINGO_SIMD_${_pingo_simd_upper}=1)
 endif()
 
+# An AVX2 build also carries the SSE2 span, and span.h dispatches between them
+# on the run's length: the eight-wide path has a fixed per-span cost that a
+# short run does not amortise, and it was measured 22% slower than SSE2 on a
+# mesh whose rows are mostly 16-40 pixels. Still compile-time, still a direct
+# call - the choice is one compare on a value the caller already holds.
+if(PINGO_SIMD_SELECTED STREQUAL "avx2")
+    target_sources(pingo_render PRIVATE simd/span_sse2.S)
+    target_compile_definitions(pingo_render PUBLIC PINGO_SIMD_SSE2=1)
+endif()
+
 target_include_directories(pingo_render PUBLIC
     # Sources refer to each other both as "pixel.h" and as "render/pixel.h".
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>

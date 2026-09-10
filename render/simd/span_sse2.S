@@ -363,6 +363,7 @@
 
     .text
     .globl  pingo_span_sse2
+    .p2align 4
     .type   pingo_span_sse2, @function
 pingo_span_sse2:
     movl    S_count(%rdi), %ecx
@@ -520,6 +521,9 @@ pingo_span_sse2:
 
     cmpl    $4, %ecx
     jl      .Ltex_tail
+    .p2align 5                      /* loop head on a 32-byte boundary, so
+                                           performance does not depend on where
+                                           the linker happened to put it */
 .Ltex_loop:
     SPAN_TEX .Lall_lanes(%rip)
     subl    $4, %ecx
@@ -536,6 +540,9 @@ pingo_span_sse2:
 .Lflat_loop_entry:
     cmpl    $4, %ecx
     jl      .Lflat_tail
+    .p2align 5                      /* loop head on a 32-byte boundary, so
+                                           performance does not depend on where
+                                           the linker happened to put it */
 .Lflat_loop:
     SPAN_FLAT .Lall_lanes(%rip)
     subl    $4, %ecx

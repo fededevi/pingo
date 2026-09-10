@@ -58,10 +58,28 @@ void pingo_span_avx2(const PingoSpan *s);
 void pingo_span_sse2(const PingoSpan *s);
 #endif
 
+// Below this many pixels the AVX2 span is slower than the SSE2 one: its
+// per-span setup (thirteen splats, three eight-lane vector builds, a 832-byte
+// frame) and its eight-wide iterations - which waste up to seven lanes on a
+// seventeen-pixel run where four-wide wastes none - are not amortised. Measured
+// on the sphere 20x20 case, whose rows are mostly 16-40 pixels: AVX2 alone was
+// 22% slower than SSE2 there while 30% faster on a frame-covering fill.
+// Overridable so the threshold can be swept rather than guessed.
+#ifndef PINGO_AVX2_MIN_SPAN
+#define PINGO_AVX2_MIN_SPAN 32
+#endif
+
 // Compile-time dispatch. No probe, no function pointer, no indirect call: the
-// build has already decided, so this collapses to a direct call.
+// build has already decided, so this collapses to a direct call - or, in the
+// AVX2 build, to one compare on a value the caller already holds.
 static inline void pingo_span(const PingoSpan *s) {
-#if defined(PINGO_SIMD_AVX2)
+#if defined(PINGO_SIMD_AVX2) && defined(PINGO_SIMD_SSE2)
+  if (s->count >= PINGO_AVX2_MIN_SPAN) {
+    pingo_span_avx2(s);
+  } else {
+    pingo_span_sse2(s);
+  }
+#elif defined(PINGO_SIMD_AVX2)
   pingo_span_avx2(s);
 #elif defined(PINGO_SIMD_SSE2)
   pingo_span_sse2(s);

@@ -235,9 +235,22 @@
        0x80000000 that cvttps2dq yields for the infinity a zero interpInvW
        produces still indexes in range - no clamping needed. */
     movq      F_texptr(%rsp), %r11
+#ifndef PINGO_AVX2_NO_GATHER
     vmovdqa   %ymm9, %ymm11              /* gather mask is consumed */
     vpxor     %ymm7, %ymm7, %ymm7
     vpgatherdd %ymm11, (%r11,%ymm13,4), %ymm7
+#else
+    /* Eight scalar loads through the frame. vpgatherdd is microcoded and on
+       many Intel cores no faster than this; which one wins is a measurement,
+       not a fact, and this is the other arm of that measurement. */
+    vmovdqa   %ymm13, F_idx(%rsp)
+    .irp i, 0,4,8,12,16,20,24,28
+    movl      F_idx+\i(%rsp), %eax
+    movl      (%r11,%rax,4), %r10d
+    movl      %r10d, F_texbuf+\i(%rsp)
+    .endr
+    vmovdqa   F_texbuf(%rsp), %ymm7
+#endif
 
     /* Shade the two 128-bit halves separately: AVX2's byte packs work within
        a lane, and doing them apart avoids the lane-order fixups. */
@@ -251,6 +264,7 @@
 
     .text
     .globl  pingo_span_avx2
+    .p2align 4
     .type   pingo_span_avx2, @function
 pingo_span_avx2:
     movl    S_count(%rdi), %ecx
@@ -374,6 +388,9 @@ pingo_span_avx2:
     vmovdqa .Lall_lanes(%rip), %ymm9
     cmpl    $8, %ecx
     jl      .Ltex_tail
+    .p2align 5                      /* loop head on a 32-byte boundary, so
+                                           performance does not depend on where
+                                           the linker happened to put it */
 .Ltex_loop:
     vmovdqa .Lall_lanes(%rip), %ymm9
     DEPTH_PART %ymm9
@@ -396,6 +413,9 @@ pingo_span_avx2:
 .Lflat_entry:
     cmpl    $8, %ecx
     jl      .Lflat_tail
+    .p2align 5                      /* loop head on a 32-byte boundary, so
+                                           performance does not depend on where
+                                           the linker happened to put it */
 .Lflat_loop:
     vmovdqa .Lall_lanes(%rip), %ymm9
     DEPTH_PART %ymm9
