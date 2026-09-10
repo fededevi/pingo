@@ -9,6 +9,13 @@
 // reordered or resized without updating the assembly would corrupt pixels
 // silently; this makes it a compile error instead. C99 has no _Static_assert,
 // so the negative array size is the idiom.
+//
+// Only where an assembly implementation is actually compiled. The offsets
+// assume 8-byte pointers, and both hand-written spans are x86_64-only; on a
+// target with none of them the layout is nobody's concern - and an unguarded
+// check broke the build on every 32-bit target in the matrix (armhf, mips,
+// mipsel, powerpc), where offsetof(depth) is 4, not 8.
+#if defined(PINGO_SIMD_SSE2) || defined(PINGO_SIMD_AVX2)
 typedef char pingo_span_layout_check
     [(offsetof(PingoSpan, dst) == 0 && offsetof(PingoSpan, depth) == 8 &&
       offsetof(PingoSpan, count) == 16 && offsetof(PingoSpan, w0) == 20 &&
@@ -19,6 +26,7 @@ typedef char pingo_span_layout_check
       offsetof(PingoSpan, factor) == 128 && sizeof(PingoSpan) == 136)
          ? 1
          : -1];
+#endif
 
 // The definition of correct: the expressions object.c evaluated per pixel,
 // moved behind one call and not otherwise altered. Every other implementation
