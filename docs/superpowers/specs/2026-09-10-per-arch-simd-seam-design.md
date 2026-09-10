@@ -232,6 +232,14 @@ compile-time and still a direct call - one compare on a value the caller
 already holds - so the original decision stands in substance. Details and the
 numbers are in the results record beside the plan.
 
+**The vertex transform seam was built, measured, and removed.** The design
+expected a small win from inline AVX intrinsics. Held to bit-identity - same
+multiplies, same addition order - it measured 16% slower on sphere 40x40 and
+6% slower on 20x20, with the fills unchanged: the transpose and the returned
+struct's store-and-reload cost more than the compiler's register-resident
+scalar code. The only span in this design is the pixel span. Numbers in the
+results record.
+
 ## Follow-up recorded, not done here
 
 `depth_test_and_write` multiplies by `(float)PINGO_DEPTH_MAX`, which for

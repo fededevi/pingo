@@ -189,3 +189,36 @@ The shape is the one the spec predicted: fills gain, tessellated meshes barely
 move because their rows are mostly too narrow to enter the seam. Every row of
 every table above was produced by binaries that pass the same 23 tests against
 the same unmodified golden images.
+
+## Task 7, the vertex transform: measured and rejected
+
+An AVX version of `mat4MultiplyVec4` was built to the spec's requirement of
+bit-identity: four row loads, four multiplies, an eight-shuffle transpose, and
+a *sequential* sum so the scalar's `((x+y)+z)+w` order is preserved. The
+exact-equality test proved that requirement bites - switching to the pairwise
+`(t0+t1)+(t2+t3)` order failed it on the first input.
+
+Interleaved, six rounds, the avx2 tree with and without the vector transform:
+
+| case | vector transform | scalar transform | change |
+|------|-----------------:|-----------------:|-------:|
+| quad 320x240 | 0.5492 | 0.5496 | 0 |
+| quad 640x480 | 1.7447 | 1.7415 | 0 |
+| sphere 20x20 | 0.5836 | 0.5513 | **+5.9%** |
+| sphere 40x40 | 0.8547 | 0.7344 | **+16.4%** |
+
+**Slower, on exactly the cases that exercise it.** The fills have two triangles;
+sphere 40x40 has 3200, about nineteen thousand transforms a frame. The
+transpose and the store-and-reload of the returned `Vec4f` cost more than the
+scalar code the compiler emits, which stays in registers. The faster
+reductions - `dpps`, `hadd` - sum in a different order and would move the
+golden images, which is the constraint that rules them out.
+
+Removed. The finding is recorded in a comment on the function so the next
+person does not repeat the experiment without first reading why it lost. The
+spec's prediction was "a small win"; the measurement says a loss, and the
+measurement stands.
+
+This is what bench-simd.sh first showed as a +10.6% regression on sphere
+40x40 against the reference: it ran immediately after Task 7 landed and the
+delta was the transform, not the span.
