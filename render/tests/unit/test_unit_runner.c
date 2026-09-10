@@ -13,6 +13,7 @@ static const UnitCase cases[] = {
     {"transform", test_transform},
     {"drawables", test_object_sprite_material},
     {"renderer", test_renderer},
+    {"span", test_span},
 };
 
 static const size_t case_count = sizeof(cases) / sizeof(cases[0]);

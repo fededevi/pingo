@@ -32,6 +32,7 @@ int test_target(void);
 int test_transform(void);
 int test_object_sprite_material(void);
 int test_renderer(void);
+int test_span(void);
 
 int run_all_unit_tests(void);
 int run_unit_test_by_name(const char *name);

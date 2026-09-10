@@ -13,12 +13,13 @@ add_executable(render_unit_tests
     test_target.c
     test_transform.c
     test_object_sprite_material.c
-    test_renderer.c)
+    test_renderer.c
+    test_span.c)
 target_include_directories(render_unit_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(render_unit_tests PRIVATE pingo_render)
 
 set(PINGO_RENDER_UNIT_SUITES
-    pixel texture depth target transform drawables renderer)
+    pixel texture depth target transform drawables renderer span)
 
 foreach(suite IN LISTS PINGO_RENDER_UNIT_SUITES)
     add_test(NAME render.unit.${suite} COMMAND render_unit_tests ${suite})
