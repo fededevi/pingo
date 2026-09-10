@@ -1,6 +1,7 @@
 #include "object.h"
 #include "backend.h"
 #include "depth.h"
+#include "simd/span.h"
 
 #include <stdbool.h>
 
@@ -301,15 +302,53 @@ static int object_render(void *this, Mat4 m, Renderer *r) {
       int32_t w1 = w1_row + lo * A20;
       int32_t w2 = w2_row + lo * A01;
 
+      // A clipped row is fully covered: span_clip narrowed it to exactly the
+      // pixels where all three edge functions are non-negative. So the whole
+      // run goes to one call, which is where a vector implementation can
+      // replace the scalar one without needing a coverage mask.
+      if (clipped) {
+        const int32_t first = (minX + lo) + y * scrSize.x;
+        PingoSpan s;
+        s.dst = &r->target.color.pixels[first];
+        s.depth = &zeta[first];
+        s.count = hi - lo + 1;
+        s.w0 = w0;
+        s.w1 = w1;
+        s.w2 = w2;
+        s.dw0 = A12;
+        s.dw1 = A20;
+        s.dw2 = A01;
+        s.az = a.z;
+        s.bz = b.z;
+        s.cz = c.z;
+        s.areaInverse = areaInverse;
+        s.invAw = invAw;
+        s.invBw = invBw;
+        s.invCw = invCw;
+        s.tca = tca;
+        s.tcb = tcb;
+        s.tcc = tcc;
+        // tex is already NULL when the object has no material, so this one
+        // field selects the flat path and no separate flag is needed.
+        s.tex = tex;
+        s.pow2 = tex_pow2;
+        s.wmask = tex_w_mask;
+        s.hmask = tex_h_mask;
+        s.flat = flat_color;
+        s.shade = use_shade_table ? &shade : 0;
+        s.factor = diffuseLight;
+        pingo_span(&s);
+        continue;
+      }
+
+      // Narrow rows only, from here down: span_clip declined to run because
+      // three integer divisions cost more than the per-pixel sign test below
+      // at this width, which is the common case for a densely tessellated
+      // mesh. The clipped flag is gone from the condition because a clipped
+      // row can no longer reach it.
       for (int32_t x = minX + lo; x <= minX + hi;
            x++, w0 += A12, w1 += A20, w2 += A01) {
-        // span_clip narrows the run to exactly the pixels where all three
-        // edge functions are non-negative, so on a clipped row this can never
-        // fire and testing it is waste. On a narrow row no clipping ran and it
-        // is the only coverage test there is. The condition is loop-invariant,
-        // which is what lets the compiler unswitch the loop rather than
-        // branch per pixel.
-        if (!clipped && (w0 | w1 | w2) < 0)
+        if ((w0 | w1 | w2) < 0)
           continue;
 
         float depth = -(w0 * a.z + w1 * b.z + w2 * c.z) * areaInverse;

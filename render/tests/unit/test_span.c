@@ -19,6 +19,9 @@ static void model_pixel(const PingoSpan *s, int i, Pixel *dst, PingoDepth *zt) {
   const int32_t w2 = s->w2 + i * s->dw2;
 
   const float depth = -(w0 * s->az + w1 * s->bz + w2 * s->cz) * s->areaInverse;
+  if (depth < 0.0f || depth > 1.0f) {
+    return;
+  }
   const uint32_t v = (uint32_t)(depth * (float)PINGO_DEPTH_MAX);
   if (v < zt[i].d) {
     return;
@@ -170,6 +173,15 @@ int test_span(void) {
     s.areaInverse = 1.0f / 6000.0f;
     TEST_ASSERT(agrees(&s, pingo_span_ref, "depth boundary, ref"), "depth ref");
   }
+
+  // Out of range in both directions, which object.c rejects before the cast.
+  // Without the guard the cast is undefined and the two implementations are
+  // free to disagree.
+  s.az = s.bz = s.cz = 0.5f; /* negates to a negative depth */
+  s.count = 16;
+  TEST_ASSERT(agrees(&s, pingo_span_ref, "negative depth, ref"), "depth neg");
+  s.az = s.bz = s.cz = -3.0f; /* depth well above 1 */
+  TEST_ASSERT(agrees(&s, pingo_span_ref, "depth above one, ref"), "depth high");
 
   return 1;
 }

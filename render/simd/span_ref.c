@@ -23,6 +23,14 @@ void pingo_span_ref(const PingoSpan *s) {
          i++, w0 += s->dw0, w1 += s->dw1, w2 += s->dw2) {
       const float depth =
           -(w0 * s->az + w1 * s->bz + w2 * s->cz) * s->areaInverse;
+      // Lower bound 0, not -1: depth_test_and_write casts to an unsigned
+      // type, which is undefined for a negative value. Upper bound 1 for the
+      // same reason - (float)UINT32_MAX rounds to 2^32, so 1.0 itself does
+      // not fit either. object.c applied this before the seam existed and it
+      // has to stay, or the cast becomes reachable for values it cannot hold.
+      if (depth < 0.0f || depth > 1.0f) {
+        continue;
+      }
       if (!depth_test_and_write(zt, (int)i, depth)) {
         continue;
       }
@@ -34,6 +42,9 @@ void pingo_span_ref(const PingoSpan *s) {
   for (int32_t i = 0; i < n; i++, w0 += s->dw0, w1 += s->dw1, w2 += s->dw2) {
     const float depth =
         -(w0 * s->az + w1 * s->bz + w2 * s->cz) * s->areaInverse;
+    if (depth < 0.0f || depth > 1.0f) {
+      continue;
+    }
     if (!depth_test_and_write(zt, (int)i, depth)) {
       continue;
     }
