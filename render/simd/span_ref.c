@@ -3,6 +3,23 @@
 #include "render/depth.h"
 #include "render/texture.h"
 
+#include <stddef.h>
+
+// The layout render/simd/span_*.S hard-codes as byte offsets. A field
+// reordered or resized without updating the assembly would corrupt pixels
+// silently; this makes it a compile error instead. C99 has no _Static_assert,
+// so the negative array size is the idiom.
+typedef char pingo_span_layout_check
+    [(offsetof(PingoSpan, dst) == 0 && offsetof(PingoSpan, depth) == 8 &&
+      offsetof(PingoSpan, count) == 16 && offsetof(PingoSpan, w0) == 20 &&
+      offsetof(PingoSpan, dw0) == 32 && offsetof(PingoSpan, az) == 44 &&
+      offsetof(PingoSpan, areaInverse) == 56 &&
+      offsetof(PingoSpan, tex) == 96 && offsetof(PingoSpan, flat) == 116 &&
+      offsetof(PingoSpan, shade) == 120 &&
+      offsetof(PingoSpan, factor) == 128 && sizeof(PingoSpan) == 136)
+         ? 1
+         : -1];
+
 // The definition of correct: the expressions object.c evaluated per pixel,
 // moved behind one call and not otherwise altered. Every other implementation
 // must be bit-identical to this, which the differential test in

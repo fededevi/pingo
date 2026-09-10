@@ -90,7 +90,7 @@ static int agrees(const PingoSpan *proto, void (*impl)(const PingoSpan *),
 static const int counts[] = {0, 1, 4, 7, 8, 9, 15, 16, 17, 31, 32, 33};
 #define COUNT_N ((int)(sizeof counts / sizeof counts[0]))
 
-int test_span(void) {
+static int check_impl(void (*impl)(const PingoSpan *)) {
   PingoSpan s;
   memset(&s, 0, sizeof s);
   s.count = 8;
@@ -104,11 +104,11 @@ int test_span(void) {
   s.flat = (Pixel){10, 20, 30, 255};
   s.tex = 0;
 
-  TEST_ASSERT(agrees(&s, pingo_span_ref, "flat fill, ref"), "flat ref");
+  TEST_ASSERT(agrees(&s, impl, "flat fill, ref"), "flat ref");
 
   for (int i = 0; i < COUNT_N; i++) {
     s.count = counts[i];
-    TEST_ASSERT(agrees(&s, pingo_span_ref, "flat fill tail, ref"), "flat tail");
+    TEST_ASSERT(agrees(&s, impl, "flat fill tail, ref"), "flat tail");
   }
 
   // A 4x4 power-of-two texture, so both samplers are reachable.
@@ -135,7 +135,7 @@ int test_span(void) {
   s.shade = 0; // the pixel_mul path
   for (int i = 0; i < COUNT_N; i++) {
     s.count = counts[i];
-    TEST_ASSERT(agrees(&s, pingo_span_ref, "textured mul, ref"), "tex mul");
+    TEST_ASSERT(agrees(&s, impl, "textured mul, ref"), "tex mul");
   }
 
   PixelShadeTable tbl; // the table path
@@ -143,20 +143,20 @@ int test_span(void) {
   s.shade = &tbl;
   for (int i = 0; i < COUNT_N; i++) {
     s.count = counts[i];
-    TEST_ASSERT(agrees(&s, pingo_span_ref, "textured table, ref"), "tex tbl");
+    TEST_ASSERT(agrees(&s, impl, "textured table, ref"), "tex tbl");
   }
 
   s.pow2 = 0; // the general sampler
   s.shade = 0;
   s.count = 16;
-  TEST_ASSERT(agrees(&s, pingo_span_ref, "textured non-pow2, ref"), "tex gen");
+  TEST_ASSERT(agrees(&s, impl, "textured non-pow2, ref"), "tex gen");
 
   // Negative u/v: the interpolated coordinate goes negative just outside a
   // triangle, and the reference relies on signed wrap before the cast.
   s.pow2 = 1;
   s.tca = (Vec2f){-0.90f / 6000.0f, -0.40f / 6000.0f};
   s.count = 16;
-  TEST_ASSERT(agrees(&s, pingo_span_ref, "textured negative uv, ref"), "tex neg");
+  TEST_ASSERT(agrees(&s, impl, "textured negative uv, ref"), "tex neg");
 
   // Depth boundaries, driven through az/bz/cz so the whole span sits at one
   // depth. The 2^31 convert boundary is at 0.5; the reference is undefined at
@@ -171,7 +171,7 @@ int test_span(void) {
     const float d = depths[i];
     s.az = s.bz = s.cz = -d;
     s.areaInverse = 1.0f / 6000.0f;
-    TEST_ASSERT(agrees(&s, pingo_span_ref, "depth boundary, ref"), "depth ref");
+    TEST_ASSERT(agrees(&s, impl, "depth boundary, ref"), "depth ref");
   }
 
   // Out of range in both directions, which object.c rejects before the cast.
@@ -179,9 +179,28 @@ int test_span(void) {
   // free to disagree.
   s.az = s.bz = s.cz = 0.5f; /* negates to a negative depth */
   s.count = 16;
-  TEST_ASSERT(agrees(&s, pingo_span_ref, "negative depth, ref"), "depth neg");
+  TEST_ASSERT(agrees(&s, impl, "negative depth, ref"), "depth neg");
   s.az = s.bz = s.cz = -3.0f; /* depth well above 1 */
-  TEST_ASSERT(agrees(&s, pingo_span_ref, "depth above one, ref"), "depth high");
+  TEST_ASSERT(agrees(&s, impl, "depth above one, ref"), "depth high");
 
+  return 1;
+}
+
+// Every implementation this build compiled, held to the same cases. The
+// reference is always present; the others appear only where the build
+// selected them, and on a target with no hand-written path this degrades to
+// checking the reference against the model, which is still worth doing.
+int test_span(void) {
+  TEST_ASSERT(check_impl(pingo_span_ref), "reference");
+  printf("  span: reference checked\n");
+
+#if defined(PINGO_SIMD_SSE2)
+  TEST_ASSERT(check_impl(pingo_span_sse2), "sse2");
+  printf("  span: sse2 checked against the reference\n");
+#endif
+#if defined(PINGO_SIMD_AVX2)
+  TEST_ASSERT(check_impl(pingo_span_avx2), "avx2");
+  printf("  span: avx2 checked against the reference\n");
+#endif
   return 1;
 }
