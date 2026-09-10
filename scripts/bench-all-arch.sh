@@ -50,7 +50,11 @@ presets=$(cmake --list-presets=workflow | grep -oE '"arch-[a-z0-9-]+"' | tr -d '
 if [ ${#FILTERS[@]} -gt 0 ]; then
   keep=""
   for p in $presets; do
-    for f in "${FILTERS[@]}"; do [[ "$p" == *"$f"* ]] && keep="$keep $p"; done
+    # Once per preset, even when several filters match it: "mips" and
+    # "mipsel" both match mipsel, and it used to be built and timed twice.
+    for f in "${FILTERS[@]}"; do
+      if [[ "$p" == *"$f"* ]]; then keep="$keep $p"; break; fi
+    done
   done
   presets=$keep
 fi
