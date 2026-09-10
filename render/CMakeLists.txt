@@ -9,11 +9,12 @@ add_library(pingo_render ${render_src})
 # definition because span.h is installed and its inline dispatcher must resolve
 # the same way for consumers as it does here - otherwise a caller would inline
 # a call to a symbol this library does not export.
+# The hand-written spans. The PINGO_SIMD_* definitions that select them are
+# on pingo_math (see math/CMakeLists.txt) and arrive here through the PUBLIC
+# link, so span.h resolves the same way for this library, its consumers and
+# math_tests alike.
 if(NOT PINGO_SIMD_SELECTED STREQUAL "reference")
     target_sources(pingo_render PRIVATE simd/span_${PINGO_SIMD_SELECTED}.S)
-    string(TOUPPER "${PINGO_SIMD_SELECTED}" _pingo_simd_upper)
-    target_compile_definitions(pingo_render
-        PUBLIC PINGO_SIMD_${_pingo_simd_upper}=1)
 endif()
 
 # An AVX2 build also carries the SSE2 span, and span.h dispatches between them
@@ -23,7 +24,6 @@ endif()
 # call - the choice is one compare on a value the caller already holds.
 if(PINGO_SIMD_SELECTED STREQUAL "avx2")
     target_sources(pingo_render PRIVATE simd/span_sse2.S)
-    target_compile_definitions(pingo_render PUBLIC PINGO_SIMD_SSE2=1)
 endif()
 
 target_include_directories(pingo_render PUBLIC

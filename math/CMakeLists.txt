@@ -19,6 +19,17 @@ if(UNIX)
     target_link_libraries(pingo_math PUBLIC m)
 endif()
 
+# The SIMD selection, as PUBLIC definitions here rather than on pingo_render:
+# mat4.h has a vector body behind PINGO_SIMD_AVX2, and this is the library
+# that compiles and tests it. pingo_render links pingo_math PUBLIC, so the
+# definitions reach it and everything downstream from one place. Without this
+# math_tests would silently test the scalar transform in an AVX2 build.
+if(PINGO_SIMD_SELECTED STREQUAL "avx2")
+    target_compile_definitions(pingo_math PUBLIC PINGO_SIMD_AVX2=1 PINGO_SIMD_SSE2=1)
+elseif(PINGO_SIMD_SELECTED STREQUAL "sse2")
+    target_compile_definitions(pingo_math PUBLIC PINGO_SIMD_SSE2=1)
+endif()
+
 install(TARGETS pingo_math
     EXPORT pingoTargets
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}

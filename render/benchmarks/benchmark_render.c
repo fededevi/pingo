@@ -326,15 +326,30 @@ static int stability(int frames, int repeat) {
 //
 // Only the headline cases are run. Under emulation the other nine cost
 // minutes per architecture and were being discarded.
+//
+// If the file already exists its values are merged in, keeping the smaller of
+// old and new per case. That is what lets a script interleave two builds -
+// alternate the calls, and each file ends up holding its build's best across
+// every round - without the script doing any arithmetic of its own. Measuring
+// one build to completion and then the other has produced both a false gain
+// and a false regression on the benchmark host; alternating makes drift land
+// on both equally, and the minimum is the statistic that shrugs it off.
+#define MAX_HEADLINE 8
+
 static int summary(int frames, int repeat, const char *path) {
-  FILE *f = fopen(path, "w");
-  if (!f) {
-    fprintf(stderr, "cannot write %s\n", path);
-    return 2;
+  double prior[MAX_HEADLINE];
+  int prior_n = 0;
+  FILE *f = fopen(path, "r");
+  if (f) {
+    while (prior_n < MAX_HEADLINE && fscanf(f, "%lf", &prior[prior_n]) == 1)
+      prior_n++;
+    fclose(f);
   }
 
+  double ms[MAX_HEADLINE];
+  int n = 0;
   int bad = 0;
-  for (int i = 0; i < CASE_COUNT; i++) {
+  for (int i = 0; i < CASE_COUNT && n < MAX_HEADLINE; i++) {
     const Case *c = &CASES[i];
     if (!c->headline)
       continue;
@@ -345,16 +360,31 @@ static int summary(int frames, int repeat, const char *path) {
       bad = 1;
       break;
     }
-    fprintf(f, "%.4f ", r.best / frames * 1000.0);
-    printf("  %-14s %4dx%-4d %8.4f ms/frame  +%.1f%%\n", c->name, c->width,
-           c->height, r.best / frames * 1000.0, r.spread);
+    ms[n] = r.best / frames * 1000.0;
+    // Only merge against a file with the same shape; anything else is stale.
+    if (prior_n == 0 || n >= prior_n) {
+    } else if (prior[n] < ms[n]) {
+      ms[n] = prior[n];
+    }
+    printf("  %-14s %4dx%-4d %8.4f ms/frame  +%.1f%%%s\n", c->name, c->width,
+           c->height, r.best / frames * 1000.0, r.spread,
+           (prior_n && prior[n] < r.best / frames * 1000.0) ? "  (prior best kept)"
+                                                             : "");
+    n++;
   }
+  if (bad)
+    return 1; // leave whatever was there; a partial line reads as a good one
+
+  f = fopen(path, "w");
+  if (!f) {
+    fprintf(stderr, "cannot write %s\n", path);
+    return 2;
+  }
+  for (int i = 0; i < n; i++)
+    fprintf(f, "%.4f ", ms[i]);
   fprintf(f, "\n");
   fclose(f);
-
-  if (bad)
-    remove(path); // a partial line would be read as a good one
-  return bad;
+  return 0;
 }
 
 static int usage(const char *argv0) {
