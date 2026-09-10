@@ -25,6 +25,15 @@ Vec3f mat4MultiplyVec3(const Vec3f *v, const Mat4 *t);
 
 // Six calls per triangle, sixteen multiplies each: the one matrix routine
 // worth inlining unconditionally.
+//
+// Not vectorised, and that was measured rather than assumed. An AVX version -
+// four row loads, four multiplies, an eight-shuffle transpose and a sequential
+// sum to keep the scalar's addition order and so its bits - was 16% slower on
+// the sphere 40x40 benchmark and 6% slower on 20x20, with the fills unchanged.
+// The transpose and the store-and-reload of the returned struct cost more than
+// the compiler's scalar code, which stays in registers. A reduction that did
+// not preserve the addition order (dpps, hadd) would be faster and would move
+// the golden images. See docs/superpowers/plans/*simd-seam-results.md.
 static inline Vec4f mat4MultiplyVec4(const Vec4f *v, const Mat4 *t) {
   const F_TYPE *e = t->elements;
   return (Vec4f){
