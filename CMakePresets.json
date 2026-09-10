@@ -186,6 +186,15 @@
         "CC": "riscv64-unknown-elf-gcc",
         "CFLAGS": "-march=rv32imac -mabi=ilp32 --specs=picolibc.specs"
       }
+    },
+    {
+      "name": "avx2",
+      "inherits": "base",
+      "displayName": "Release, AVX2 (not portable)",
+      "description": "Eight pixels per span iteration. -mavx2 produces a binary that will not start on a machine without AVX2, which is why it cannot be the default and needs a preset of its own. -ffp-contract=off because -mfma lets the compiler fuse a*b+c with an unrounded intermediate: the C reference would then compute a different depth from the same expression in the default build, so the two binaries would disagree with each other and with the golden images before any assembly is involved. Reproducibility across builds is worth more here than the last ulp.",
+      "cacheVariables": {
+        "CMAKE_C_FLAGS": "-mavx2 -mfma -ffp-contract=off"
+      }
     }
   ],
   "buildPresets": [
@@ -266,6 +275,10 @@
     {
       "name": "shared",
       "configurePreset": "shared"
+    },
+    {
+      "name": "avx2",
+      "configurePreset": "avx2"
     }
   ],
   "testPresets": [
@@ -377,6 +390,13 @@
     {
       "name": "debug",
       "configurePreset": "debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "avx2",
+      "configurePreset": "avx2",
       "output": {
         "outputOnFailure": true
       }
@@ -678,6 +698,23 @@
         {
           "type": "test",
           "name": "debug"
+        }
+      ]
+    },
+    {
+      "name": "avx2",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "avx2"
+        },
+        {
+          "type": "build",
+          "name": "avx2"
+        },
+        {
+          "type": "test",
+          "name": "avx2"
         }
       ]
     }
